@@ -3,7 +3,8 @@ export const Experience = () => {
     {
       title: "ASP.NET Developer",
       company: "Touch and Pay Technologies Ltd (YC W22)",
-      date: "January 2025 - Present | London, United Kingdom",
+      date: "January 2024 - January 2025",
+      location: "Lagos, Nigeria",
       responsibilities: [
         "Developed and maintained backend systems using .NET technologies, achieving 20% improvement in application performance",
         "Implemented logic enhancements resulting in 50% increase in program efficiency",
@@ -14,7 +15,8 @@ export const Experience = () => {
     {
       title: "Python Developer",
       company: "Reymage",
-      date: "January 2024 - January 2025 | Lagos, Nigeria",
+      date: "2021 - 2023",
+      location: "Ibadan, Nigeria",
       responsibilities: [
         "Built web applications using Django framework, reducing server response times by 30%",
         "Designed RESTful APIs capable of handling 100,000 concurrent requests",
