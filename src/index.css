@@ -411,7 +411,8 @@ section {
 .project-card:hover {
   transform: translateY(-8px);
   background: var(--bg-card-hover);
-  border-color: var(--primary-accent);
+  border: 1px solid var(--primary-accent);
+  border-top: 0.1px solid rgba(0, 0, 0, 0); /* Remove top border to let gradient show */
   box-shadow: 0 10px 20px rgba(100, 255, 218, 0.08);
 }
 
