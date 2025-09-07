@@ -1,47 +1,37 @@
-import { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router";
 import { Navigation } from "./components/Navigation";
-import { Hero } from "./components/Hero";
-import { About } from "./components/About";
-import { Projects } from "./components/Projects";
-import { Experience } from "./components/Experience";
-import { Contact } from "./components/Contact";
 import { Footer } from "./components/Footer";
 import { ParticleEffect } from "./components/ParticleEffect";
-import "./index.css";
+import { Home } from "./pages/Home";
+import { ScrollToTop } from "./components/ScrollToTop";
+// import { ProjectList } from './pages/ProjectList';
+import { ProjectDetail } from "./pages/ProjectDetail";
 
-function App() {
-  useEffect(() => {
-    // Fade in animation on scroll
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: "0px 0px -50px 0px",
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("visible");
-        }
-      });
-    }, observerOptions);
-
-    document.querySelectorAll(".fade-in").forEach((el) => {
-      observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, []);
+function Layout() {
   return (
     <>
       <Navigation />
-      <Hero />
-      <About />
-      <Projects />
-      <Experience />
-      <Contact />
+      <main>
+        <Outlet />
+      </main>
       <Footer />
       <ParticleEffect />
     </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          {/* <Route path="projects" element={<ProjectList />} />*/}
+          <Route path="projects/:id" element={<ProjectDetail />} />
+        </Route>
+      </Routes>
+    </Router>
   );
 }
 

@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
+import "../styles/navigation.css";
+
 export const Navigation = () => {
   const [navBackground, setNavBackground] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isHomePage = location.pathname === "/";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -12,11 +18,24 @@ export const Navigation = () => {
   }, []);
 
   const scrollToSection = (sectionId) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+    if (isHomePage) {
+      // If already on homepage, just scroll
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      // If on different page, navigate to home then scroll
+      navigate("/");
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 200);
     }
   };
+
   return (
     <nav className={`nav ${navBackground ? "nav-scrolled" : ""}`}>
       <div className="nav-container">
@@ -29,6 +48,7 @@ export const Navigation = () => {
                 e.preventDefault();
                 scrollToSection("home");
               }}
+              className={isHomePage ? "active" : ""}
             >
               Home
             </a>

@@ -1,0 +1,71 @@
+/* Navigation */
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: var(--bg-nav);
+  backdrop-filter: blur(10px);
+  z-index: var(--z-nav);
+  padding: var(--spacing-sm) 0;
+  transition: all var(--transition-fast);
+}
+
+.nav-scrolled {
+  background: var(--bg-nav-scrolled);
+  transition: all var(--transition-fast);
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: var(--container-padding);
+}
+
+.logo {
+  font-size: var(--font-size-3xl);
+  font-weight: bold;
+  color: var(--primary-accent);
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: var(--spacing-lg);
+}
+
+.nav-links a {
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+  position: relative;
+}
+
+.nav-links a:hover {
+  color: var(--primary-accent);
+}
+
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--primary-accent);
+  transition: width var(--transition-fast);
+}
+
+.nav-links a:hover::after {
+  width: 100%;
+}
+
+.nav-links a.active {
+  color: var(--primary-accent);
+}
+
+.nav-links a.active::after {
+  width: 100%;
+}
