@@ -1,8 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/images/:file",
-      "destination": "https://res.cloudinary.com/dyzzyrfdq/image/upload/:file"
+      "source": "/images/:path*",
+      "destination": "https://res.cloudinary.com/dyzzyrfdq/image/upload/:path*"
     }
   ]
 }

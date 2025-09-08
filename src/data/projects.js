@@ -52,13 +52,13 @@ export const projects = [
           title: "Architecture & Workflow",
           images: [
             {
-              src: `${baseUrl}/image/upload/studybud_architecture.png`,
+              src: `${baseUrl}/studybud_architecture.png`,
               title: "System Workflow",
               description:
                 "High-level design of the document processing and quiz generation pipeline.",
             },
             {
-              src: `${baseUrl}/image/upload/studybud_wireframe.png`,
+              src: `${baseUrl}/studybud_wireframe.png`,
               title: "UI Wireframe",
               description:
                 "The user interface is designed with a focus on simplicity and usability",
@@ -79,19 +79,19 @@ export const projects = [
           title: "Key Features",
           images: [
             {
-              src: `${baseUrl}/image/upload/studybud_summary.png`,
+              src: `${baseUrl}/studybud_summary.png`,
               title: "Summary Page",
               description:
                 "Generated document summary with highlighted key points.",
             },
             {
-              src: `${baseUrl}/image/upload/StudyBud_Question.png`,
+              src: `${baseUrl}/StudyBud_Question.png`,
               title: "Quiz Page",
               description:
                 "Interactive quizzes generated from uploaded documents.",
             },
             {
-              src: `${baseUrl}/image/upload/StudyBud_Result_and_Feedback.png`,
+              src: `${baseUrl}/StudyBud_Result_and_Feedback.png`,
               title: "Feedback",
               description: "User feedback and weak area identification.",
             },
@@ -566,12 +566,12 @@ export const projects = [
           title: "TicketSage Screenshots",
           images: [
             {
-              src: `${baseUrl}/image/upload/ticketsage_home.png`,
+              src: `${baseUrl}/ticketsage_home.png`,
               title: "Homepage",
               description: "Movie listings with integration from TMDB API.",
             },
             {
-              src: `${baseUrl}/image/upload/ticketsage_drf.png`,
+              src: `${baseUrl}/ticketsage_drf.png`,
               title: "DRF API",
               description: "API response showing a user’s booked movie.",
             },
