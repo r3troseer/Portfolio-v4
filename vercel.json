@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/images/:path*",
-      "destination": "https://res.cloudinary.com/dyzzyrfdq/:path*"
+      "destination": "https://res.cloudinary.com/dyzzyrfdq/image/upload/:path*"
     }
   ]
 }
