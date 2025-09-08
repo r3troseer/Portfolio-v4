@@ -4,7 +4,6 @@ export const GalleryItem = ({ img, setModalData }) => {
     <div
       className="gallery-item"
       onClick={() => {
-        console.log("Clicked image:", img);
         setModalData(img);
       }}
     >

@@ -14,7 +14,6 @@ export const ContentCard = ({ markdown, type, tags, gallery, children }) => {
     [ContentType.Architecture]: <PencilRuler className="icon" />,
     [ContentType.Features]: <Lightbulb className="icon" />,
   };
-  console.log("Modal Data:", modalData);
   return (
     <div className="content-card">
       {/* add icon to markdown title */}
