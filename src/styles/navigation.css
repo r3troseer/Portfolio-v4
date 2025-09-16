@@ -109,6 +109,8 @@ nav {
 
 /* Mobile Menu */
 .mobile-menu {
+  visibility: hidden;
+  pointer-events: none;
   display: none;
   position: fixed;
   top: 100%;
@@ -124,6 +126,8 @@ nav {
 }
 
 .mobile-menu.active {
+  visibility: visible;
+  pointer-events: auto;
   transform: translateY(0);
   opacity: 1;
 }
