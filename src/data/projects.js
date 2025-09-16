@@ -299,12 +299,12 @@ export const projects = [
           title: "Screenshots",
           images: [
             {
-              src: "/images/ukshift-home.png",
+              src: `${baseUrl}/UK_shift_calculator_home`,
               title: "Dashboard",
               description: "Main interface with time clock and shift tracking.",
             },
             {
-              src: "/images/ukshift-summary.png",
+              src: `${baseUrl}/UK_shift_calculator_summary`,
               title: "Pay Summary",
               description: "Breakdown of gross pay, tax, NI, and net pay.",
             },
