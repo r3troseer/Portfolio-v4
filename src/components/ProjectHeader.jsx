@@ -1,4 +1,5 @@
 import { DynamicIcon } from "lucide-react/dynamic";
+import { Badge } from "./Badge";
 
 const iconMap = {
   github: "github",
@@ -7,10 +8,11 @@ const iconMap = {
   website: "globe",
 };
 
-export const ProjectHeader = ({ title, subtitle, overview, links }) => {
+export const ProjectHeader = ({ title, subtitle, overview, links, badge }) => {
   return (
     <div className="project-header">
       <h2 className="project-title">{title}</h2>
+      {badge && <Badge text={badge.text} type={badge.type} />}
       <p className="project-subtitle">{subtitle}</p>
       <div className="project-overview">
         <p>{overview}</p>

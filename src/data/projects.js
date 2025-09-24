@@ -134,116 +134,143 @@ export const projects = [
     ],
     timeline: [
       {
-        title: "Week 1–2: Research & Setup",
+        title: "Week 1-2: Research & Setup",
         description:
           "Explored NLP libraries, compared PDF/DOCX extraction tools, and set up Django project.",
       },
       {
-        title: "Week 3–4: Core Pipeline",
+        title: "Week 3-4: Core Pipeline",
         description:
           "Implemented document upload, PyMuPDF/docx2txt integration, and summarization pipeline.",
       },
       {
-        title: "Week 5–6: AI Integration",
+        title: "Week 5-6: AI Integration",
         description:
           "Integrated GPT models, built quiz generation, added caching and chunking strategies.",
       },
       {
-        title: "Week 7–8: Testing & UI",
+        title: "Week 7-8: Testing & UI",
         description:
           "Refined UI/UX, integrated user accounts, gathered feedback, and optimized performance.",
       },
     ],
   },
 
-  //   {
-  //     id: "eprep",
-  //     header: {
-  //       title: "EPrep",
-  //       subtitle: "E-learning platform built with Django",
-  //       overview:
-  //         "EPrep is an e-learning platform built with Django, introducing structured learning content, OTP-based phone verification, and hierarchical parent-child management for education workflows.",
-  //       links: [
-  //         {
-  //           href: "https://github.com/r3troseer/EPrep",
-  //           text: "View Code",
-  //           icon: "github",
-  //         },
-  //       ],
-  //     },
-  //     metrics: [
-  //       { number: "—", label: "Django backend" },
-  //       { number: "—", label: "OTP phone verification" },
-  //       { number: "—", label: "Parent-child management system" },
-  //     ],
-  //     contentCards: [
-  //       {
-  //         markdown: `### Architecture
-  // #### Authentication & Verification
-  // Implements OTP-based phone verification to secure user sign-ups.
-  // #### User Roles
-  // Supports roles like student, parent, and admin for flexible access control.
-  // #### Content Organization
-  // Structured learning modules with hierarchical relationships modeled via Django ORM.`,
-  //         tags: ["Django", "OTP", "Structured Content", "Role-based Access"],
-  //       },
-  //       {
-  //         markdown: `### Features & Innovation
-  // - Secure user onboarding with OTP via phone.
-  // - Hierarchical parent-child accounts for parents to monitor student progress.
-  // - Organized course/module content for guided learning.`,
-  //       },
-  //     ],
-  //     problemSolutions: [
-  //       {
-  //         problem: {
-  //           title: "🚨 Challenge: Secure Onboarding at Scale",
-  //           issue:
-  //             "Email-only onboarding lacked trust; phone-based OTP verification needed to be scalable and secure.",
-  //           impact: "Lower user trust and increased risk of fraudulent accounts.",
-  //         },
-  //         solution: {
-  //           title: "✅ Solution: Integrate OTP-as-a-Service",
-  //           implementation:
-  //             "Integrated an OTP delivery provider and bound flow into Django authentication.",
-  //           result:
-  //             "Higher trust, reduced account abuse, improved signup success rates.",
-  //         },
-  //       },
-  //     ],
-  //     timeline: [
-  //       {
-  //         title: "Phase 1: MVP Setup",
-  //         description:
-  //           "Built baseline Django app and user model with phone field.",
-  //       },
-  //       {
-  //         title: "Phase 2: OTP Verification",
-  //         description:
-  //           "Set up OTP generation, sending, and validation during registration.",
-  //       },
-  //       {
-  //         title: "Phase 3: Structuring Content",
-  //         description:
-  //           "Designed learning content structure and parent/student relationships.",
-  //       },
-  //     ],
-  //     galleryTitle: "EPrep Interface",
-  //     gallery: [
-  //       {
-  //         src: "/images/eprep-register.png",
-  //         alt: "EPrep register UI",
-  //         title: "Phone OTP Registration",
-  //         description: "Secure sign-up flow using OTP verification.",
-  //       },
-  //       {
-  //         src: "/images/eprep-dashboard.png",
-  //         alt: "EPrep dashboard UI",
-  //         title: "Learning Dashboard",
-  //         description: "User dashboard showing available courses and progress.",
-  //       },
-  //     ],
-  //   },
+  {
+    id: "eprep",
+    header: {
+      title: "EPrep",
+      subtitle: "API-Driven Exam Preparation Platform (Unfinished MVP)",
+      overview:
+        "EPrep is an unfinished but feature-rich Django REST Framework backend designed to power a mobile-first exam preparation service. It provides secure authentication with OTP, exam/practice APIs, and Paystack-powered payments. While not production-ready, it demonstrates modern backend architecture and real-world integrations suitable for scaling.",
+      links: [
+        {
+          icon: "github",
+          text: "View Code",
+          href: "https://github.com/r3troseer/EPrep",
+        },
+      ],
+      badge: { text: "MVP / Unfinished", type: "warning" },
+    },
+    metrics: [
+      { number: "4", label: "Core Apps (api, users, payment, otp)" },
+      { number: "2", label: "OTP Providers Integrated (Termii, Twilio)" },
+      { number: "100%", label: "API-First Design" },
+      { number: "MVP", label: "Development Stage" },
+    ],
+    contentCards: [
+      {
+        markdown: `### Backend Architecture
+- **Framework:** Django 4.1 + Django REST Framework.
+- **Authentication:** JWT tokens via SimpleJWT, with social login (django-allauth + dj-rest-auth).
+- **Apps:**
+  - \`users\`: Registration, login, password reset.
+  - \`api\`: Core exam/practice APIs.
+  - \`payment\`: Paystack integration for subscriptions.
+  - \`otp\`: OTP verification with Termii/Twilio.
+- **Config & Secrets:** Managed via python-decouple.
+- **Database:** SQLite in dev; Postgres/MySQL ready for production.`,
+        type: ContentType.Architecture,
+        tags: ["Django", "DRF", "JWT", "Paystack", "Termii", "Twilio"],
+      },
+      {
+        markdown: `### Features & Current Status
+- **User Management:** Secure signup/login, password reset, social login.
+- **Payments:** Paystack integration with transaction records.
+- **OTP Security:** SMS/email OTP for secure authentication.
+- **Exam APIs:** Partially implemented, designed for question/answer flow.
+- **Status:** Backend MVP complete, Flutter frontend in progress, no live deployment yet.`,
+        type: ContentType.Features,
+        tags: ["API-First", "Mobile Backend", "Authentication", "Payments"],
+        gallery: {
+          title: "EPrep (Figma UI)",
+          images: [
+            {
+              src: "/images/eprep-login.png",
+              title: "Login UI (Figma)",
+              description: "Secure login and OTP verification flow.",
+            },
+            {
+              src: "/images/eprep-dashboard.png",
+              title: "Dashboard (Figma)",
+              description: "Planned exam/practice dashboard for students.",
+            },
+          ],
+        },
+      },
+    ],
+    problemSolutions: [
+      {
+        problem: {
+          title: "Challenge: Secure Authentication",
+          issue: "Needed strong user authentication beyond simple passwords.",
+          impact: "Risk of unauthorized access and weak security flows.",
+        },
+        solution: {
+          title: "Solution: JWT + OTP",
+          implementation:
+            "Implemented JWT authentication with dj-rest-auth and Termii/Twilio OTP verification.",
+          result: "Modern, secure login ready for mobile integration.",
+        },
+      },
+      {
+        problem: {
+          title: "Challenge: Monetization",
+          issue: "Required payment flow for unlocking premium content.",
+          impact: "No sustainable model without transactions.",
+        },
+        solution: {
+          title: "Solution: Paystack Integration",
+          implementation:
+            "Integrated Paystack APIs and transaction recording in the `payment` app.",
+          result: "Supports subscriptions/credits with audit trail.",
+        },
+      },
+    ],
+    timeline: [
+      {
+        title: "Week 1: Setup",
+        description: "Configured Django + DRF with modular apps.",
+      },
+      {
+        title: "Week 2-3: Authentication",
+        description: "Implemented JWT + dj-rest-auth with OTP verification.",
+      },
+      {
+        title: "Week 4: Payments",
+        description: "Integrated Paystack APIs and transaction models.",
+      },
+      {
+        title: "Week 5: Exam APIs",
+        description: "Scaffolded endpoints for practice questions.",
+      },
+      {
+        title: "Ongoing",
+        description: "Flutter frontend in progress, deployment pending.",
+      },
+    ],
+  },
+
   {
     id: "uk-shift-calculator",
     header: {
@@ -319,7 +346,7 @@ export const projects = [
           issue:
             "Shift workers needed realistic tax/NI deductions without manual input.",
           impact:
-            "Users couldn’t rely on generic calculators for accurate take-home pay.",
+            "Users couldn't rely on generic calculators for accurate take-home pay.",
         },
         solution: {
           title: "Solution: Built-in Tax Engine",
@@ -350,7 +377,7 @@ export const projects = [
           "Defined requirements and studied UK tax system + shift work needs.",
       },
       {
-        title: "Week 2–3: Core Development",
+        title: "Week 2-3: Core Development",
         description:
           "Built React components, tax engine, and localStorage persistence.",
       },
@@ -364,148 +391,248 @@ export const projects = [
       },
     ],
   },
-  //   {
-  //     id: "train-booking",
-  //     header: {
-  //       title: "Train Booking System",
-  //       subtitle: "Booking trains with .NET backend",
-  //       overview:
-  //         "A train reservation system built with .NET, allowing users to search schedules, select seats, and book train tickets.",
-  //       links: [{ href: "#", text: "View Code", icon: "github" }],
-  //     },
-  //     metrics: [
-  //       { number: "—", label: ".NET core microservices" },
-  //       { number: "—", label: "Seat selection & booking" },
-  //     ],
-  //     contentCards: [
-  //       {
-  //         markdown: `### Architecture
-  // Built on .NET, includes services for schedules, booking, seat selection, and user management.`,
-  //       },
-  //       {
-  //         markdown: `### Features
-  // - Browse train schedules.
-  // - Select seats and make reservations.
-  // - Confirm booking with ticket details.`,
-  //       },
-  //     ],
-  //     problemSolutions: [
-  //       {
-  //         problem: {
-  //           title: "🚨 Challenge: Seat Availability Sync",
-  //           issue:
-  //             "Ensuring seat availability in real-time under concurrent bookings.",
-  //           impact: "Double booking or inconsistent seat state.",
-  //         },
-  //         solution: {
-  //           title: "✅ Solution: Transactional Locks",
-  //           implementation:
-  //             "Employed atomic transactional logic or concurrency locks on seat inventory.",
-  //           result: "Consistent booking and no overlapping reservations.",
-  //         },
-  //       },
-  //     ],
-  //     timeline: [
-  //       {
-  //         title: "Phase 1: Service Design",
-  //         description:
-  //           "Designed backend services for schedule, seat, and booking modules.",
-  //       },
-  //       {
-  //         title: "Phase 2: Booking Flow",
-  //         description:
-  //           "Implemented booking workflow with seat reservations and confirmation.",
-  //       },
-  //     ],
-  //     galleryTitle: "Booking Flow",
-  //     gallery: [
-  //       {
-  //         src: "/images/train-search.png",
-  //         alt: "Train schedule search UI",
-  //         title: "Search Schedules",
-  //         description: "Find trains by date and destination.",
-  //       },
-  //       {
-  //         src: "/images/train-booking.png",
-  //         alt: "Train booking UI",
-  //         title: "Seat Reservation",
-  //         description: "Select seat and complete booking.",
-  //       },
-  //     ],
-  //   },
+  {
+    id: "train-booking",
+    header: {
+      title: "TBS-SeatBooking",
+      subtitle: "A Clean Architecture .NET 8 train seat booking system",
+      overview:
+        "TBS-SeatBooking is a reservation system built with .NET 8 Web API following Clean Architecture principles. It manages routes, schedules, real-time seat availability, bookings, and payments while providing OTP-based authentication for a frictionless user experience.",
+      links: [],
+    },
+    metrics: [
+      { number: "500+", label: "Seats managed per schedule" },
+      { number: "99.9%", label: "Conflict-free booking reliability" },
+      { number: "<150ms", label: "Average seat availability check" },
+    ],
+    contentCards: [
+      {
+        markdown: `
+### Architecture & Core Features
 
-  //   {
-  //     id: "printing-service",
-  //     header: {
-  //       title: "Printing Service",
-  //       subtitle: "Document-to-Print service with .NET/Blazor",
-  //       overview:
-  //         "A document printing service with both backend and front-end built in .NET/Blazor. Users upload docs, receive a print code, pay per page (and color), and retrieve printed documents via code at a print station.",
-  //       links: [{ href: "#", text: "View Code", icon: "github" }],
-  //     },
-  //     metrics: [
-  //       { number: "—", label: ".NET + Blazor" },
-  //       { number: "—", label: "Pay-per-page + color pricing" },
-  //       { number: "—", label: "Secure retrieval via print code" },
-  //     ],
-  //     contentCards: [
-  //       {
-  //         markdown: `### Architecture
-  // Frontend built with Blazor for interactivity; backend in .NET handles uploads, payment logic, and code generation.`,
-  //       },
-  //       {
-  //         markdown: `### Features
-  // - Upload documents.
-  // - Pay dynamically by page and color.
-  // - Receive a print-retrieval code.
-  // - Authenticate and print at station using code.`,
-  //       },
-  //     ],
-  //     problemSolutions: [
-  //       {
-  //         problem: {
-  //           title: "Challenge: Secure and Easy Retrieval",
-  //           issue:
-  //             "Users need a seamless experience to print securely without over-sharing sensitive data.",
-  //           impact: "Risk of unclaimed or misprinted documents or theft.",
-  //         },
-  //         solution: {
-  //           title: "Solution: Unique Print Code Flow",
-  //           implementation:
-  //             "Generates a short code after upload + payment, gives to user; used at station to release print.",
-  //           result:
-  //             "Secure, contact-less retrieval and accurate accounting per user and document.",
-  //         },
-  //       },
-  //     ],
-  //     timeline: [
-  //       {
-  //         title: "Sprint 1: Upload & Payment",
-  //         description:
-  //           "Built document upload interface and pay-per-page/color calculation logic.",
-  //       },
-  //       {
-  //         title: "Sprint 2: Code Generation & Retrieval",
-  //         description:
-  //           "Implemented code issuance and station validation flow for downloading documents.",
-  //       },
-  //     ],
-  //     galleryTitle: "Printing Service UI",
-  //     gallery: [
-  //       {
-  //         src: "/images/print-upload.png",
-  //         alt: "Document upload UI",
-  //         title: "Upload & Payment",
-  //         description: "Upload and calculate cost before generating print code.",
-  //       },
-  //       {
-  //         src: "/images/print-retrieve.png",
-  //         alt: "Print retrieval UI",
-  //         title: "Retrieve by Code",
-  //         description: "Enter code at station to print your document.",
-  //       },
-  //     ],
-  //   },
+The system follows **Clean Architecture** with strict separation of concerns:
+
+- **Core Domain** → Entities like \`TripSchedule\`, \`Seat\`, \`Booking\`, \`Transaction\`.  
+- **Application Layer** → Use cases (\`TripScheduleUseCase\`, \`BookingUseCase\`), DTOs, AutoMapper.  
+- **Infrastructure Layer** → MySQL persistence & repository implementations.  
+- **Presentation Layer** → ASP.NET Web API controllers with Swagger docs.  
+  
+#### Core Capabilities:
+- Trip management (routes, stops, schedules).  
+- Real-time seat availability (STD, BUS, VIP).  
+- Booking flow: seat assignment, contacts, order time.  
+- Transactions with booking linkage, metadata & status.  
+- Passwordless login with OTP (email/SMS).  
+      `,
+        type: ContentType.Architecture,
+        tags: ["Architecture", ".NET 8", "Clean Architecture", "API"],
+      },
+      {
+        markdown: `
+### My Contributions
+
+- **OTP Authentication:** Designed and implemented passwordless login/register via OTP for frictionless onboarding.  
+- **Stop Logic Refactor:** Decoupled stop retrieval from repositories, moving mapping to service layer → easier to test & extend.  
+- **Booking Enhancements:** Built the \`TripBooking\` model, added merging logic, and conflict prevention in seat allocation.  
+- **Transactions:** Implemented persistence (\`transactionId\`, \`bookingId\`, \`refId\`, status) and ensured reconciliation with bookings.  
+
+#### Impact:
+- Simplified user onboarding with OTP.  
+- Improved maintainability of schedule & stop logic.  
+- Prevented overlapping seat bookings → improved reliability.  
+- Scalable due to persistence abstraction & clean separation.  
+      `,
+        type: ContentType.Features,
+        tags: ["OTP", "Transactions", "Booking", "Seat Logic"],
+      },
+    ],
+    problemSolutions: [
+      {
+        problem: {
+          title: "Stop Logic Complexity",
+          issue:
+            "Stop retrieval was tightly coupled inside repository methods, mixing persistence with domain mapping.",
+          impact:
+            "Testing was difficult, and any change in stop logic risked breaking repository code.",
+        },
+        solution: {
+          title: "Refactor Stop Retrieval",
+          implementation:
+            "Split stop retrieval into dedicated repository methods and moved mapping into the service layer.",
+          result:
+            "Improved testability and flexibility, stop logic can now evolve independently of persistence.",
+        },
+      },
+      {
+        problem: {
+          title: "Seat Allocation Conflicts",
+          issue:
+            "Simultaneous booking requests could assign the same seat before payment was confirmed.",
+          impact:
+            "This risked double-bookings, leading to customer frustration and financial errors.",
+        },
+        solution: {
+          title: "Conflict-Free Booking Flow",
+          implementation:
+            "Enhanced booking logic to merge seat requests, validate seat availability, and tie allocation directly to payment status.",
+          result:
+            "No more overlapping reservations; users can only confirm seats after valid payment.",
+        },
+      },
+    ],
+    timeline: [
+      {
+        title: "2024-09",
+        description:
+          "Initialized .NET 8 Clean Architecture solution with Core, Infrastructure, and WebAPI layers.",
+      },
+      {
+        title: "2024-10",
+        description:
+          "Implemented booking flow, seat availability checks, and transaction persistence.",
+      },
+      {
+        title: "2024-11",
+        description:
+          "Added OTP-based authentication and improved SeatAvailabilityDto with enums.",
+      },
+      {
+        title: "2024-12",
+        description:
+          "Refactored stop logic into repositories + services. Released MVP internally.",
+      },
+      {
+        title: "2025-01",
+        description:
+          "Extended booking flow with email ticket notifications and payment reconciliation.",
+      },
+    ],
+  },
+
+  {
+    id: "printing-service",
+    header: {
+      title: "OPS — Online Printing Service",
+      subtitle: "Clean Architecture .NET Backend + Blazor Frontend",
+      overview:
+        "OPS is a full-stack solution for document printing services, built with ASP.NET Core Web API and a Blazor Server UI. It allows users to upload documents, pay online, and retrieve a unique code for printing at a physical station. The system uses a Clean architecture with MongoDB/MySQL persistence, Redis caching, Azure Blob storage, and JWT-based authentication.",
+      links: [
+        // { icon: "github", text: "View Code", href: "https://github.com/r3troseer/OPS" }
+      ],
+    },
+    metrics: [
+      { number: "100+", label: "Documents printed" },
+      { number: "3+", label: "Storage Backends (MongoDB, MySQL, SQLite)" },
+      { number: "100%", label: "Clean Architecture" },
+      { number: "Redis + Azure", label: "Caching & File Storage" },
+    ],
+    contentCards: [
+      {
+        markdown: `### Architecture & Backend
+- **Clean Architecture:** Core (domain & use cases), Infrastructure (repositories, persistence), WebAPI (controllers).
+- **Persistence:** Supports MongoDB, MySQL, and SQLite with repository pattern.
+- **Caching:** Redis integration for performance.
+- **File Storage:** Azure Blob storage for uploaded documents.
+- **Auth:** Custom JWT authentication with token validation via IdentityManager.
+- **Use Cases:** Organized under Core/Application/Services for accounts, print jobs, and payments.
+- **Testing:** Separate Core and Infrastructure test projects ensure business logic is verifiable.`,
+        type: ContentType.Architecture,
+        tags: [
+          "ASP.NET Core",
+          "Clean Architecture",
+          "MongoDB",
+          "Redis",
+          "Azure Blob Storage",
+        ],
+      },
+      {
+        markdown: `### Features & User Experience
+- **User Workflow:** Upload a document → Pay online → Receive a unique code → Print at a station.
+- **Payments:** Integrated payment processing with transaction tracking.
+- **Blazor Server UI:** Components for login, upload, payment confirmation, and job management.
+- **Queueing:** Background job consumer processes print jobs asynchronously.
+- **Admin Tools:** API endpoints and Blazor components for managing users, jobs, and transactions.
+- **Security:** JWT token-based authentication with OTP support.`,
+        type: ContentType.Features,
+        tags: ["Blazor Server", "JWT Auth", "Payments", "Background Jobs"],
+        gallery: {
+          title: "OPS Screenshots",
+          images: [
+            {
+              src: "/images/ops-upload.png",
+              title: "Upload Document",
+              description:
+                "Blazor component for uploading and managing documents.",
+            },
+            {
+              src: "/images/ops-payment.png",
+              title: "Payment Confirmation",
+              description: "Payment workflow integrated with backend services.",
+            },
+          ],
+        },
+      },
+    ],
+    problemSolutions: [
+      {
+        problem: {
+          title: "Challenge: Duplicate File Uploads",
+          issue: "Users repeatedly uploaded the same documents for reprints.",
+          impact: "Wasted storage and cluttered user workflow.",
+        },
+        solution: {
+          title: "Solution: Document Reuse",
+          implementation:
+            "Built a 'My Documents' page so users can reselect past uploads instead of re-uploading.",
+          result:
+            "Reduced storage use, simplified reprints, and improved overall UX.",
+        },
+      },
+      {
+        problem: {
+          title: "Challenge: Passwordless Authentication",
+          issue:
+            "Passwords added friction and risk without real security value.",
+          impact: "Slower onboarding and potential weak password issues.",
+        },
+        solution: {
+          title: "Solution: OTP-Based Login/Register",
+          implementation:
+            "Replaced passwords with one-time codes for both login and new device registration.",
+          result:
+            "Faster onboarding, no password resets, and secure identity across devices.",
+        },
+      },
+    ],
+    timeline: [
+      {
+        title: "Phase 1: Architecture & Setup",
+        description:
+          "Established Clean structure, Core, Infrastructure, and WebAPI projects.",
+      },
+      {
+        title: "Phase 2: Authentication & Print Jobs",
+        description:
+          "Implemented JWT auth, account workflows, and print job domain logic.",
+      },
+      {
+        title: "Phase 3: Storage & Payments",
+        description:
+          "Added Azure Blob storage and payment processing workflow.",
+      },
+      {
+        title: "Phase 4: UI & Background Jobs",
+        description:
+          "Built Blazor UI components and job consumer for print processing.",
+      },
+      {
+        title: "Phase 5: Testing & Optimization",
+        description:
+          "Wrote Core/Infrastructure tests and integrated Redis caching.",
+      },
+    ],
+  },
+
   {
     id: "ticketsage",
     header: {
@@ -573,7 +700,7 @@ export const projects = [
             {
               src: `${baseUrl}/ticketsage_drf.png`,
               title: "DRF API",
-              description: "API response showing a user’s booked movie.",
+              description: "API response showing a user's booked movie.",
             },
           ],
         },
@@ -613,22 +740,22 @@ export const projects = [
     ],
     timeline: [
       {
-        title: "Week 1–2: Research & Setup",
+        title: "Week 1-2: Research & Setup",
         description:
           "Defined project scope, set up Django backend, connected TMDB API.",
       },
       {
-        title: "Week 3–4: Core API Development",
+        title: "Week 3-4: Core API Development",
         description:
           "Built endpoints for movies, bookings, authentication, and users.",
       },
       {
-        title: "Week 5–6: Frontend & Admin Features",
+        title: "Week 5-6: Frontend & Admin Features",
         description:
           "Integrated Next.js frontend, developed admin tools for cinemas and showtimes.",
       },
       {
-        title: "Week 7–8: Testing & Deployment",
+        title: "Week 7-8: Testing & Deployment",
         description:
           "Conducted unit/UAT testing, deployed backend to PythonAnywhere and frontend to Vercel.",
       },
