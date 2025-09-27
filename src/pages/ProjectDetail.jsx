@@ -16,9 +16,9 @@ export const ProjectDetail = () => {
   if (!project) {
     return (
       <section className="not-found">
-        {/* <div className="container"> */}
-        <p>Project not found</p>
-        {/* </div> */}
+        <div className="container">
+          <p>Project not found</p>
+        </div>
       </section>
     );
   }
