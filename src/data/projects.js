@@ -160,7 +160,7 @@ export const projects = [
     id: "eprep",
     header: {
       title: "EPrep",
-      subtitle: "API-Driven Exam Preparation Platform (Unfinished MVP)",
+      subtitle: "API-Driven Exam Preparation Platform",
       overview:
         "EPrep is an unfinished but feature-rich Django REST Framework backend designed to power a mobile-first exam preparation service. It provides secure authentication with OTP, exam/practice APIs, and Paystack-powered payments. While not production-ready, it demonstrates modern backend architecture and real-world integrations suitable for scaling.",
       links: [
@@ -170,7 +170,7 @@ export const projects = [
           href: "https://github.com/r3troseer/EPrep",
         },
       ],
-      badge: { text: "MVP / Unfinished", type: "warning" },
+      badge: { text: "MVP", type: "mvp", size: "small" },
     },
     metrics: [
       { number: "4", label: "Core Apps (api, users, payment, otp)" },
@@ -290,6 +290,7 @@ export const projects = [
           href: "https://uk-shift-calculator.vercel.app/",
         },
       ],
+      badge: { text: "Live", type: "live", size: "small" },
     },
     metrics: [
       { number: "1000+", label: "Shifts logged in testing" },
@@ -399,6 +400,7 @@ export const projects = [
       overview:
         "TBS-SeatBooking is a reservation system built with .NET 8 Web API following Clean Architecture principles. It manages routes, schedules, real-time seat availability, bookings, and payments while providing OTP-based authentication for a frictionless user experience.",
       links: [],
+      badge: { text: "Private", type: "private", size: "small" },
     },
     metrics: [
       { number: "500+", label: "Seats managed per schedule" },
@@ -516,9 +518,8 @@ The system follows **Clean Architecture** with strict separation of concerns:
       subtitle: "Clean Architecture .NET Backend + Blazor Frontend",
       overview:
         "OPS is a full-stack solution for document printing services, built with ASP.NET Core Web API and a Blazor Server UI. It allows users to upload documents, pay online, and retrieve a unique code for printing at a physical station. The system uses a Clean architecture with MongoDB/MySQL persistence, Redis caching, Azure Blob storage, and JWT-based authentication.",
-      links: [
-        // { icon: "github", text: "View Code", href: "https://github.com/r3troseer/OPS" }
-      ],
+      links: [],
+      badge: { text: "Private", type: "private", size: "small" },
     },
     metrics: [
       { number: "100+", label: "Documents printed" },

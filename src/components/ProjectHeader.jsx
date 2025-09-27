@@ -11,8 +11,14 @@ const iconMap = {
 export const ProjectHeader = ({ title, subtitle, overview, links, badge }) => {
   return (
     <div className="project-header">
-      <h2 className="project-title">{title}</h2>
-      {badge && <Badge text={badge.text} type={badge.type} />}
+      <div class="title-with-badges">
+        <h2 className="project-title">{title}</h2>
+        <div class="title-badges badge-group">
+          {badge && (
+            <Badge text={badge.text} type={badge.type} size={badge.size} />
+          )}
+        </div>
+      </div>
       <p className="project-subtitle">{subtitle}</p>
       <div className="project-overview">
         <p>{overview}</p>
