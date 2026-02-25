@@ -10,9 +10,7 @@ export const ProjectCard = ({ id, title, description, technologies }) => {
       <h3>{title}</h3>
       <p>{description}</p>
       <TechTags tags={technologies} />
-      <div className="card-hover-indicator">
-        <span>View Details →</span>
-      </div>
+      <span className="card-cta">View Details →</span>
     </Link>
   );
 };

@@ -403,7 +403,8 @@ section {
   border: 1px solid var(--border-subtle);
   position: relative;
   overflow: hidden;
-  display: block;
+  display: flex;
+  flex-direction: column;
   text-decoration: none;
   color: inherit;
 }
@@ -426,7 +427,7 @@ section {
   transform: translateY(-8px);
   background: var(--bg-card-hover);
   border: 1px solid var(--primary-accent);
-  border-top: 0.1px solid rgba(0, 0, 0, 0); /* Remove top border to let gradient show */
+  border-top-color: transparent;
   box-shadow: 0 10px 20px rgba(100, 255, 218, 0.08);
 }
 
@@ -458,27 +459,19 @@ section {
   border: 1px solid rgba(100, 255, 218, 0.2);
 }
 
-.card-hover-indicator {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(
-    to top,
-    var(--primary-accent) 0%,
-    transparent 100%
-  );
-  color: white;
-  padding: var(--spacing-sm);
-  transform: translateY(100%);
-  transition: transform var(--transition-fast);
-  text-align: center;
+.card-cta {
+  display: block;
+  margin-top: auto;
+  padding-top: var(--spacing-sm);
+  color: var(--primary-accent);
+  font-size: var(--font-size-sm);
   font-weight: 500;
-  opacity: 0.9;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
 }
 
-.project-card:hover .card-hover-indicator {
-  transform: translateY(0);
+.project-card:hover .card-cta {
+  opacity: 1;
 }
 
 .project-card:focus {
