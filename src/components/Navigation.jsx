@@ -22,92 +22,56 @@ export const Navigation = () => {
     setIsMobileMenuOpen(false);
   }, [location]);
 
-  const scrollToSection = (sectionId) => {
-    setIsMobileMenuOpen(false);
-    if (isHomePage) {
-      // If already on homepage, just scroll
-      const element = document.getElementById(sectionId);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-      }
-    } else {
-      // If on different page, navigate to home then scroll
-      navigate("/");
-      setTimeout(() => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth" });
-        }
-      }, 200);
-    }
-  };
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const scrollToSection = (e, sectionId) => {
+    e.preventDefault();
+    closeMobileMenu();
+
+    if (isHomePage) {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+        window.history.pushState(null, "", `#${sectionId}`);
+      }
+    } else {
+      navigate("/");
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+          window.history.replaceState(null, "", `/#${sectionId}`);
+        }
+      }, 100);
+    }
+  };
+
+  const sectionHref = (id) => (isHomePage ? `#${id}` : `/#${id}`);
+
   return (
     <nav className={`nav ${navBackground ? "nav-scrolled" : ""}`}>
       <div className="nav-container">
-        <div className="logo">Pius Agboola</div>
+        <Link to="/" className="logo">Pius Agboola</Link>
         <ul className="nav-links">
           <li>
             <a
-              href="#home"
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToSection("home");
-              }}
+              href={sectionHref("home")}
+              onClick={(e) => scrollToSection(e, "home")}
               className={isHomePage ? "active" : ""}
             >
               Home
             </a>
           </li>
-          <li>
-            <a
-              href="#about"
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToSection("about");
-              }}
-            >
-              About
-            </a>
-          </li>
-          <li>
-            <a
-              href="#projects"
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToSection("projects");
-              }}
-            >
-              Projects
-            </a>
-          </li>
-          <li>
-            <a
-              href="#experience"
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToSection("experience");
-              }}
-            >
-              Experience
-            </a>
-          </li>
-          <li>
-            <a
-              href="#contact"
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToSection("contact");
-              }}
-            >
-              Contact
-            </a>
-          </li>
+          <li><a href={sectionHref("about")} onClick={(e) => scrollToSection(e, "about")}>About</a></li>
+          <li><a href={sectionHref("projects")} onClick={(e) => scrollToSection(e, "projects")}>Projects</a></li>
+          <li><a href={sectionHref("experience")} onClick={(e) => scrollToSection(e, "experience")}>Experience</a></li>
+          <li><a href={sectionHref("contact")} onClick={(e) => scrollToSection(e, "contact")}>Contact</a></li>
         </ul>
+
         {/* Mobile Hamburger Button */}
         <button
           className={`mobile-menu-toggle ${isMobileMenuOpen ? "active" : ""}`}
@@ -124,60 +88,17 @@ export const Navigation = () => {
           <ul className="mobile-nav-links">
             <li>
               <a
-                href="#home"
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollToSection("home");
-                }}
+                href={sectionHref("home")}
+                onClick={(e) => scrollToSection(e, "home")}
                 className={isHomePage ? "active" : ""}
               >
                 Home
               </a>
             </li>
-            <li>
-              <a
-                href="#about"
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollToSection("about");
-                }}
-              >
-                About
-              </a>
-            </li>
-            <li>
-              <a
-                href="#projects"
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollToSection("projects");
-                }}
-              >
-                Projects
-              </a>
-            </li>
-            <li>
-              <a
-                href="#experience"
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollToSection("experience");
-                }}
-              >
-                Experience
-              </a>
-            </li>
-            <li>
-              <a
-                href="#contact"
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollToSection("contact");
-                }}
-              >
-                Contact
-              </a>
-            </li>
+            <li><a href={sectionHref("about")} onClick={(e) => scrollToSection(e, "about")}>About</a></li>
+            <li><a href={sectionHref("projects")} onClick={(e) => scrollToSection(e, "projects")}>Projects</a></li>
+            <li><a href={sectionHref("experience")} onClick={(e) => scrollToSection(e, "experience")}>Experience</a></li>
+            <li><a href={sectionHref("contact")} onClick={(e) => scrollToSection(e, "contact")}>Contact</a></li>
           </ul>
         </div>
       </div>

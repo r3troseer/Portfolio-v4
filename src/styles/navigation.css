@@ -28,6 +28,7 @@ nav {
   font-size: var(--font-size-3xl);
   font-weight: bold;
   color: var(--primary-accent);
+  text-decoration: none;
 }
 
 .nav-links {

@@ -396,6 +396,9 @@ section {
   border: 1px solid var(--border-subtle);
   position: relative;
   overflow: hidden;
+  display: block;
+  text-decoration: none;
+  color: inherit;
 }
 
 .project-card::before {
