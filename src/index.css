@@ -363,15 +363,7 @@ section {
   padding: var(--spacing-md);
   border-radius: var(--radius-lg);
   text-align: center;
-  transition: all var(--transition-fast);
   border: 1px solid var(--border-subtle);
-}
-
-.skill-item:hover {
-  transform: translateY(-3px);
-  background: var(--bg-card-hover);
-  border-color: var(--primary-accent);
-  box-shadow: 0 4px 12px rgba(100, 255, 218, 0.1);
 }
 
 .skill-item h4 {
