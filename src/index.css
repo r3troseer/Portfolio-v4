@@ -270,9 +270,16 @@ nav {
 .hero .tagline {
   font-size: var(--font-size-xl);
   color: var(--text-secondary);
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
   max-width: 600px;
   animation: fadeInUp 1s ease 0.2s backwards;
+}
+
+.hero-location {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-lg);
+  animation: fadeInUp 1s ease 0.3s backwards;
 }
 
 /* add glow anitimation on page first visit */
