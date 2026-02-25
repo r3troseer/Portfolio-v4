@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router";
 import { Navigation } from "../components/Navigation";
 import { Hero } from "../components/Hero";
 import { About } from "../components/About";
@@ -9,6 +10,17 @@ import { Contact } from "../components/Contact";
 import { ParticleEffect } from "../components/ParticleEffect";
 
 export function Home() {
+  const { state } = useLocation();
+
+  useEffect(() => {
+    if (state?.scrollTo) {
+      const element = document.getElementById(state.scrollTo);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }, [state]);
+
   useEffect(() => {
     // Fade in animation on scroll
     const observerOptions = {

@@ -39,14 +39,7 @@ export const Navigation = () => {
         window.history.pushState(null, "", `#${sectionId}`);
       }
     } else {
-      navigate("/");
-      setTimeout(() => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth" });
-          window.history.replaceState(null, "", `/#${sectionId}`);
-        }
-      }, 100);
+      navigate("/", { state: { scrollTo: sectionId } });
     }
   };
 
