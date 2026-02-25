@@ -8,21 +8,26 @@ export const About = () => {
         <div className="about-content fade-in">
           <div className="about-text">
             <p>
-              I'm a software engineer with extensive expertise across multiple
-              modern frameworks including ASP.NET, FastAPI, Django, and Blazor.
-              My passion lies in transforming innovative ideas into elegant,
-              scalable solutions that solve real-world problems.
+              I'm a backend engineer based in London, currently completing an
+              MSc in Computer Science at the University of East London
+              (Distinction track: 88-99 across modules). I build systems in
+              Python (Django, FastAPI) and C# (ASP.NET, .NET 8), with a focus
+              on clean architecture, performance, and correctness.
             </p>
             <p>
-              With a proven track record of architecting scalable systems, I've
-              successfully redesigned complex booking engines, optimized
-              performance using Redis and intelligent caching, and built robust
-              APIs that handle thousands of concurrent requests.
+              Professionally, I've worked at Touch and Pay Technologies (YC W22)
+              building fintech infrastructure in ASP.NET; improving application
+              performance by 20% and refactoring core logic for 50% efficiency
+              gains. Before that at Reymage, I designed REST APIs handling 100k
+              concurrent requests and maintained 95% test coverage across
+              production Django services.
             </p>
             <p>
-              I combine deep technical knowledge across the full stack with
-              creative problem-solving abilities to deliver maintainable,
-              efficient solutions that bring ideas to life.
+              Beyond standard backend work, I've built multi-agent AI systems
+              (UKFinnovator by Ukfin+, Honourable Mention), NLP data pipelines
+              with rule-based explainability, and a big data analytics system
+              that scored 99 in my MSc module. I care about building things that
+              are defensible, auditable, and actually work at scale.
             </p>
           </div>
           <Skill />
