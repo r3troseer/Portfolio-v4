@@ -2,6 +2,13 @@ import { ProjectCard } from "./ProjectCard";
 export const Projects = () => {
   const projects = [
     {
+      id: "gfa-exchange",
+      title: "GFA Exchange",
+      description:
+        "AI-driven loan reallocation sandbox for UK SME lending. Multi-agent system with privacy-preserving marketplace, LLM-powered explainability, and financial inclusion as a first-class metric. Honourable Mention at UKFinnovator by Ukfin+.",
+      technologies: ["FastAPI", "React", "TypeScript", "Multi-Agent AI", "SQLAlchemy", "Zustand"],
+    },
+    {
       id: "studybud", // Add unique ID for routing
       title: "StudyBud",
       description:

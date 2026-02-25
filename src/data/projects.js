@@ -762,4 +762,115 @@ The system follows **Clean Architecture** with strict separation of concerns:
       },
     ],
   },
+  {
+    id: "gfa-exchange",
+    header: {
+      title: "GFA Exchange",
+      subtitle: "Inclusive AI Loan Reallocation Engine",
+      overview:
+        "Built for the UKFinnovator hackathon by Ukfin+, this platform tackles a structural problem in UK SME lending: loans end up with the wrong lenders by accident rather than by fit. The system uses a multi-agent AI pipeline to identify mismatched loans, score reallocation opportunities, and match lenders through a privacy-preserving marketplace — with financial inclusion treated as a first-class metric throughout. Received an Honourable Mention.",
+      links: [
+        {
+          icon: "github",
+          text: "View Code",
+          href: "https://github.com/r3troseer/gfa-loan-sandbox",
+        },
+      ],
+      badge: { text: "Honourable Mention", type: "tertiary", size: "medium" },
+    },
+    metrics: [
+      { number: "6", label: "AI Agents" },
+      { number: "4", label: "Lender Archetypes" },
+      { number: "~70%", label: "Implemented" },
+      { number: "1", label: "Hackathon Award" },
+    ],
+    contentCards: [
+      {
+        markdown: `### Architecture
+- **Multi-Agent System**: Six specialised agents — Risk Analyst, Inclusion Scanner, Matcher, Pricer, Swap Matcher, and an LLM Explainer — each with a distinct role in the reallocation pipeline.
+- **FastAPI** backend with a modular service layer, SQLAlchemy ORM, and Pydantic schemas.
+- **React + TypeScript** frontend with Zustand for state management.
+- **Privacy Layer**: Loan amounts banded, scores rounded, company identities anonymised. Identity revealed only on mutual consent.
+- **Double-blind matching**: Buyers and sellers cannot identify each other until both accept a transaction.
+- **LLM Explainability**: Gemini API generates natural language justifications for every recommendation, with deterministic template fallbacks to avoid black-box dependence.`,
+        type: ContentType.Architecture,
+        tags: [
+          "FastAPI",
+          "SQLAlchemy",
+          "Pydantic",
+          "React",
+          "TypeScript",
+          "Zustand",
+          "Gemini API",
+          "Multi-Agent AI",
+        ],
+      },
+      {
+        markdown: `### Features
+- **Risk Scoring**: Agents evaluate liquidity, solvency, and profitability to produce a 0–100 risk score per SME.
+- **Inclusion Gap Detection**: Flags systematic underserving by region, sector, and company size.
+- **Lender–Loan Fit Scoring**: Multi-factor match score between each loan and each lender's appetite, mandate, and risk tolerance.
+- **Marketplace**: Loan sale, swap, and swap-with-cash-adjustment transaction types.
+- **NPV-based Pricing**: Discount/premium logic and risk-adjusted ROI calculation for every opportunity.
+- **Credit System**: Action-based credit costs (view details, generate explanation, express interest, reveal counterparty).
+- **LLM Explanations**: Every reallocation recommendation includes a plain-English justification covering why the current lender is mismatched and why the recommended one fits.`,
+        type: ContentType.Features,
+        tags: [
+          "Financial Scoring",
+          "Inclusion Metrics",
+          "Privacy-Preserving",
+          "Explainable AI",
+          "Marketplace",
+          "NPV Pricing",
+        ],
+      },
+    ],
+    problemSolutions: [
+      {
+        problem: {
+          title: "Challenge: Capital Misallocation & SME Exclusion",
+          issue:
+            "UK SMEs end up with lenders based on who they approached first, not on fit. Lenders operate in data silos and can't see market-wide concentration risks or inclusion gaps.",
+          impact:
+            "Good businesses fail or stagnate because they're with the wrong lender. Certain regions, sectors, and company sizes are systematically underserved with no mechanism to correct it.",
+        },
+        solution: {
+          title: "Solution: AI-Driven Reallocation with Inclusion as a Metric",
+          implementation:
+            "A multi-agent system scores every loan for risk, inclusion gap, and lender fit. A privacy-preserving marketplace lets lenders trade mismatched loans without exposing sensitive data. Inclusion is an explicit input to matching, not an afterthought.",
+          result:
+            "Lenders can identify and exit mismatched positions. Better-matched lenders get exposure to loans that fit their mandate. Inclusion-focused lenders are systematically surfaced for underserved SMEs.",
+        },
+      },
+      {
+        problem: {
+          title: "Challenge: Explainability & Trust in AI Decisions",
+          issue:
+            "AI-generated loan recommendations without explanation are unusable in financial contexts — regulators and lenders need to understand why a reallocation is suggested.",
+          impact:
+            "Black-box AI decisions create liability risk and undermine adoption. Lenders won't act on recommendations they can't audit.",
+        },
+        solution: {
+          title:
+            "Solution: Layered Explainability with Deterministic Fallbacks",
+          implementation:
+            "Every recommendation includes an LLM-generated plain-English explanation covering financial health, inclusion context, and lender fit rationale. Template-based fallback logic ensures explanations are always available even without the LLM, with no black-box dependence.",
+          result:
+            "Every decision is human-auditable. Lenders see exactly why a loan is mismatched and why the recommended counterparty is a better fit, including projected ROI and inclusion impact.",
+        },
+      },
+    ],
+    timeline: [
+      {
+        title: "Day 1: Architecture, Agents & Backend",
+        description:
+          "Analysed the UK SME lending brief from GFA Exchange. Designed the multi-agent system, defined lender archetypes, and built all six AI agents (Risk Analyst, Inclusion Scanner, Matcher, Pricer, Swap Matcher, Explainer) plus the full FastAPI backend — including the privacy layer, double-blind matching, credit system, and marketplace endpoints.",
+      },
+      {
+        title: "Day 2: Frontend, Submission & Award",
+        description:
+          "Built Portfolio, Company Analysis, and Marketplace UI pages in React + TypeScript with Zustand. Prepared submission with system documentation and live demo. Received Honourable Mention from Ukfin+.",
+      },
+    ],
+  },
 ];
