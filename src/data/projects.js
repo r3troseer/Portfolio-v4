@@ -6,6 +6,177 @@ export const ContentType = Object.freeze({
 });
 export const projects = [
   {
+    id: "mealsync",
+    header: {
+      title: "MealSync",
+      subtitle: "AI-Assisted Household Meal Planning Platform",
+      overview:
+        "MealSync is a collaborative web application that simplifies meal planning and grocery shopping for households through Google Gemini AI-powered recipe generation, shared meal scheduling, and automated grocery list management. Built for CN7021 Advanced Software Engineering, this team project demonstrates layered architecture, comprehensive testing (93% AI service coverage), and modern full-stack development practices with FastAPI and React.",
+      links: [
+        {
+          icon: "github",
+          text: "Backend Repository",
+          href: "", // TODO: add GitHub URL when repo is public
+        },
+        {
+          icon: "github",
+          text: "Frontend Repository",
+          href: "", // TODO: add GitHub URL when repo is public
+        },
+      ],
+      badge: { text: "Live", type: "live", size: "small" },
+    },
+    metrics: [
+      { number: "13,492", label: "Lines of Code" },
+      { number: "93%", label: "AI Service Test Coverage" },
+      { number: "77", label: "Automated Tests" },
+      { number: "~24", label: "Person-Months (COCOMO)" },
+    ],
+    contentCards: [
+      {
+        markdown: `### Architecture
+
+- **4-layer backend** — API (FastAPI + Pydantic), Service, Repository (7 domain repos), Model (8 entities with UUIDs)
+- **SQLAlchemy + Alembic** for schema management and migrations
+- **JWT + bcrypt** for authentication
+- **Google Gemini AI** with structured prompting and response validation
+- **Pytest** — 77 tests, 93% AI service coverage, all external calls mocked
+- **GitHub Actions** CI/CD with Codecov integration`,
+        type: ContentType.Architecture,
+        tags: [
+          "FastAPI",
+          "React",
+          "TypeScript",
+          "PostgreSQL",
+          "SQLAlchemy",
+          "Google Gemini AI",
+          "Docker",
+          "Pytest",
+          "TailwindCSS",
+          "Vite",
+          "JWT",
+        ],
+        gallery: {
+          title: "Architecture & Workflow",
+          images: [
+            {
+              src: `${baseUrl}/mealsync-deployment-architecture.png`, // TODO: Replace with your Cloudinary URL
+              title: "Deployment Architecture",
+              description:
+                "System deployment showing Google Gemini AI integration, PostgreSQL database, Vercel frontend hosting, and GitHub Actions CI/CD pipeline.",
+            },
+            {
+              src: `${baseUrl}/mealsync-layered-architecture.png`, // TODO: Replace with your Cloudinary URL
+              title: "Layered Architecture",
+              description:
+                "4-layer architecture overview: API Layer (FastAPI routes), Service Layer (business logic), Repository Layer (data access), and Model Layer (domain entities).",
+            },
+          ],
+        },
+      },
+      {
+        markdown: `### Features
+
+**Households** — invite-code based multi-user workspaces with role-based access (admin/member).
+
+**Recipes & Pantry** — full recipe management with ingredient categorisation, search, and pantry tracking across 15 categories.
+
+**Meal Planning** — calendar-based scheduling with recipe linking, serving adjustments, and per-member assignments. Bulk creation via atomic transactions for AI-generated plans.
+
+**AI (Google Gemini)** — generates recipes and weekly meal plans from household preferences. Degrades gracefully when the service is unavailable.
+
+**Grocery Lists** — auto-generated from planned meals with item categorisation and purchase tracking.`,
+        type: ContentType.Features,
+        tags: [
+          "AI Meal Planning",
+          "Recipe Management",
+          "Grocery Automation",
+          "Multi-User Collaboration",
+          "JWT Auth",
+          "CI/CD",
+        ],
+        gallery: {
+          title: "Key Features",
+          images: [
+            {
+              src: `${baseUrl}/mealsync-home.png`, // TODO: Replace with your Cloudinary URL
+              title: "Dashboard View",
+              description:
+                "Main dashboard with household overview, quick actions for meal planning, and navigation to all features.",
+            },
+            {
+              src: `${baseUrl}/mealsync-ai-generator.png`, // TODO: Replace with your Cloudinary URL
+              title: "AI Meal Generation",
+              description:
+                "Google Gemini AI-powered meal plan generation with dietary preferences, household size, and cooking constraints.",
+            },
+          ],
+        },
+      },
+    ],
+    problemSolutions: [
+      {
+        problem: {
+          title: "Challenge: Reliable AI Service Testing",
+          issue:
+            "Gemini API calls are expensive, non-deterministic, and fail in CI/CD — making high coverage for AI features impractical without a proper isolation strategy.",
+          impact:
+            "Without mocking, tests would require live API keys, incur costs, and produce flaky results that break CI pipelines.",
+        },
+        solution: {
+          title: "Solution: Mock-Based Testing Strategy",
+          implementation:
+            "Used `unittest.mock.patch` to intercept all Gemini calls and replaced them with realistic JSON fixtures. Dependency injection kept AI services isolated from business logic. Tests tagged with `@pytest.mark.ai` for selective execution.",
+          result:
+            "93% coverage on `ai_service.py` — 60 tests covering network failures, invalid responses, and timeout handling — all running cost-free without API keys.",
+        },
+      },
+      {
+        problem: {
+          title: "Challenge: Unpredictable AI Response Formats",
+          issue:
+            "Gemini returns JSON inconsistently — sometimes in markdown code fences, sometimes as plain text with commentary. Direct `json.loads()` would crash on valid data in an unexpected wrapper.",
+          impact:
+            "Any format variation would cause a feature failure, showing users cryptic errors instead of their meal plans.",
+        },
+        solution: {
+          title: "Solution: Three-Tier JSON Extraction",
+          implementation:
+            "Implemented `_extract_json_from_response()` with a fallback chain: (1) direct `json.loads()`, (2) regex strip of markdown fences, (3) pattern match to find JSON within surrounding text. Each tier falls through on failure.",
+          result:
+            "Zero parsing failures in production across all response formats. Clear error messages surface only when the AI returns genuinely malformed data.",
+        },
+      },
+    ],
+    timeline: [
+      {
+        title: "Iteration 1: Foundation & Authentication",
+        description:
+          "Set up 4-layer FastAPI backend with SQLAlchemy + Alembic. Implemented JWT auth with bcrypt. Built household CRUD with invite codes. Scaffolded React + TypeScript frontend.",
+      },
+      {
+        title: "Iteration 2: Recipe & Ingredient Management",
+        description:
+          "Recipe APIs with full data model (prep time, difficulty, cuisine). Ingredient database with 15 categories and 18 unit types. Many-to-many recipe-ingredient relationships. Pantry tracking with search.",
+      },
+      {
+        title: "Iteration 3: Meal Planning & Grocery Lists",
+        description:
+          "Calendar-based meal scheduling with recipe linking and per-member assignments. Grocery list generation from planned meals with item categorisation and purchase tracking.",
+      },
+      {
+        title: "Iteration 4: AI Integration & Testing",
+        description:
+          "Integrated Gemini API with structured prompting and response validation. 77 automated tests, 93% AI service coverage, all external calls mocked. GitHub Actions CI/CD with Codecov.",
+      },
+      {
+        title: "Iteration 5: Polish & Deployment",
+        description:
+          "Responsive UI, loading states. IEEE SRS with 9 architecture diagrams. COCOMO effort estimation (~24 person-months). Deployed to Vercel. Submitted for CN7021.",
+      },
+    ],
+  },
+  {
     id: "studybud",
     header: {
       title: "StudyBud",

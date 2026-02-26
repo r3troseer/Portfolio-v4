@@ -24,7 +24,7 @@ export const ProjectHeader = ({ title, subtitle, overview, links, badge }) => {
         <p>{overview}</p>
       </div>
       <div className="project-links">
-        {links.map((link, index) => {
+        {links.filter(link => link.href).map((link, index) => {
           const iconName = iconMap[link.icon] || link.icon;
           return (
             <a

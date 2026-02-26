@@ -9,12 +9,18 @@ export const Projects = () => {
       technologies: ["FastAPI", "React", "TypeScript", "Multi-Agent AI", "SQLAlchemy", "Zustand"],
     },
     {
-      id: "studybud", // Add unique ID for routing
+      id: "mealsync",
+      title: "MealSync",
+      description:
+        "AI-assisted household meal planning platform. Collaborative meal scheduling, recipe management, and automated grocery lists powered by Google Gemini. 77 automated tests, 93% AI service coverage. Built with FastAPI, React, and PostgreSQL.",
+      technologies: ["FastAPI", "React", "TypeScript", "Google Gemini AI", "PostgreSQL", "Pytest"],
+    },
+    {
+      id: "studybud",
       title: "StudyBud",
       description:
         "AI-powered tool for generating summaries and quizzes from documents. Features advanced NLP techniques for text extraction from PDF and DOCX files, integrated with OpenAI's language models.",
       technologies: ["Django", "NLP", "OpenAI", "PDF Processing"],
-      ref: "studybud", // Your existing ref property
     },
     {
       id: "ticketsage",
@@ -22,7 +28,6 @@ export const Projects = () => {
       description:
         "Comprehensive Django-based movie booking system with automated TMDB API integration, user authentication, and automated showtime scheduling for cinema management.",
       technologies: ["Django", "TMDB API", "Authentication", "PythonAnywhere"],
-      ref: "ticketsage",
     },
     {
       id: "eprep",
@@ -35,7 +40,6 @@ export const Projects = () => {
         "User Management",
         "Mobile Backend",
       ],
-      ref: "eprep",
     },
     {
       id: "train-booking",
@@ -43,7 +47,6 @@ export const Projects = () => {
       description:
         "Full-featured .NET backend for booking train tickets with seat availability checks, category-based pricing, and trip schedule management.",
       technologies: [".NET", "C#", "MariaDB", "CQRS", "Clean Architecture"],
-      ref: "train-booking",
     },
     {
       id: "printing-service",
@@ -51,7 +54,6 @@ export const Projects = () => {
       description:
         "Document printing platform with .NET backend and Blazor frontend. Users upload files, pay online, receive a unique code, and retrieve their prints at a connected printing station.",
       technologies: [".NET", "Blazor", "Cloud Storage", "Payments"],
-      ref: "printing-service",
     },
     {
       id: "uk-shift-calculator",
@@ -59,7 +61,6 @@ export const Projects = () => {
       description:
         "Progressive Web App for UK shift workers to log hours, calculate pay with 2024/25 tax and NI rates, and export payroll data. Includes offline support, weekend double pay, and CSV/JSON export.",
       technologies: ["React", "PWA", "LocalStorage", "Vercel"],
-      ref: "uk-shift-calculator",
     },
   ];
 
@@ -75,7 +76,6 @@ export const Projects = () => {
               title={project.title}
               description={project.description}
               technologies={project.technologies}
-              ref={project.ref}
             />
           ))}
         </div>
