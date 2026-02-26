@@ -1,5 +1,6 @@
 import { useParams } from "react-router";
 import { projects } from "../data/projects";
+import { NotFound } from "./NotFound";
 import { PageHeader } from "../components/PageHeader";
 import { ProjectHeader } from "../components/ProjectHeader";
 import { MetricItem } from "../components/MetricItem";
@@ -13,13 +14,7 @@ export const ProjectDetail = () => {
   const project = projects.find((p) => p.id === id);
 
   if (!project) {
-    return (
-      <section className="not-found">
-        <div className="container">
-          <p>Project not found</p>
-        </div>
-      </section>
-    );
+    return <NotFound />;
   }
 
   return (
