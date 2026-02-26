@@ -157,12 +157,12 @@ nav {
 
 .mobile-nav-links a:hover {
   color: var(--primary-accent);
-  background: rgba(var(--primary-accent-rgb), 0.1);
+  background: color-mix(in oklch, var(--primary-accent) 10%, transparent);
 }
 
 .mobile-nav-links a.active {
   color: var(--primary-accent);
-  background: rgba(var(--primary-accent-rgb), 0.1);
+  background: color-mix(in oklch, var(--primary-accent) 10%, transparent);
 }
 
 /* Mobile Menu Overlay */

@@ -56,23 +56,23 @@ export const projects = [
           "Vite",
           "JWT",
         ],
-        gallery: {
-          title: "Architecture & Workflow",
-          images: [
-            {
-              src: `${baseUrl}/mealsync-deployment-architecture.png`, // TODO: Replace with your Cloudinary URL
-              title: "Deployment Architecture",
-              description:
-                "System deployment showing Google Gemini AI integration, PostgreSQL database, Vercel frontend hosting, and GitHub Actions CI/CD pipeline.",
-            },
-            {
-              src: `${baseUrl}/mealsync-layered-architecture.png`, // TODO: Replace with your Cloudinary URL
-              title: "Layered Architecture",
-              description:
-                "4-layer architecture overview: API Layer (FastAPI routes), Service Layer (business logic), Repository Layer (data access), and Model Layer (domain entities).",
-            },
-          ],
-        },
+        // gallery: {
+        //   title: "Architecture & Workflow",
+        //   images: [
+        //     {
+        //       src: `${baseUrl}/mealsync-deployment-architecture.png`, // TODO: Replace with your Cloudinary URL
+        //       title: "Deployment Architecture",
+        //       description:
+        //         "System deployment showing Google Gemini AI integration, PostgreSQL database, Vercel frontend hosting, and GitHub Actions CI/CD pipeline.",
+        //     },
+        //     {
+        //       src: `${baseUrl}/mealsync-layered-architecture.png`, // TODO: Replace with your Cloudinary URL
+        //       title: "Layered Architecture",
+        //       description:
+        //         "4-layer architecture overview: API Layer (FastAPI routes), Service Layer (business logic), Repository Layer (data access), and Model Layer (domain entities).",
+        //     },
+        //   ],
+        // },
       },
       {
         markdown: `### Features
@@ -95,23 +95,23 @@ export const projects = [
           "JWT Auth",
           "CI/CD",
         ],
-        gallery: {
-          title: "Key Features",
-          images: [
-            {
-              src: `${baseUrl}/mealsync-home.png`, // TODO: Replace with your Cloudinary URL
-              title: "Dashboard View",
-              description:
-                "Main dashboard with household overview, quick actions for meal planning, and navigation to all features.",
-            },
-            {
-              src: `${baseUrl}/mealsync-ai-generator.png`, // TODO: Replace with your Cloudinary URL
-              title: "AI Meal Generation",
-              description:
-                "Google Gemini AI-powered meal plan generation with dietary preferences, household size, and cooking constraints.",
-            },
-          ],
-        },
+        // gallery: {
+        //   title: "Key Features",
+        //   images: [
+        //     {
+        //       src: `${baseUrl}/mealsync-home.png`, // TODO: Replace with your Cloudinary URL
+        //       title: "Dashboard View",
+        //       description:
+        //         "Main dashboard with household overview, quick actions for meal planning, and navigation to all features.",
+        //     },
+        //     {
+        //       src: `${baseUrl}/mealsync-ai-generator.png`, // TODO: Replace with your Cloudinary URL
+        //       title: "AI Meal Generation",
+        //       description:
+        //         "Google Gemini AI-powered meal plan generation with dietary preferences, household size, and cooking constraints.",
+        //     },
+        //   ],
+        // },
       },
     ],
     problemSolutions: [

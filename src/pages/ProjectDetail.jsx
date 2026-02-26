@@ -10,7 +10,6 @@ import "../styles/projectDetail.css";
 
 export const ProjectDetail = () => {
   const { id } = useParams();
-  //   console.log(projectId);
   const project = projects.find((p) => p.id === id);
 
   if (!project) {

@@ -10,11 +10,18 @@ export const Navigation = () => {
   const isHomePage = location.pathname === "/";
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setNavBackground(window.scrollY > 100);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setNavBackground(window.scrollY > 100);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -70,6 +77,7 @@ export const Navigation = () => {
           className={`mobile-menu-toggle ${isMobileMenuOpen ? "active" : ""}`}
           onClick={toggleMobileMenu}
           aria-label="Toggle mobile menu"
+          aria-expanded={isMobileMenuOpen}
         >
           <span></span>
           <span></span>

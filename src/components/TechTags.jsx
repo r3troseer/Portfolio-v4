@@ -1,8 +1,8 @@
 export const TechTags = ({ tags }) => {
   return (
     <div className="tech-tags">
-      {tags.map((tag, idx) => (
-        <span className="tech-tag" key={idx}>
+      {tags.map((tag) => (
+        <span className="tech-tag" key={tag}>
           {tag}
         </span>
       ))}
