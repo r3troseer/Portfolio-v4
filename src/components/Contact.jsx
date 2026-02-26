@@ -10,12 +10,14 @@ export const Contact = () => {
       value: "pius-agboola",
       href: "https://linkedin.com/in/pius-agboola",
       target: "_blank",
+      rel: "noopener noreferrer",
     },
     {
       title: "GitHub",
       value: "r3troseer",
       href: "https://github.com/r3troseer",
       target: "_blank",
+      rel: "noopener noreferrer",
     },
   ];
   return (
@@ -32,8 +34,9 @@ export const Contact = () => {
               <a
                 href={contact.href}
                 className="contact-item"
-                key={idx}
+                key={contact.title}
                 target={contact.target}
+                rel={contact.rel}
               >
                 <h4>{contact.title}</h4>
                 <p>{contact.value}</p>
