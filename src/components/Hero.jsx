@@ -1,3 +1,5 @@
+import { MapPin } from "lucide-react";
+
 export const Hero = () => {
   const scrollToProjects = () => {
     const element = document.getElementById("projects");
@@ -15,7 +17,7 @@ export const Hero = () => {
             Backend engineer with a track record in fintech and AI systems. 
             I care about correctness and performance, not just shipping.
           </p>
-          <p className="hero-location">London, United Kingdom</p>
+          <p className="hero-location"><MapPin size={14} /> London, United Kingdom</p>
           <button onClick={() => scrollToProjects()} className="cta-button">
             View My Work
           </button>

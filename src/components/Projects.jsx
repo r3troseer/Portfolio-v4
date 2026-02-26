@@ -1,5 +1,8 @@
+import { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { ProjectCard } from "./ProjectCard";
 export const Projects = () => {
+  const [showAll, setShowAll] = useState(false);
   const projects = [
     {
       id: "gfa-exchange",
@@ -23,6 +26,13 @@ export const Projects = () => {
       technologies: ["Django", "NLP", "OpenAI", "PDF Processing"],
     },
     {
+      id: "train-booking",
+      title: "Train Booking System",
+      description:
+        "Full-featured .NET backend for booking train tickets with seat availability checks, category-based pricing, and trip schedule management.",
+      technologies: [".NET", "C#", "MariaDB", "CQRS", "Clean Architecture"],
+    },
+    {
       id: "ticketsage",
       title: "TicketSage",
       description:
@@ -42,13 +52,6 @@ export const Projects = () => {
       ],
     },
     {
-      id: "train-booking",
-      title: "Train Booking System",
-      description:
-        "Full-featured .NET backend for booking train tickets with seat availability checks, category-based pricing, and trip schedule management.",
-      technologies: [".NET", "C#", "MariaDB", "CQRS", "Clean Architecture"],
-    },
-    {
       id: "printing-service",
       title: "Printing Service",
       description:
@@ -64,12 +67,15 @@ export const Projects = () => {
     },
   ];
 
+  const featured = projects.slice(0, 4);
+  const rest = projects.slice(4);
+
   return (
     <section id="projects">
       <div className="container">
         <h2 className="section-title fade-in">Featured Projects</h2>
         <div className="projects-grid">
-          {projects.map((project, index) => (
+          {featured.map((project) => (
             <ProjectCard
               key={project.id}
               id={project.id}
@@ -78,6 +84,24 @@ export const Projects = () => {
               technologies={project.technologies}
             />
           ))}
+          {showAll && rest.map((project) => (
+            <ProjectCard
+              key={project.id}
+              id={project.id}
+              title={project.title}
+              description={project.description}
+              technologies={project.technologies}
+              revealed
+            />
+          ))}
+        </div>
+        <div className="projects-toggle-wrap">
+          <button
+            className="projects-toggle"
+            onClick={() => setShowAll(!showAll)}
+          >
+            {showAll ? <><ChevronUp size={16} /> Show less</> : <>Show more projects <ChevronDown size={16} /></>}
+          </button>
         </div>
       </div>
     </section>

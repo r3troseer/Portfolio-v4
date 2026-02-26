@@ -276,6 +276,9 @@ nav {
 }
 
 .hero-location {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
   font-size: var(--font-size-sm);
   color: var(--text-muted);
   margin-bottom: var(--spacing-lg);
@@ -385,6 +388,35 @@ section {
 }
 
 /* Projects Section */
+.project-card-revealed {
+  animation: fadeInUp 0.4s ease forwards;
+}
+
+.projects-toggle-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-xl);
+}
+
+.projects-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  background: transparent;
+  color: var(--primary-accent);
+  border: 1px solid var(--primary-accent);
+  padding: 10px 28px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.projects-toggle:hover {
+  background: color-mix(in oklch, var(--primary-accent) 10%, transparent);
+}
+
 .projects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
@@ -460,7 +492,9 @@ section {
 }
 
 .card-cta {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   margin-top: auto;
   padding-top: var(--spacing-sm);
   color: var(--primary-accent);
