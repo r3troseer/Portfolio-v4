@@ -944,7 +944,7 @@ The system follows **Clean Architecture** with strict separation of concerns:
         {
           icon: "github",
           text: "View Code",
-          href: "https://github.com/r3troseer/gfa-loan-sandbox",
+          href: "https://github.com/r3troseer/SME_loan_transact",
         },
       ],
       badge: { text: "Honourable Mention", type: "tertiary", size: "medium" },
