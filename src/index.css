@@ -616,6 +616,7 @@ section {
 }
 
 .contact-item {
+  position: relative;
   background: var(--bg-card);
   padding: var(--spacing-lg);
   border-radius: var(--radius-xl);
@@ -624,6 +625,14 @@ section {
   text-decoration: none;
   color: var(--text-primary);
   min-width: 180px;
+}
+
+.contact-item-external {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  color: var(--text-muted);
+  opacity: 0.5;
 }
 
 .contact-item:hover {

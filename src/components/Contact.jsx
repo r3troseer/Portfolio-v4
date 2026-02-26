@@ -1,3 +1,5 @@
+import { ExternalLink } from "lucide-react";
+
 export const Contact = () => {
   const contacts = [
     {
@@ -38,6 +40,7 @@ export const Contact = () => {
                 target={contact.target}
                 rel={contact.rel}
               >
+                {contact.target && <ExternalLink size={13} className="contact-item-external" />}
                 <h4>{contact.title}</h4>
                 <p>{contact.value}</p>
               </a>
