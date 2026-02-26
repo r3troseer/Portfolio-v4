@@ -1,4 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
+
+const config = {
+  maxParticles: 50,
+  spawnRate: 300,
+  speed: 0.4,
+  size: 1,
+  opacity: { min: 0.2, max: 0.8 },
+  colors: ["#9ca3af", "#6b7280", "#4b5563"],
+};
 
 export const ParticleEffect = () => {
   const canvasRef = useRef(null);
@@ -6,16 +15,6 @@ export const ParticleEffect = () => {
   const particlesRef = useRef([]);
   const lastTimeRef = useRef(0);
   const particleIdRef = useRef(0);
-
-  // Particle configuration
-  const config = {
-    maxParticles: 50,
-    spawnRate: 300, // milliseconds between spawns
-    speed: 0.4, // pixels per millisecond
-    size: 1,
-    opacity: { min: 0.2, max: 0.8 },
-    colors: ["#9ca3af", "#6b7280", "#4b5563"], // Different shades of gray
-  };
 
   // Particle class for better organization
   class Particle {
@@ -104,6 +103,7 @@ export const ParticleEffect = () => {
 
     // Continue animation
     animationFrameRef.current = requestAnimationFrame(animate);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Setup effect
