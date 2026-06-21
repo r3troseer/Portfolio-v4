@@ -1,0 +1,29 @@
+{
+  "roles": [
+    {
+      "title": "ASP.NET Developer",
+      "company": "Touch and Pay Technologies Ltd (YC W22)",
+      "date": "January 2024 - January 2025",
+      "location": "Lagos, Nigeria",
+      "responsibilities": [
+        "Developed and maintained backend systems using .NET technologies, achieving 20% improvement in application performance",
+        "Implemented logic enhancements resulting in 50% increase in program efficiency",
+        "Collaborated with frontend teams to enhance user experience by 35%",
+        "Contributed innovative architectural improvements leading to 15% system enhancement"
+      ]
+    },
+    {
+      "title": "Python Developer",
+      "company": "Reymage",
+      "date": "2021 - 2023",
+      "location": "Ibadan, Nigeria",
+      "responsibilities": [
+        "Built web applications using Django framework, reducing server response times by 30%",
+        "Designed RESTful APIs capable of handling 100,000 concurrent requests",
+        "Improved code maintainability by 50% through clean coding practices",
+        "Achieved 95% code coverage through comprehensive testing and code reviews",
+        "Reduced critical defects by 60% through proactive bug identification and resolution"
+      ]
+    }
+  ]
+}

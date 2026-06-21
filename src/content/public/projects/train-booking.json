@@ -1,0 +1,90 @@
+{
+  "id": "train-booking",
+  "visibility": "public",
+  "status": "case-study",
+  "sensitivity": "safe",
+  "repo": { "visibility": "private" },
+  "card": {
+    "title": "Train Booking System",
+    "subtitle": "A Clean Architecture .NET 8 train seat booking system",
+    "summary": ".NET 8 backend for booking train tickets, with seat availability checks, category-based pricing, and trip schedule management.",
+    "technologies": [".NET", "C#", "MariaDB", "CQRS", "Clean Architecture"]
+  },
+  "detail": {
+    "overview": "TBS-SeatBooking is a reservation system built with .NET 8 Web API following Clean Architecture principles. It manages routes, schedules, real-time seat availability, bookings, and payments while providing OTP-based authentication for a frictionless user experience.",
+    "links": [],
+    "badge": { "text": "Private", "type": "private", "size": "small" },
+    "metrics": [
+      { "number": "500+", "label": "Seats managed per schedule" },
+      { "number": "99.9%", "label": "Conflict-free booking reliability" },
+      { "number": "<150ms", "label": "Average seat availability check" }
+    ],
+    "contentCards": [
+      {
+        "markdown": "\n### Architecture & Core Features\n\nThe system follows **Clean Architecture** with strict separation of concerns:\n\n- **Core Domain**: entities like `TripSchedule`, `Seat`, `Booking`, `Transaction`.  \n- **Application Layer**: use cases (`TripScheduleUseCase`, `BookingUseCase`), DTOs, AutoMapper.  \n- **Infrastructure Layer**: MySQL persistence and repository implementations.  \n- **Presentation Layer**: ASP.NET Web API controllers with Swagger docs.  \n  \n#### Core Capabilities:\n- Trip management (routes, stops, schedules).  \n- Real-time seat availability (STD, BUS, VIP).  \n- Booking flow: seat assignment, contacts, order time.  \n- Transactions with booking linkage, metadata and status.  \n- Passwordless login with OTP (email/SMS).  \n",
+        "type": "Architecture",
+        "tags": ["Architecture", ".NET 8", "Clean Architecture", "API"]
+      },
+      {
+        "markdown": "\n### My Contributions\n\n- **OTP Authentication:** Designed and implemented passwordless login/register via OTP for frictionless onboarding.  \n- **Stop Logic Refactor:** Decoupled stop retrieval from repositories, moving mapping to the service layer, which made it easier to test and extend.  \n- **Booking Enhancements:** Built the `TripBooking` model, added merging logic, and conflict prevention in seat allocation.  \n- **Transactions:** Implemented persistence (`transactionId`, `bookingId`, `refId`, status) and ensured reconciliation with bookings.  \n\n#### Impact:\n- Simplified user onboarding with OTP.  \n- Improved maintainability of schedule and stop logic.  \n- Prevented overlapping seat bookings, improving reliability.  \n- Scalable due to persistence abstraction and clean separation.  \n",
+        "type": "Features",
+        "tags": ["OTP", "Transactions", "Booking", "Seat Logic"]
+      }
+    ],
+    "problemSolutions": [
+      {
+        "problem": {
+          "title": "Stop Logic Complexity",
+          "issue": "Stop retrieval was tightly coupled inside repository methods, mixing persistence with domain mapping.",
+          "impact": "Testing was difficult, and any change in stop logic risked breaking repository code."
+        },
+        "solution": {
+          "title": "Refactor Stop Retrieval",
+          "implementation": "Split stop retrieval into dedicated repository methods and moved mapping into the service layer.",
+          "result": "Improved testability and flexibility, stop logic can now evolve independently of persistence."
+        }
+      },
+      {
+        "problem": {
+          "title": "Seat Allocation Conflicts",
+          "issue": "Simultaneous booking requests could assign the same seat before payment was confirmed.",
+          "impact": "This risked double-bookings, leading to customer frustration and financial errors."
+        },
+        "solution": {
+          "title": "Conflict-Free Booking Flow",
+          "implementation": "Enhanced booking logic to merge seat requests, validate seat availability, and tie allocation directly to payment status.",
+          "result": "No more overlapping reservations; users can only confirm seats after valid payment."
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "title": "2024-09",
+        "description": "Initialized .NET 8 Clean Architecture solution with Core, Infrastructure, and WebAPI layers."
+      },
+      {
+        "title": "2024-10",
+        "description": "Implemented booking flow, seat availability checks, and transaction persistence."
+      },
+      {
+        "title": "2024-11",
+        "description": "Added OTP-based authentication and improved SeatAvailabilityDto with enums."
+      },
+      {
+        "title": "2024-12",
+        "description": "Refactored stop logic into repositories + services. Released MVP internally."
+      },
+      {
+        "title": "2025-01",
+        "description": "Extended booking flow with email ticket notifications and payment reconciliation."
+      }
+    ]
+  },
+  "ai": {
+    "publicSummary": "A .NET 8 Web API train seat booking system built on Clean Architecture, handling routes, schedules, real-time seat availability, conflict-free bookings, payments, and OTP authentication.",
+    "roleLenses": ["backend", "dotnet"],
+    "evidenceSkills": [".NET", "Clean Architecture", "Booking Logic"],
+    "safeTalkingPoints": [],
+    "sensitivity": "safe"
+  }
+}

@@ -11,6 +11,9 @@
 # production
 /build
 
+# local notes / planning (not part of the codebase)
+/.notes
+
 # misc
 .DS_Store
 .env.local

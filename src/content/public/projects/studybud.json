@@ -1,0 +1,132 @@
+{
+  "id": "studybud",
+  "visibility": "public",
+  "status": "case-study",
+  "sensitivity": "safe",
+  "repo": { "visibility": "public" },
+  "card": {
+    "title": "StudyBud",
+    "subtitle": "AI-Powered Document Analysis & Quiz Generation",
+    "summary": "AI-powered tool for generating summaries and quizzes from documents. Features advanced NLP techniques for text extraction from PDF and DOCX files, integrated with OpenAI's language models.",
+    "technologies": ["Django", "NLP", "OpenAI", "PDF Processing"]
+  },
+  "detail": {
+    "overview": "StudyBud was my final year project, built to help students get more out of their study materials. Users upload PDF or DOCX files, and it uses NLP and GPT-based models to generate summaries and quizzes for revision.",
+    "links": [
+      { "icon": "github", "text": "View Code", "href": "https://github.com/r3troseer/StudyBud" }
+    ],
+    "metrics": [
+      { "number": "95%", "label": "Text Extraction Accuracy" },
+      { "number": "3s", "label": "Avg Processing Time" },
+      { "number": "10MB", "label": "Max Document Size" },
+      { "number": "500+", "label": "Documents Processed" }
+    ],
+    "contentCards": [
+      {
+        "markdown": "### Architecture\n- **Django + Django REST Framework** for backend API and user management.\n- **Celery + Redis** for asynchronous processing of large documents.\n- **PyMuPDF** chosen over PyPDF2 for much faster PDF extraction.\n- **docx2txt** selected after comparing with mammoth and python-docx.\n- **NLTK** for preprocessing and tokenization of extracted text.\n- **Chunking Strategy**: Large documents broken into smaller tokenized chunks for efficient GPT processing.\n- **OpenAI GPT Models** to generate contextual summaries and quiz questions.\n- **PostgreSQL** for reliable and scalable data storage.",
+        "type": "Architecture",
+        "tags": [
+          "Django",
+          "Celery",
+          "Redis",
+          "PyMuPDF",
+          "docx2txt",
+          "NLTK",
+          "OpenAI API",
+          "PostgreSQL"
+        ],
+        "gallery": {
+          "title": "Architecture & Workflow",
+          "images": [
+            {
+              "src": "studybud_architecture.png",
+              "title": "System Workflow",
+              "description": "High-level design of the document processing and quiz generation pipeline."
+            },
+            {
+              "src": "studybud_wireframe.png",
+              "title": "UI Wireframe",
+              "description": "The user interface is designed with a focus on simplicity and usability"
+            }
+          ]
+        }
+      },
+      {
+        "markdown": "### Features & Results\n- Upload a PDF or DOCX and it extracts and summarizes the text automatically.\n- Generate quizzes (MCQ, True/False, Short Answer).\n- Track progress and get feedback on weak areas.\n- Achieved **95% text extraction accuracy** and **sub-5 second average processing time**.\n- User testing confirmed improved study efficiency and positive learning outcomes.",
+        "type": "Features",
+        "tags": ["Quiz Generation", "Summarization", "NLP", "AI Integration"],
+        "gallery": {
+          "title": "Key Features",
+          "images": [
+            {
+              "src": "studybud_summary.png",
+              "title": "Summary Page",
+              "description": "Generated document summary with highlighted key points."
+            },
+            {
+              "src": "StudyBud_Question.png",
+              "title": "Quiz Page",
+              "description": "Interactive quizzes generated from uploaded documents."
+            },
+            {
+              "src": "StudyBud_Result_and_Feedback.png",
+              "title": "Feedback",
+              "description": "User feedback and weak area identification."
+            }
+          ]
+        }
+      }
+    ],
+    "problemSolutions": [
+      {
+        "problem": {
+          "title": "Challenge: Reliable Document Processing",
+          "issue": "PDFs with complex layouts or scanned content often broke extraction.",
+          "impact": "Low quality input reduced the accuracy of summaries and quizzes."
+        },
+        "solution": {
+          "title": "Solution: Optimized Extraction Pipeline",
+          "implementation": "Adopted PyMuPDF (fast, reliable) and docx2txt after library comparison. Added document chunking and tokenization to handle large files.",
+          "result": "Extraction accuracy improved from ~70% to ~95%, with smooth performance even on 10MB+ files."
+        }
+      },
+      {
+        "problem": {
+          "title": "Challenge: API Costs & Rate Limits",
+          "issue": "Heavy use of OpenAI API caused latency and budget concerns.",
+          "impact": "Processing could take 30s+ and exceed project resource limits."
+        },
+        "solution": {
+          "title": "Solution: Caching & Prompt Optimization",
+          "implementation": "Implemented Redis caching, batched requests, and optimized prompts to reduce token usage.",
+          "result": "Reduced response time to ~3s and API costs by ~60% while maintaining output quality."
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "title": "Week 1-2: Research & Setup",
+        "description": "Explored NLP libraries, compared PDF/DOCX extraction tools, and set up Django project."
+      },
+      {
+        "title": "Week 3-4: Core Pipeline",
+        "description": "Implemented document upload, PyMuPDF/docx2txt integration, and summarization pipeline."
+      },
+      {
+        "title": "Week 5-6: AI Integration",
+        "description": "Integrated GPT models, built quiz generation, added caching and chunking strategies."
+      },
+      {
+        "title": "Week 7-8: Testing & UI",
+        "description": "Refined UI/UX, integrated user accounts, gathered feedback, and optimized performance."
+      }
+    ]
+  },
+  "ai": {
+    "publicSummary": "AI-powered study tool that generates summaries and quizzes from uploaded PDF/DOCX documents using NLP text extraction and GPT-based models. BSc final year project built with Django.",
+    "roleLenses": ["backend", "python-django", "ai-nlp", "document-intelligence"],
+    "evidenceSkills": ["Django", "NLP", "Document Processing"],
+    "safeTalkingPoints": [],
+    "sensitivity": "safe"
+  }
+}

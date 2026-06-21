@@ -1,5 +1,5 @@
 import { useParams } from "react-router";
-import { projects } from "../data/projects";
+import { getProjectById } from "../content/adapters/projectsAdapter";
 import { NotFound } from "./NotFound";
 import { PageHeader } from "../components/PageHeader";
 import { ProjectHeader } from "../components/ProjectHeader";
@@ -11,7 +11,7 @@ import "../styles/projectDetail.css";
 
 export const ProjectDetail = () => {
   const { id } = useParams();
-  const project = projects.find((p) => p.id === id);
+  const project = getProjectById(id);
 
   if (!project) {
     return <NotFound />;

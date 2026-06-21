@@ -1,0 +1,82 @@
+{
+  "id": "esg-greenwashing",
+  "visibility": "public_summary_only",
+  "status": "in-progress",
+  "sensitivity": "sensitive",
+  "repo": { "visibility": "private" },
+  "card": {
+    "title": "AI-Assisted ESG Evidence Review",
+    "subtitle": "Explainable Greenwashing-Risk Research Prototype",
+    "summary": "A research prototype exploring how AI can help analysts review ESG and sustainability disclosures. It surfaces claims that may need closer human review, such as vague or weakly supported commitments, and grounds each claim in retrieved evidence rather than producing black-box verdicts.",
+    "technologies": ["NLP", "Information Retrieval", "X-RAG", "Document Intelligence", "Responsible AI", "Python"]
+  },
+  "detail": {
+    "overview": "A research-oriented prototype exploring how AI can support the review of ESG and sustainability-related disclosures. It helps analysts examine whether corporate sustainability claims are clear, measurable, evidence-backed, and consistent with wider context. Rather than automatically accusing organisations of greenwashing, it surfaces areas that may need closer human review: vague claims, weakly supported commitments, missing evidence, or narratives that appear stronger than the supporting material. Outputs are treated as decision-support signals, not final conclusions.",
+    "links": [],
+    "badge": { "text": "Research", "type": "secondary", "size": "small" },
+    "metrics": [],
+    "contentCards": [
+      {
+        "markdown": "### Approach\n- **Document analysis:** ingests sustainability-related text and extracts the relevant content from long, unstructured reports.\n- **ESG claim detection:** identifies ESG-relevant claims and organises them by environmental, social, and governance themes.\n- **Evidence retrieval (X-RAG):** an explainable retrieval-augmented approach connects each claim to relevant evidence before any judgement is made.\n- **Human-in-the-loop review:** results are structured for analyst review, keeping a person in control of the conclusions.\n- **Backend pipelines:** ingestion, extraction, classification, retrieval, and presentation are built as an interpretable workflow rather than a black box.",
+        "type": "Architecture",
+        "tags": ["NLP", "Information Retrieval", "X-RAG", "Document Intelligence", "Backend Pipelines"]
+      },
+      {
+        "markdown": "### Explainability and Responsible Use\n- **Evidence trails:** shows the claim, the retrieved evidence, and the relationship between them.\n- **Support signal:** indicates whether the evidence supports, partially supports, or fails to support a claim.\n- **Decision-support, not accusations:** outputs flag areas for review instead of labelling organisations.\n- **Traceability and caution:** the workflow is built around reviewability, so conclusions stay with the human reviewer.\n- **From reports to review:** turns long disclosures into a structured, auditable set of claims and evidence.",
+        "type": "Features",
+        "tags": ["Explainable AI", "Evidence Grounding", "Responsible AI", "Human Oversight"]
+      }
+    ],
+    "problemSolutions": [
+      {
+        "problem": {
+          "title": "Challenge: Reviewing Long Sustainability Disclosures",
+          "issue": "Sustainability reports are long and unstructured, so manually checking whether claims are specific, measurable, and evidence-backed is slow and easy to get wrong.",
+          "impact": "Vague or weakly supported claims can pass unnoticed, and reviewers spend time reading rather than analysing."
+        },
+        "solution": {
+          "title": "Solution: Evidence Trails from Disclosures",
+          "implementation": "The prototype ingests sustainability text, extracts and classifies ESG-relevant claims by theme, and presents them as a reviewable set of claims with the associated evidence.",
+          "result": "Reviewers can focus on the claims that need attention, with the supporting material organised alongside each one."
+        }
+      },
+      {
+        "problem": {
+          "title": "Challenge: Avoiding Misleading Automated Conclusions",
+          "issue": "A purely generative system could produce confident greenwashing conclusions that are not grounded in evidence, which is risky in sensitive sustainability analysis.",
+          "impact": "Unsupported automated accusations could be misleading or unfair to the organisations involved."
+        },
+        "solution": {
+          "title": "Solution: Explainable Retrieval (X-RAG)",
+          "implementation": "Retrieval connects each claim to relevant evidence before any judgement, and the system shows the claim, the evidence, and whether the evidence supports, partially supports, or fails to support it.",
+          "result": "The review process is transparent and auditable, with the final judgement left to the human reviewer."
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "title": "Research Framing",
+        "description": "Defined the goal: support analysts in reviewing ESG and sustainability disclosures, treating outputs as decision-support signals rather than accusations."
+      },
+      {
+        "title": "Evidence Pipeline",
+        "description": "Built pipelines to ingest sustainability text, extract relevant content, and detect ESG-relevant claims organised by environmental, social, and governance themes."
+      },
+      {
+        "title": "Explainable Retrieval (X-RAG)",
+        "description": "Added retrieval that connects each claim to relevant evidence before any judgement, surfacing the claim, the evidence, and the support relationship for human review."
+      }
+    ]
+  },
+  "ai": {
+    "publicSummary": "A research prototype for explainable, evidence-grounded review of ESG and sustainability disclosures. It detects ESG claims, retrieves supporting evidence (an explainable retrieval-augmented, or X-RAG, approach), and presents evidence trails so analysts can see why a claim may need attention. Outputs are decision-support signals, not automated accusations.",
+    "roleLenses": ["ai-nlp", "document-intelligence", "data-pipelines", "backend"],
+    "evidenceSkills": ["NLP", "Information Retrieval", "Explainable AI"],
+    "safeTalkingPoints": [
+      "Explainable, evidence-grounded approach (X-RAG) rather than black-box prediction.",
+      "Outputs are decision-support signals for human reviewers, not automated accusations.",
+      "Turns long ESG disclosures into structured, reviewable evidence trails."
+    ],
+    "sensitivity": "sensitive"
+  }
+}

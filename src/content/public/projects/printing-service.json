@@ -1,0 +1,112 @@
+{
+  "id": "printing-service",
+  "visibility": "public",
+  "status": "case-study",
+  "sensitivity": "safe",
+  "repo": { "visibility": "private" },
+  "card": {
+    "title": "Online Printing Service",
+    "subtitle": "Clean Architecture .NET Backend + Blazor Frontend",
+    "summary": "Document printing platform with .NET backend and Blazor frontend. Users upload files, pay online, receive a unique code, and retrieve their prints at a connected printing station.",
+    "technologies": [".NET", "Blazor", "Cloud Storage", "Payments"]
+  },
+  "detail": {
+    "overview": "OPS is a full-stack document printing service built with ASP.NET Core Web API and a Blazor Server UI. Users upload documents, pay online, and get a unique code to collect their prints at a physical station. It uses Clean Architecture with MongoDB/MySQL persistence, Redis caching, Azure Blob storage, and JWT authentication.",
+    "links": [],
+    "badge": { "text": "Private", "type": "private", "size": "small" },
+    "metrics": [
+      { "number": "100+", "label": "Documents printed" },
+      { "number": "3+", "label": "Storage Backends (MongoDB, MySQL, SQLite)" },
+      { "number": "100%", "label": "Clean Architecture" },
+      { "number": "Redis + Azure", "label": "Caching & File Storage" }
+    ],
+    "contentCards": [
+      {
+        "markdown": "### Architecture & Backend\n- **Clean Architecture:** Core (domain & use cases), Infrastructure (repositories, persistence), WebAPI (controllers).\n- **Persistence:** Supports MongoDB, MySQL, and SQLite with repository pattern.\n- **Caching:** Redis integration for performance.\n- **File Storage:** Azure Blob storage for uploaded documents.\n- **Auth:** Custom JWT authentication with token validation via IdentityManager.\n- **Use Cases:** Organized under Core/Application/Services for accounts, print jobs, and payments.\n- **Testing:** Separate Core and Infrastructure test projects ensure business logic is verifiable.",
+        "type": "Architecture",
+        "tags": [
+          "ASP.NET Core",
+          "Clean Architecture",
+          "MongoDB",
+          "Redis",
+          "Azure Blob Storage"
+        ]
+      },
+      {
+        "markdown": "### Features & User Experience\n- **User Workflow:** Upload a document, pay online, get a unique code, then collect the print at a station.\n- **Payments:** Integrated payment processing with transaction tracking.\n- **Blazor Server UI:** Components for login, upload, payment confirmation, and job management.\n- **Queueing:** Background job consumer processes print jobs asynchronously.\n- **Admin Tools:** API endpoints and Blazor components for managing users, jobs, and transactions.\n- **Security:** JWT token-based authentication with OTP support.",
+        "type": "Features",
+        "tags": ["Blazor Server", "JWT Auth", "Payments", "Background Jobs"],
+        "gallery": {
+          "title": "OPS Screenshots",
+          "images": [
+            {
+              "src": "/images/ops-upload.png",
+              "title": "Upload Document",
+              "description": "Blazor component for uploading and managing documents."
+            },
+            {
+              "src": "/images/ops-payment.png",
+              "title": "Payment Confirmation",
+              "description": "Payment workflow integrated with backend services."
+            }
+          ]
+        }
+      }
+    ],
+    "problemSolutions": [
+      {
+        "problem": {
+          "title": "Challenge: Duplicate File Uploads",
+          "issue": "Users repeatedly uploaded the same documents for reprints.",
+          "impact": "Wasted storage and cluttered user workflow."
+        },
+        "solution": {
+          "title": "Solution: Document Reuse",
+          "implementation": "Built a 'My Documents' page so users can reselect past uploads instead of re-uploading.",
+          "result": "Reduced storage use, simplified reprints, and improved overall UX."
+        }
+      },
+      {
+        "problem": {
+          "title": "Challenge: Passwordless Authentication",
+          "issue": "Passwords added friction and risk without real security value.",
+          "impact": "Slower onboarding and potential weak password issues."
+        },
+        "solution": {
+          "title": "Solution: OTP-Based Login/Register",
+          "implementation": "Replaced passwords with one-time codes for both login and new device registration.",
+          "result": "Faster onboarding, no password resets, and secure identity across devices."
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "title": "Phase 1: Architecture & Setup",
+        "description": "Established Clean structure, Core, Infrastructure, and WebAPI projects."
+      },
+      {
+        "title": "Phase 2: Authentication & Print Jobs",
+        "description": "Implemented JWT auth, account workflows, and print job domain logic."
+      },
+      {
+        "title": "Phase 3: Storage & Payments",
+        "description": "Added Azure Blob storage and payment processing workflow."
+      },
+      {
+        "title": "Phase 4: UI & Background Jobs",
+        "description": "Built Blazor UI components and job consumer for print processing."
+      },
+      {
+        "title": "Phase 5: Testing & Optimization",
+        "description": "Wrote Core/Infrastructure tests and integrated Redis caching."
+      }
+    ]
+  },
+  "ai": {
+    "publicSummary": "Full-stack document printing service with an ASP.NET Core Web API backend and Blazor Server UI: upload, pay online, receive a code, and print at a station. Clean Architecture with MongoDB/MySQL, Redis caching, and Azure Blob storage.",
+    "roleLenses": ["backend", "dotnet", "fullstack"],
+    "evidenceSkills": [".NET", "Clean Architecture", "Blazor"],
+    "safeTalkingPoints": [],
+    "sensitivity": "safe"
+  }
+}

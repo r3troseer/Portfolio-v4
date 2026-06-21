@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
+import { getProfile } from "../content/adapters/profileAdapter";
 import "../styles/navigation.css";
 
 export const Navigation = () => {
@@ -8,6 +9,7 @@ export const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isHomePage = location.pathname === "/";
+  const { name } = getProfile();
 
   useEffect(() => {
     let ticking = false;
@@ -55,7 +57,7 @@ export const Navigation = () => {
   return (
     <nav className={`nav ${navBackground ? "nav-scrolled" : ""}`}>
       <div className="nav-container">
-        <Link to="/" className="logo">Pius Agboola</Link>
+        <Link to="/" className="logo">{name}</Link>
         <ul className="nav-links">
           <li>
             <a

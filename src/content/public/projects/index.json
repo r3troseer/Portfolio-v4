@@ -1,0 +1,14 @@
+{
+  "projects": [
+    { "id": "gfa-exchange", "displayOrder": 1, "featured": true },
+    { "id": "pactguard", "displayOrder": 2, "featured": true },
+    { "id": "studybud", "displayOrder": 3, "featured": true },
+    { "id": "train-booking", "displayOrder": 4, "featured": true },
+    { "id": "mealsync", "displayOrder": 5, "featured": false },
+    { "id": "ticketsage", "displayOrder": 6, "featured": false },
+    { "id": "eprep", "displayOrder": 7, "featured": false },
+    { "id": "printing-service", "displayOrder": 8, "featured": false },
+    { "id": "uk-shift-calculator", "displayOrder": 9, "featured": false },
+    { "id": "esg-greenwashing", "displayOrder": 10, "featured": false }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "id": "uk-shift-calculator",
+  "visibility": "public",
+  "status": "live",
+  "sensitivity": "safe",
+  "repo": { "visibility": "public" },
+  "card": {
+    "title": "UK Shift Calculator",
+    "subtitle": "PWA for Shift Tracking & Pay Estimation",
+    "summary": "Progressive Web App for UK shift workers to log hours, calculate pay with 2024/25 tax and NI rates, and export payroll data. Includes offline support, weekend double pay, and CSV/JSON export.",
+    "technologies": ["React", "PWA", "LocalStorage", "Vercel"]
+  },
+  "detail": {
+    "overview": "A React-based progressive web app that helps shift workers in the UK log hours, calculate pay, and estimate tax/NI deductions. Features a live time clock, weekend pay boost, common shift detection, and data export. Designed for portability and offline-first use.",
+    "links": [
+      { "icon": "github", "text": "View Code", "href": "https://github.com/r3troseer/UK-Shift-Calculator" },
+      { "icon": "website", "text": "Live Demo", "href": "https://uk-shift-calculator.vercel.app/" }
+    ],
+    "badge": { "text": "Live", "type": "live", "size": "small" },
+    "metrics": [
+      { "number": "1000+", "label": "Shifts logged in testing" },
+      { "number": "2x", "label": "Weekend Pay Multiplier" },
+      { "number": "2024/25", "label": "Tax Bands Supported" },
+      { "number": "100%", "label": "Offline Capability" }
+    ],
+    "contentCards": [
+      {
+        "markdown": "### Technical Architecture\n- **Frontend:** React with hooks, TailwindCSS for styling, Lucide icons.\n- **PWA:** Installable app with offline support and local data persistence.\n- **State Management:** LocalStorage with autosave for shifts and settings.\n- **Pay Engine:** Implements 2024/25 UK tax bands and NI contributions.\n- **Deployment:** Hosted on Vercel for scalability and accessibility.",
+        "type": "Architecture",
+        "tags": ["React", "PWA", "TailwindCSS", "LocalStorage", "Vercel"]
+      },
+      {
+        "markdown": "### Features & User Experience\n- **Time Clock:** Clock in/out, start/end breaks, track elapsed hours.\n- **Common Shifts:** Automatically suggests frequent shift patterns.\n- **Weekend Pay:** Automatic 2x rate for Saturday and Sunday shifts.\n- **Export:** Download CSV/JSON summaries for payroll and records.\n- **Responsive UI:** Mobile-first design for workers on the go.",
+        "type": "Features",
+        "tags": [
+          "Shift Tracking",
+          "Tax Calculation",
+          "CSV Export",
+          "Responsive UI"
+        ],
+        "gallery": {
+          "title": "Screenshots",
+          "images": [
+            {
+              "src": "UK_shift_calculator_home",
+              "title": "Dashboard",
+              "description": "Main interface with time clock and shift tracking."
+            },
+            {
+              "src": "UK_shift_calculator_summary",
+              "title": "Pay Summary",
+              "description": "Breakdown of gross pay, tax, NI, and net pay."
+            }
+          ]
+        }
+      }
+    ],
+    "problemSolutions": [
+      {
+        "problem": {
+          "title": "Challenge: Accurate UK Tax Estimation",
+          "issue": "Shift workers needed realistic tax/NI deductions without manual input.",
+          "impact": "Users couldn't rely on generic calculators for accurate take-home pay."
+        },
+        "solution": {
+          "title": "Solution: Built-in Tax Engine",
+          "implementation": "Implemented 2024/25 HMRC tax bands and NI rates in code.",
+          "result": "Accurate net pay estimates tailored for UK workers."
+        }
+      },
+      {
+        "problem": {
+          "title": "Challenge: Accessibility & Portability",
+          "issue": "Workers often needed the calculator on-the-go, even offline.",
+          "impact": "Web-only solutions required stable internet, limiting usability."
+        },
+        "solution": {
+          "title": "Solution: Progressive Web App (PWA)",
+          "implementation": "Added PWA support with install prompts and offline storage.",
+          "result": "Users can install on phone/desktop and access anywhere."
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "title": "Week 1: Concept & Research",
+        "description": "Defined requirements and studied UK tax system + shift work needs."
+      },
+      {
+        "title": "Week 2-3: Core Development",
+        "description": "Built React components, tax engine, and localStorage persistence."
+      },
+      {
+        "title": "Week 4: PWA Enhancements",
+        "description": "Added installability, offline mode, and export features."
+      },
+      {
+        "title": "Week 5: UI & Deployment",
+        "description": "Polished responsive design and deployed live on Vercel."
+      }
+    ]
+  },
+  "ai": {
+    "publicSummary": "Offline-first React PWA for UK shift workers to log hours, estimate pay using 2024/25 tax and NI rates, and export payroll data, with a live time clock and weekend pay handling.",
+    "roleLenses": ["fullstack"],
+    "evidenceSkills": ["React", "PWA", "Frontend"],
+    "safeTalkingPoints": [],
+    "sensitivity": "safe"
+  }
+}

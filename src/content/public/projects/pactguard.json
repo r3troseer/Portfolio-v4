@@ -1,0 +1,105 @@
+{
+  "id": "pactguard",
+  "visibility": "public",
+  "status": "prototype",
+  "sensitivity": "safe",
+  "repo": { "visibility": "public" },
+  "card": {
+    "title": "PACTGuard",
+    "subtitle": "Pre-Release Compliance Middleware for AI-Era Financial Communications",
+    "summary": "RegTech middleware that reviews AI-generated financial communications and robo-advice before release. Compares three independent engines (deterministic rules, semantic retrieval, and a Gemini AI judge), then applies a Pass / Adjust / Check / Terminate decision with an evidence-bound explanation. Built for the Cambridge Spark 'Financial Regulation in an AI-Driven World' challenge.",
+    "technologies": ["Django", "DRF", "React", "Gemini 2.0 Flash", "Sentence-Transformers", "RegTech"]
+  },
+  "detail": {
+    "overview": "PACTGuard is pre-release compliance middleware and a regulatory sandbox for customer-facing financial communications. It checks AI-generated, AI-assisted, and human-written promotional, chatbot, CRM, and robo-advice outputs before they reach customers, applies a Pass / Adjust / Check / Terminate release decision, and produces an evidence-bound Evidence Pack for firms and regulator-style reviewers. Built by team PACTful for the Cambridge Spark 'Financial Regulation in an AI-Driven World' challenge, it is FCA-aligned, not FCA-certified, and does not provide financial or legal advice or imply regulatory approval.",
+    "links": [
+      { "icon": "github", "text": "View Code", "href": "https://github.com/r3troseer/PACTGuard" }
+    ],
+    "badge": { "text": "Hackathon MVP", "type": "secondary", "size": "small" },
+    "metrics": [
+      { "number": "4", "label": "Independent Engines" },
+      { "number": "18", "label": "FCA-Aligned Controls" },
+      { "number": "PACT", "label": "Pass / Adjust / Check / Terminate" },
+      { "number": "31", "label": "Gold Test Cases" }
+    ],
+    "contentCards": [
+      {
+        "markdown": "### Architecture\n- **Three independent engines, compared:** deterministic keyword/context rules, semantic xRAG reference retrieval (`sentence-transformers` `all-MiniLM-L6-v2` + cosine similarity), and a Gemini 2.0 Flash AI judge, with a deterministic *simulated* fallback when no API key is present.\n- **Hybrid PACT release gate** combines scoring, severe-risk overrides, session escalation, and engine disagreement into a final Pass / Adjust / Check / Terminate decision.\n- **Backend:** Django + Django REST Framework, SQLite, a metadata-wrapped control library (`controls.json`), and a service layer (`risk_engine`, `retrieval`, `scoring`, `pact_gate`, `evidence_pack`, `xai`, `sandbox`, `audit`).\n- **Frontend:** React + Vite single-page app for review, sandbox comparison, and dashboards.\n- **Version-controlled middleware:** every decision is stamped with the control-library version; publishing a new version flags prior decisions as needing reassessment.",
+        "type": "Architecture",
+        "tags": [
+          "Django",
+          "DRF",
+          "React",
+          "Vite",
+          "Gemini 2.0 Flash",
+          "Sentence-Transformers",
+          "Semantic Retrieval",
+          "SQLite"
+        ]
+      },
+      {
+        "markdown": "### Features\n- **Evidence Packs:** every finding links a flagged phrase (or absent disclosure) to a control ID, the regulation reference, why it matters, and a remediation hint. No explanation without evidence.\n- **Safe failure:** when required context is missing or the engines materially disagree on consumer-harm risk, PACTGuard defaults to **Check** for human review rather than silently releasing content.\n- **Session & customer risk:** optional session and customer tracking so repeated risky outputs escalate instead of disappearing as isolated events.\n- **Robo-advice controls:** distinguishes controlled, well-evidenced personalised advice from unsuitable recommendations (suitability evidence, customer-interest alignment, reviewable rationale).\n- **Governance & regulator dashboards:** decision distribution, top triggered controls, engine-disagreement rate, explanation quality, and audit completeness.",
+        "type": "Features",
+        "tags": [
+          "Evidence-Bound XAI",
+          "Consumer Duty",
+          "Robo-Advice",
+          "Audit Logging",
+          "Session Tracking",
+          "Engine Disagreement"
+        ]
+      }
+    ],
+    "problemSolutions": [
+      {
+        "problem": {
+          "title": "Challenge: Releasing AI-Generated Financial Comms Safely at Scale",
+          "issue": "AI can produce financial messages across chatbots, marketing, CRM, apps, and social media faster than compliance teams can manually review them.",
+          "impact": "Manual review of every message does not scale, but uncontrolled release creates consumer-harm, auditability, and governance risk."
+        },
+        "solution": {
+          "title": "Solution: A Pre-Release PACT Gate",
+          "implementation": "Communications pass through intake and context capture, the engines, scoring, and a release gate that converts risk into a Pass / Adjust / Check / Terminate action, with each decision accompanied by an Evidence Pack and audit record.",
+          "result": "Firms get a proportionate, evidence-backed release decision and an audit trail before a message reaches customers, instead of all-or-nothing manual review."
+        }
+      },
+      {
+        "problem": {
+          "title": "Challenge: Black-Box AI Decisions in a Regulated Context",
+          "issue": "A single AI verdict with no rationale is unusable for compliance, because reviewers and regulators need to see why a message was flagged and how confident the basis is.",
+          "impact": "Opaque decisions create liability and erode trust; reviewers cannot act on conclusions they cannot audit."
+        },
+        "solution": {
+          "title": "Solution: Three Engines + Evidence-Bound Explanations",
+          "implementation": "Deterministic rules, semantic retrieval, and a generative judge are compared instead of relying on a single verdict. Explanations are bound to controls and evidence, and confidence describes grounding quality, not legal certainty. Wording is constrained so the system never claims legal compliance or regulatory approval.",
+          "result": "Every decision is human-auditable: reviewers see the flagged phrase, the control, the regulation, the detecting engine, and whether the engines disagreed."
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "title": "Brief & Regulatory Framing",
+        "description": "Analysed the Cambridge Spark 'Financial Regulation in an AI-Driven World' brief. Defined FCA-aligned positioning (COBS 4.2, Consumer Duty) and a curated control library rather than full Handbook ingestion."
+      },
+      {
+        "title": "Engines & Release Gate",
+        "description": "Built the deterministic risk engine, semantic xRAG retrieval, the Gemini AI judge with simulated fallback, scoring, and the hybrid PACT release gate."
+      },
+      {
+        "title": "Evidence, Audit & Middleware",
+        "description": "Added Evidence Pack generation, audit logging, session/customer tracking, robo-advice controls, and version-controlled middleware with reassessment flags."
+      },
+      {
+        "title": "Frontend & Sandbox",
+        "description": "Built the React + Vite UI: review flow, PACT decision and Evidence Pack views, sandbox engine comparison, and governance/regulator dashboards."
+      }
+    ]
+  },
+  "ai": {
+    "publicSummary": "PACTGuard is RegTech pre-release compliance middleware for AI-era financial communications: it compares deterministic rules, semantic retrieval, and a Gemini AI judge, then applies a Pass / Adjust / Check / Terminate decision with an evidence-bound explanation. FCA-aligned, not FCA-certified; it supports compliance decision-making and does not provide advice or regulatory approval.",
+    "roleLenses": ["backend", "python-django", "ai-nlp", "fintech", "fullstack"],
+    "evidenceSkills": ["Django REST", "Semantic Retrieval", "Explainable AI"],
+    "safeTalkingPoints": [],
+    "sensitivity": "safe"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "email": "peecody1@gmail.com",
+  "profiles": [
+    {
+      "label": "LinkedIn",
+      "value": "pius-agboola",
+      "href": "https://linkedin.com/in/pius-agboola",
+      "external": true
+    },
+    {
+      "label": "GitHub",
+      "value": "r3troseer",
+      "href": "https://github.com/r3troseer",
+      "external": true
+    }
+  ]
+}

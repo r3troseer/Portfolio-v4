@@ -5,14 +5,13 @@ import { GalleryItem } from "./GalleryItem";
 import { TechTags } from "./TechTags";
 import { Modal } from "./Modal";
 import { PencilRuler, Lightbulb, Images } from "lucide-react";
-import { ContentType } from "../data/projects";
 
 export const ContentCard = ({ markdown, type, tags, gallery, children }) => {
   const [modalData, setModalData] = useState(null);
 
   const iconMap = {
-    [ContentType.Architecture]: <PencilRuler className="icon" />,
-    [ContentType.Features]: <Lightbulb className="icon" />,
+    Architecture: <PencilRuler className="icon" />,
+    Features: <Lightbulb className="icon" />,
   };
   return (
     <div className="content-card">

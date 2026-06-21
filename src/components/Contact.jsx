@@ -1,26 +1,17 @@
 import { ExternalLink } from "lucide-react";
+import { getLinks } from "../content/adapters/profileAdapter";
 
 export const Contact = () => {
+  const links = getLinks();
   const contacts = [
-    {
-      title: "Email",
-      value: "peecody1@gmail.com",
-      href: "mailto:peecody1@gmail.com",
-    },
-    {
-      title: "LinkedIn",
-      value: "pius-agboola",
-      href: "https://linkedin.com/in/pius-agboola",
-      target: "_blank",
-      rel: "noopener noreferrer",
-    },
-    {
-      title: "GitHub",
-      value: "r3troseer",
-      href: "https://github.com/r3troseer",
-      target: "_blank",
-      rel: "noopener noreferrer",
-    },
+    { title: "Email", value: links.email, href: `mailto:${links.email}` },
+    ...links.profiles.map((profile) => ({
+      title: profile.label,
+      value: profile.value,
+      href: profile.href,
+      target: profile.external ? "_blank" : undefined,
+      rel: profile.external ? "noopener noreferrer" : undefined,
+    })),
   ];
   return (
     <section id="contact">
@@ -32,7 +23,7 @@ export const Contact = () => {
             projects. Feel free to reach out if you'd like to collaborate!
           </p>
           <div className="contact-info">
-            {contacts?.map((contact, idx) => (
+            {contacts?.map((contact) => (
               <a
                 href={contact.href}
                 className="contact-item"
