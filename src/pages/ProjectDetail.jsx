@@ -50,9 +50,11 @@ export const ProjectDetail = () => {
           ))}
 
           {/* Timeline */}
-          <ContentCard markdown={`### Development Timeline & Lessons Learned`}>
-            <Timeline items={project.timeline} />
-          </ContentCard>
+          {project.timeline?.length > 0 && (
+            <ContentCard markdown={`### Development Timeline & Lessons Learned`}>
+              <Timeline items={project.timeline} />
+            </ContentCard>
+          )}
         </section>
       </section>
     </div>

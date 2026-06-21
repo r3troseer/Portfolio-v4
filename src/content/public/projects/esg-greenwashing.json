@@ -17,56 +17,13 @@
     "metrics": [],
     "contentCards": [
       {
-        "markdown": "### Approach\n- **Document analysis:** ingests sustainability-related text and extracts the relevant content from long, unstructured reports.\n- **ESG claim detection:** identifies ESG-relevant claims and organises them by environmental, social, and governance themes.\n- **Evidence retrieval (X-RAG):** an explainable retrieval-augmented approach connects each claim to relevant evidence before any judgement is made.\n- **Human-in-the-loop review:** results are structured for analyst review, keeping a person in control of the conclusions.\n- **Backend pipelines:** ingestion, extraction, classification, retrieval, and presentation are built as an interpretable workflow rather than a black box.",
+        "markdown": "### Approach\n- **Document analysis:** ingests sustainability-related text and extracts the relevant content from long, unstructured reports.\n- **ESG claim detection:** identifies ESG-relevant claims and organises them by environmental, social, and governance themes.\n- **Evidence retrieval (X-RAG):** an explainable retrieval-augmented approach connects each claim to relevant supporting evidence, so the basis for a claim is visible rather than hidden.\n- **Human reviewer support:** results are decision-support signals for a human analyst, who stays in control of any conclusions. The prototype does not make greenwashing accusations or final compliance judgements.\n- **Backend pipelines:** ingestion, extraction, classification, retrieval, and presentation are built as an interpretable workflow rather than a black box.",
         "type": "Architecture",
         "tags": ["NLP", "Information Retrieval", "X-RAG", "Document Intelligence", "Backend Pipelines"]
-      },
-      {
-        "markdown": "### Explainability and Responsible Use\n- **Evidence trails:** shows the claim, the retrieved evidence, and the relationship between them.\n- **Support signal:** indicates whether the evidence supports, partially supports, or fails to support a claim.\n- **Decision-support, not accusations:** outputs flag areas for review instead of labelling organisations.\n- **Traceability and caution:** the workflow is built around reviewability, so conclusions stay with the human reviewer.\n- **From reports to review:** turns long disclosures into a structured, auditable set of claims and evidence.",
-        "type": "Features",
-        "tags": ["Explainable AI", "Evidence Grounding", "Responsible AI", "Human Oversight"]
       }
     ],
-    "problemSolutions": [
-      {
-        "problem": {
-          "title": "Challenge: Reviewing Long Sustainability Disclosures",
-          "issue": "Sustainability reports are long and unstructured, so manually checking whether claims are specific, measurable, and evidence-backed is slow and easy to get wrong.",
-          "impact": "Vague or weakly supported claims can pass unnoticed, and reviewers spend time reading rather than analysing."
-        },
-        "solution": {
-          "title": "Solution: Evidence Trails from Disclosures",
-          "implementation": "The prototype ingests sustainability text, extracts and classifies ESG-relevant claims by theme, and presents them as a reviewable set of claims with the associated evidence.",
-          "result": "Reviewers can focus on the claims that need attention, with the supporting material organised alongside each one."
-        }
-      },
-      {
-        "problem": {
-          "title": "Challenge: Avoiding Misleading Automated Conclusions",
-          "issue": "A purely generative system could produce confident greenwashing conclusions that are not grounded in evidence, which is risky in sensitive sustainability analysis.",
-          "impact": "Unsupported automated accusations could be misleading or unfair to the organisations involved."
-        },
-        "solution": {
-          "title": "Solution: Explainable Retrieval (X-RAG)",
-          "implementation": "Retrieval connects each claim to relevant evidence before any judgement, and the system shows the claim, the evidence, and whether the evidence supports, partially supports, or fails to support it.",
-          "result": "The review process is transparent and auditable, with the final judgement left to the human reviewer."
-        }
-      }
-    ],
-    "timeline": [
-      {
-        "title": "Research Framing",
-        "description": "Defined the goal: support analysts in reviewing ESG and sustainability disclosures, treating outputs as decision-support signals rather than accusations."
-      },
-      {
-        "title": "Evidence Pipeline",
-        "description": "Built pipelines to ingest sustainability text, extract relevant content, and detect ESG-relevant claims organised by environmental, social, and governance themes."
-      },
-      {
-        "title": "Explainable Retrieval (X-RAG)",
-        "description": "Added retrieval that connects each claim to relevant evidence before any judgement, surfacing the claim, the evidence, and the support relationship for human review."
-      }
-    ]
+    "problemSolutions": [],
+    "timeline": []
   },
   "ai": {
     "publicSummary": "A research prototype for explainable, evidence-grounded review of ESG and sustainability disclosures. It detects ESG claims, retrieves supporting evidence (an explainable retrieval-augmented, or X-RAG, approach), and presents evidence trails so analysts can see why a claim may need attention. Outputs are decision-support signals, not automated accusations.",
