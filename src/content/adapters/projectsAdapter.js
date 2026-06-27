@@ -5,7 +5,7 @@
 // canonical shape; components stay decoupled from the on-disk format. A future
 // AI/RAG layer will add a SEPARATE adapter over the same canonical files.
 //
-// CRA/webpack resolves JSON imports at build time, so each canonical file is
+// Vite resolves JSON imports at build time, so each canonical file is
 // imported statically and registered by id.
 
 import index from "../public/projects/index.json";
@@ -19,7 +19,7 @@ import printingService from "../public/projects/printing-service.json";
 import ukShiftCalculator from "../public/projects/uk-shift-calculator.json";
 import pactguard from "../public/projects/pactguard.json";
 
-const baseUrl = process.env.REACT_APP_IMAGE_BASE;
+const baseUrl = import.meta.env.VITE_IMAGE_BASE;
 
 const projectsById = {
   "gfa-exchange": gfaExchange,

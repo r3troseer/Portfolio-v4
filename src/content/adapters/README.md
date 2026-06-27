@@ -8,7 +8,7 @@ Currently implemented: **`projectsAdapter.js`** (UI adapter for projects).
 
 ## Canonical project shape (`public/projects/<id>.json`)
 
-Strict JSON only: no JSX, functions, comments, template literals, imports, `process.env`,
+Strict JSON only: no JSX, functions, comments, template literals, imports, runtime environment access,
 or computed values. Image base-URL resolution happens in the adapter, not in JSON.
 
 ```jsonc
@@ -70,7 +70,7 @@ source of truth: presentation/order in `index.json`, content + governance per fi
 `gallery.images[].src` rules (applied in the adapter):
 - starts with `http`: used as-is;
 - starts with `/`: used as-is (e.g. `/images/...` in `public/`);
-- otherwise: prefixed with `process.env.REACT_APP_IMAGE_BASE` + `/`.
+- otherwise: prefixed with `import.meta.env.VITE_IMAGE_BASE` + `/`.
 
 ## Adding a project
 1. Add a strict-JSON file under `public/projects/<id>.json` using the shape above.
@@ -79,7 +79,7 @@ source of truth: presentation/order in `index.json`, content + governance per fi
 
 ## Markdown layer (`public/markdown/`, AI-facing)
 
-`about.md` and `role-lenses/*.md` are AI-facing prose for the future AI/RAG adapter; the CRA
+`about.md` and `role-lenses/*.md` are AI-facing prose for the future AI/RAG adapter; the React
 UI does not import them. Each carries YAML front matter for machine-readable governance, at
 parity with the JSON content:
 

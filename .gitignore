@@ -9,6 +9,7 @@
 /coverage
 
 # production
+/dist
 /build
 
 # local notes / planning (not part of the codebase)
