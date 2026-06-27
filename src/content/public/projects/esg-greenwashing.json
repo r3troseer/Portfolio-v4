@@ -1,6 +1,6 @@
 {
   "id": "esg-greenwashing",
-  "visibility": "public_summary_only",
+  "visibility": "private",
   "status": "in-progress",
   "sensitivity": "sensitive",
   "repo": { "visibility": "private" },

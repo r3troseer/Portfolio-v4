@@ -18,7 +18,6 @@ import eprep from "../public/projects/eprep.json";
 import printingService from "../public/projects/printing-service.json";
 import ukShiftCalculator from "../public/projects/uk-shift-calculator.json";
 import pactguard from "../public/projects/pactguard.json";
-import esgGreenwashing from "../public/projects/esg-greenwashing.json";
 
 const baseUrl = process.env.REACT_APP_IMAGE_BASE;
 
@@ -32,7 +31,6 @@ const projectsById = {
   "printing-service": printingService,
   "uk-shift-calculator": ukShiftCalculator,
   pactguard,
-  "esg-greenwashing": esgGreenwashing,
 };
 
 // Registry (index.json) sorted by displayOrder. Registry holds presentation
