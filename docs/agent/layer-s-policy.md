@@ -48,7 +48,7 @@ UI content and AI content may **share canonical IDs** but must be consumed throu
 serves both concerns.
 
 **UI vs AI prose:** structured JSON (e.g. `profile.json` bio) is the UI source of truth.
-The Markdown under `src/content/public/markdown/` (`about.md`, `role-lenses/*.md`) is the
+The Markdown under `apps/web/src/content/public/markdown/` (`about.md`, `role-lenses/*.md`) is the
 expanded AI-facing prose for the future AI/RAG layer and is not imported by the CRA UI. The
 two must be kept consistent (single-author discipline now; a derive-or-check step later).
 
@@ -65,7 +65,7 @@ intentionally omitted; git is the record of when.
 - The future AI/backend runtime will be a **separate Django/DRF service**, likely hosted on
   Railway / Render / Fly / a VPS, under something like `api.piusagboola.com`.
 - Layer 0 is file-backed inside the frontend repo *for this phase only*. The
-  `src/content/public/...` structure is laid out so it can move later to
+  `apps/web/src/content/public/...` structure is laid out so it can move later to
   `backend/content/public` without reshaping the data.
 
 ## 4. Deferred: integrity / versioning (not implemented now)

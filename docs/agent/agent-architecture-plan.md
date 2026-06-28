@@ -18,8 +18,8 @@ sets the target shape and the migration sequence so each step stays small and re
 - **Frontend:** Vite + React SPA, deployed directly on **Vercel** (`vercel.json` handles the
   Cloudinary `/images/*` rewrite and the SPA fallback).
 - **Content (Layer 0):** canonical, file-backed **portfolio content safe to commit publicly**
-  under `src/content/public/` (per-project JSON + `index.json` registry, profile silos, and
-  AI-facing markdown), consumed only through `src/content/adapters/`. Everything here is already
+  under `apps/web/src/content/public/` (per-project JSON + `index.json` registry, profile silos,
+  and AI-facing markdown), consumed only through `apps/web/src/content/adapters/`. Everything here is already
   cleared for a public repo; **visibility metadata controls UI rendering and future agent
   indexing**, not whether the file may exist in the repo. Single source of truth; UI and the
   future AI layer share canonical IDs but use **separate adapters**.
@@ -96,7 +96,7 @@ parts that protect real data into **validation and enforcement** in `apps/api` a
 > is effectively published. **Truly private, confidential, or secret content must never be
 > committed to the frontend repo at all — even if it is marked `private` or `blocked` in
 > metadata.** Such material lives outside this repo (e.g. backend-only stores or private
-> infrastructure), not in `src/content/`.
+> infrastructure), not in `apps/web/src/content/`.
 
 **Never exposed, in any layer**
 - Secrets / credentials, private-repo internals, and non-public **ESG / X-RAG internals**
