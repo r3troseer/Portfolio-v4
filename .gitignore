@@ -12,6 +12,11 @@ node_modules
 dist
 build
 
+# python / backend (apps/api) — uv.lock and .python-version ARE committed
+.venv/
+__pycache__/
+*.py[cod]
+
 # local notes / planning (not part of the codebase)
 /.notes
 
