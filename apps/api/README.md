@@ -8,7 +8,7 @@ deliberately minimal: no database, no admin/auth/sessions, no models, no AI.
 ## Prerequisites
 
 - [uv](https://docs.astral.sh/uv/) (dependency + environment manager)
-- Python (uv will use a compatible interpreter; developed against 3.14, Django 6.0)
+- Python 3.13 (pinned via `.python-version` / `requires-python = ">=3.13,<3.14"`; Django 6.0)
 
 Dependencies are managed with **uv + `pyproject.toml`** (`uv add …`). There is **no
 `requirements.txt`** and we do not use `pip freeze`.
@@ -24,6 +24,28 @@ DJANGO_DEBUG=true uv run python manage.py runserver   # dev server on :8000
 ```
 
 To add a dependency later: `uv add <package>` (updates `pyproject.toml` + `uv.lock`).
+
+> Note: the production WSGI server **gunicorn** is a dependency (used on Railway). It is
+> Unix-only and does not run on Windows — locally, use `manage.py runserver` as above.
+
+## Deployment (Railway)
+
+The service deploys to Railway (separately from the Vercel frontend, per the architecture plan).
+
+- **Start command** — set this as the custom start command in the Railway dashboard
+  (Settings → Deploy):
+  ```bash
+  gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application
+  ```
+  Railway injects `$PORT`; the `:-8000` fallback lets the same command run locally on Unix.
+- **No `migrate` step — and do not let the autodetected command add one.** Railpack's default
+  deploy command is `python manage.py migrate && gunicorn …`; on this DB-less skeleton `migrate`
+  exits 1 (`DATABASES = {}` → dummy backend → `ImproperlyConfigured`), which would block gunicorn
+  from starting. The custom start command above replaces it. A `migrate` step returns only when
+  the backend gains a real database and models.
+- **Production environment variables** (set in Railway): `DJANGO_SECRET_KEY` (required),
+  `DJANGO_DEBUG` left unset/`false`, and `DJANGO_ALLOWED_HOSTS` including the Railway domain.
+  Tune `DJANGO_CORS_ALLOWED_ORIGINS` to the real frontend origin(s). See the table below.
 
 ## Endpoints
 

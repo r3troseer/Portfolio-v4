@@ -17,7 +17,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-def _env_list(name, default):
+def _env_list(name: str, default: str) -> list[str]:
     """Comma-separated env value -> list of trimmed, non-empty strings."""
     raw = os.environ.get(name, default)
     return [item.strip() for item in raw.split(",") if item.strip()]
