@@ -1,0 +1,176 @@
+/*
+ * Profile refresh — shared style foundation.
+ *
+ * Additive, dormant layer for the "Profile" design direction (see
+ * docs/ui/profile-ui-refresh.md). These `pf-` namespaced utilities are consumed
+ * by later slices (hero repaint, bento capabilities grid, differentiated project
+ * cards, Cmd/Ctrl+K assistant shell). Nothing here is referenced by a rendered
+ * component yet, so importing this file does not change the current portfolio.
+ *
+ * Tokens live in src/index.css (`--pf-*`). Author fresh; do not paste prototype
+ * markup. No backend/LLM/API-key logic ever belongs in this layer.
+ */
+
+/* --- Section eyebrow / label ------------------------------------------- */
+.pf-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pf-eyebrow);
+}
+
+/* --- Elevated, intentional surface card -------------------------------- */
+.pf-card {
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  transition: transform var(--transition-fast), border-color var(--transition-fast),
+    background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.pf-card:hover {
+  background: var(--pf-surface-hover);
+  border-color: var(--pf-border-strong);
+  box-shadow: var(--pf-elev-shadow);
+}
+
+/* --- Capability chips (skills / niche tags) ---------------------------- */
+.pf-cap-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.pf-chip {
+  background: var(--pf-chip-bg);
+  border: 1px solid var(--pf-chip-border);
+  color: color-mix(in srgb, var(--primary-accent) 72%, white);
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  line-height: 1.2;
+}
+
+.pf-niche-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--radius-full);
+  padding: 0.25rem 0.75rem;
+}
+
+/* --- Bento capabilities grid ------------------------------------------- */
+/* Hero cell spans the left column; capability cells fill the right side.
+   Layout is a starting point for the capabilities slice and can be refined
+   there. Areas mirror the prototype: hero / lang / fw (frameworks) / data /
+   pr (practices). */
+.pf-bento-e {
+  display: grid;
+  gap: var(--pf-bento-gap);
+  grid-template-columns: 1.3fr 1fr 1fr;
+  grid-template-areas:
+    "hero lang fw"
+    "hero data pr";
+  align-items: stretch;
+}
+
+.pf-bento-e .pf-bento-hero {
+  grid-area: hero;
+}
+.pf-bento-e .pf-cap-lang {
+  grid-area: lang;
+}
+.pf-bento-e .pf-cap-fw {
+  grid-area: fw;
+}
+.pf-bento-e .pf-cap-data {
+  grid-area: data;
+}
+.pf-bento-e .pf-cap-pr {
+  grid-area: pr;
+}
+
+.pf-bento-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.pf-bento-head h4 {
+  margin: 0;
+  color: var(--gray-50);
+  font-weight: 600;
+}
+
+.pf-bento-desc {
+  color: var(--text-secondary);
+  max-width: 60ch;
+}
+
+.pf-bento-desc strong {
+  color: var(--slate-100);
+}
+
+/* --- Cmd/Ctrl+K assistant launcher chip (shell only) ------------------- */
+/* Visual affordance only. No key handling or assistant logic lives in CSS;
+   the shell slice wires a lightweight handler and a placeholder panel. */
+.pf-ask-launcher {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--radius-full);
+  padding: 0.55rem 1rem;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.pf-ask-launcher:hover {
+  background: var(--pf-surface-hover);
+  border-color: var(--pf-border-strong);
+  color: var(--text-primary);
+}
+
+.pf-kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--radius-sm);
+  padding: 0.1rem 0.4rem;
+}
+
+/* --- Responsive -------------------------------------------------------- */
+@media (max-width: 768px) {
+  .pf-bento-e {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "hero"
+      "lang"
+      "fw"
+      "data"
+      "pr";
+  }
+
+  .pf-card {
+    padding: var(--spacing-md);
+  }
+}

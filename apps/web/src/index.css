@@ -104,6 +104,18 @@
   /* Container */
   --container-max-width: 1200px;
   --container-padding: 0 20px;
+
+  /* Profile refresh (bento / capabilities / assistant shell) — additive layer.
+     Consumed by src/styles/profile.css; does not affect existing selectors. */
+  --pf-bento-gap: var(--spacing-md);
+  --pf-surface: rgba(255, 255, 255, 0.035);
+  --pf-surface-hover: rgba(255, 255, 255, 0.06);
+  --pf-border: rgba(148, 163, 184, 0.16);
+  --pf-border-strong: color-mix(in oklch, var(--primary-accent) 40%, transparent);
+  --pf-elev-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  --pf-eyebrow: color-mix(in srgb, var(--primary-accent) 78%, white);
+  --pf-chip-bg: rgba(100, 255, 218, 0.05);
+  --pf-chip-border: rgba(100, 255, 218, 0.22);
 }
 
 * {
