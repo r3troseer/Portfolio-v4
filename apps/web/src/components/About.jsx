@@ -1,4 +1,4 @@
-import { Skill } from "./Skill";
+import { Capabilities } from "./Capabilities";
 import { getProfile } from "../content/adapters/profileAdapter";
 
 export const About = () => {
@@ -6,14 +6,20 @@ export const About = () => {
   return (
     <section id="about">
       <div className="container">
-        <h2 className="section-title fade-in">About Me</h2>
+        <div className="pf-section-head fade-in">
+          <span className="pf-eyebrow">About</span>
+          <h2 className="section-title">About Me</h2>
+        </div>
         <div className="about-content fade-in">
           <div className="about-text">
             {bio.map((paragraph, index) => (
               <p key={index}>{paragraph}</p>
             ))}
           </div>
-          <Skill />
+        </div>
+        <div className="pf-capabilities-wrap fade-in">
+          <span className="pf-eyebrow">Capabilities</span>
+          <Capabilities />
         </div>
       </div>
     </section>
