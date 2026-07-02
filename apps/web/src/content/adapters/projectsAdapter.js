@@ -96,6 +96,7 @@ export const getFeaturedProject = () => {
     title: project.card.title,
     subtitle: project.card.subtitle,
     description: project.card.summary,
+    technologies: project.card.technologies || [],
     metrics: (project.detail.metrics || []).slice(0, 4),
   };
 };
@@ -105,12 +106,17 @@ export const getFeaturedProject = () => {
 export const getProjectListItems = () =>
   orderedRegistry.slice(1).map((entry, i) => {
     const project = projectsById[entry.id];
+    // Featured showcase counts as 01, so the list numbering starts at 02.
+    // Prefer the curated distinctive `listTech`, else the first three technologies.
+    const techLine = project.card.listTech
+      ? project.card.listTech.join(" · ")
+      : (project.card.technologies || []).slice(0, 3).join(" · ");
     return {
       id: project.id,
-      idx: String(i + 1).padStart(2, "0"),
+      idx: String(i + 2).padStart(2, "0"),
       title: project.card.title,
       subtitle: project.card.subtitle,
-      techLine: (project.card.technologies || []).slice(0, 3).join(" · "),
+      techLine,
     };
   });
 

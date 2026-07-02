@@ -60,6 +60,13 @@
   line-height: var(--line-height-base);
 }
 
+.pf-featured-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+}
+
 .pf-featured-cta {
   display: inline-flex;
   align-items: center;

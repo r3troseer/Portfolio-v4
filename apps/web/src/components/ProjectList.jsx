@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 export const ProjectList = ({ items }) => (
   <div className="pf-list">
@@ -12,7 +12,7 @@ export const ProjectList = ({ items }) => (
         </div>
         <span className="pf-list-tech">{project.techLine}</span>
         <span className="pf-list-arrow">
-          <ArrowRight size={18} />
+          <ArrowUpRight size={18} />
         </span>
       </Link>
     ))}

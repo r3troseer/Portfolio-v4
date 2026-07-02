@@ -1,15 +1,31 @@
 import { Link } from "react-router";
 import { ArrowRight } from "lucide-react";
 
-export const FeaturedProject = ({ id, title, subtitle, description, metrics }) => (
+export const FeaturedProject = ({
+  id,
+  title,
+  subtitle,
+  description,
+  technologies,
+  metrics,
+}) => (
   <Link to={`/projects/${id}`} className="pf-featured">
     <div className="pf-featured-body">
-      <span className="pf-featured-tag">Featured Project</span>
+      <span className="pf-featured-tag">Featured · Honourable Mention</span>
       <h3>{title}</h3>
       <div className="pf-featured-sub">{subtitle}</div>
       <p>{description}</p>
+      {technologies?.length > 0 && (
+        <div className="pf-featured-tags">
+          {technologies.map((tech, i) => (
+            <span className="pf-chip" key={i}>
+              {tech}
+            </span>
+          ))}
+        </div>
+      )}
       <span className="pf-featured-cta">
-        View project <ArrowRight size={15} />
+        Read case study <ArrowRight size={15} />
       </span>
     </div>
     {metrics.length > 0 && (

@@ -19,10 +19,7 @@ export const Projects = () => {
   return (
     <section id="projects">
       <div className="container">
-        <div className="pf-section-head fade-in">
-          <span className="pf-eyebrow">Selected Work</span>
-          <h2 className="section-title">Projects</h2>
-        </div>
+        <h2 className="section-title fade-in">Selected Work</h2>
 
         {featured && <FeaturedProject {...featured} />}
         <ProjectList items={visible} />
@@ -39,7 +36,7 @@ export const Projects = () => {
                 </>
               ) : (
                 <>
-                  View more projects <ChevronDown size={16} />
+                  <ChevronDown size={16} /> View more ({items.length - INITIAL_COUNT})
                 </>
               )}
             </button>
