@@ -6,10 +6,7 @@ export const Experience = () => {
   return (
     <section id="experience">
       <div className="container">
-        <div className="pf-section-head fade-in">
-          <span className="pf-eyebrow">Experience</span>
-          <h2 className="section-title">Professional Experience</h2>
-        </div>
+        <h2 className="section-title fade-in">Experience</h2>
         <div className="pf-resume fade-in">
           {roles?.map((role, idx) => (
             <div className="pf-resume-item" key={idx}>

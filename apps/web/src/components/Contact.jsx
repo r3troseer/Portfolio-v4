@@ -3,7 +3,6 @@ import { getLinks } from "../content/adapters/profileAdapter";
 import "../styles/profile/contact.css";
 
 const iconByLabel = {
-  Email: "mail",
   LinkedIn: "linkedin",
   GitHub: "github",
   Twitter: "twitter",
@@ -12,36 +11,30 @@ const iconByLabel = {
 
 export const Contact = () => {
   const links = getLinks();
-  const actions = [
-    { label: "Email", href: `mailto:${links.email}`, icon: "mail", external: false },
-    ...links.profiles.map((p) => ({
-      label: p.label,
-      href: p.href,
-      icon: iconByLabel[p.label] || "link",
-      external: p.external,
-    })),
-  ];
 
   return (
     <section id="contact">
       <div className="container">
         <div className="pf-contact fade-in">
-          <span className="pf-eyebrow">Contact</span>
-          <h2>Let&apos;s collaborate</h2>
+          <h2>Let&apos;s build something solid.</h2>
           <p>
-            I&apos;m open to backend and applied-AI roles and interesting problems.
-            The fastest way to reach me is email — or find me below.
+            I&apos;m open to backend and platform engineering roles. If you&apos;ve
+            got an interesting problem, I&apos;d like to hear about it.
           </p>
           <div className="pf-contact-actions">
-            {actions.map((action, i) => (
+            <a className="pf-clink pf-clink-primary" href={`mailto:${links.email}`}>
+              <DynamicIcon name="mail" size={16} /> {links.email}
+            </a>
+            {links.profiles.map((profile) => (
               <a
-                key={i}
+                key={profile.label}
                 className="pf-clink"
-                href={action.href}
-                target={action.external ? "_blank" : undefined}
-                rel={action.external ? "noopener noreferrer" : undefined}
+                href={profile.href}
+                target={profile.external ? "_blank" : undefined}
+                rel={profile.external ? "noopener noreferrer" : undefined}
               >
-                <DynamicIcon name={action.icon} size={16} /> {action.label}
+                <DynamicIcon name={iconByLabel[profile.label] || "link"} size={16} />{" "}
+                {profile.label}
               </a>
             ))}
           </div>

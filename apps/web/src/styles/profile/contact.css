@@ -57,3 +57,18 @@
   border-color: var(--primary-accent);
   color: var(--primary-accent);
 }
+
+/* Email is the primary contact CTA (solid), socials stay secondary. */
+.pf-clink-primary {
+  background: var(--primary-accent);
+  border-color: var(--primary-accent);
+  color: var(--slate-900);
+  font-weight: 500;
+}
+
+.pf-clink-primary:hover {
+  color: var(--slate-900);
+  border-color: var(--primary-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(100, 255, 218, 0.2);
+}
