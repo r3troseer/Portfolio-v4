@@ -1,0 +1,101 @@
+/*
+ * Profile — Experience résumé.
+ * Two-column rows: mono date/location on the left; role, company, and
+ * responsibility lines (dot + text + optional metric pill) on the right.
+ * Imported by components/Experience.jsx.
+ */
+
+.pf-resume {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.pf-resume-item {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-xl) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.pf-resume-item:last-child {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.pf-resume-meta .date {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.pf-resume-meta .loc {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  margin-top: 4px;
+}
+
+.pf-resume-body h3 {
+  color: var(--slate-50);
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.pf-resume-body .company {
+  color: var(--primary-accent);
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-sm);
+}
+
+.pf-resume-body ul {
+  list-style: none;
+}
+
+.pf-resume-body li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(156, 163, 175, 0.08);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.pf-resume-body li:last-child {
+  border-bottom: none;
+}
+
+.pf-rb-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary-accent);
+  box-shadow: 0 0 6px rgba(100, 255, 218, 0.5);
+  flex-shrink: 0;
+  margin-top: 7px;
+}
+
+.pf-rb-text {
+  flex: 1;
+}
+
+.pf-rb-pill {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--primary-accent);
+  border: 1px solid color-mix(in oklch, var(--primary-accent) 30%, transparent);
+  border-radius: var(--radius-full);
+  padding: 3px 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* --- Responsive -------------------------------------------------------- */
+@media (max-width: 640px) {
+  .pf-resume-item {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+}

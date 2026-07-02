@@ -1,0 +1,59 @@
+/*
+ * Profile — Contact.
+ * A centered glass card: eyebrow, heading, blurb, and action links
+ * (email + social). Imported by components/Contact.jsx.
+ */
+
+.pf-contact {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-4xl) var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.pf-contact h2 {
+  font-size: var(--font-size-5xl);
+  color: var(--slate-50);
+  font-weight: 600;
+}
+
+.pf-contact p {
+  color: var(--text-secondary);
+  font-size: var(--font-size-lg);
+  max-width: 520px;
+  line-height: var(--line-height-base);
+}
+
+.pf-contact-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: var(--spacing-md);
+}
+
+.pf-clink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  background: var(--pf-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.pf-clink:hover {
+  border-color: var(--primary-accent);
+  color: var(--primary-accent);
+}

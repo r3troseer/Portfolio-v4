@@ -1,39 +1,47 @@
-import { ExternalLink } from "lucide-react";
+import { DynamicIcon } from "lucide-react/dynamic";
 import { getLinks } from "../content/adapters/profileAdapter";
+import "../styles/profile/contact.css";
+
+const iconByLabel = {
+  Email: "mail",
+  LinkedIn: "linkedin",
+  GitHub: "github",
+  Twitter: "twitter",
+  X: "twitter",
+};
 
 export const Contact = () => {
   const links = getLinks();
-  const contacts = [
-    { title: "Email", value: links.email, href: `mailto:${links.email}` },
-    ...links.profiles.map((profile) => ({
-      title: profile.label,
-      value: profile.value,
-      href: profile.href,
-      target: profile.external ? "_blank" : undefined,
-      rel: profile.external ? "noopener noreferrer" : undefined,
+  const actions = [
+    { label: "Email", href: `mailto:${links.email}`, icon: "mail", external: false },
+    ...links.profiles.map((p) => ({
+      label: p.label,
+      href: p.href,
+      icon: iconByLabel[p.label] || "link",
+      external: p.external,
     })),
   ];
+
   return (
     <section id="contact">
       <div className="container">
-        <h2 className="section-title fade-in">Let's Connect</h2>
-        <div className="contact-content fade-in">
+        <div className="pf-contact fade-in">
+          <span className="pf-eyebrow">Contact</span>
+          <h2>Let&apos;s collaborate</h2>
           <p>
-            I'm always open to discussing new opportunities and interesting
-            projects. Feel free to reach out if you'd like to collaborate!
+            I&apos;m open to backend and applied-AI roles and interesting problems.
+            The fastest way to reach me is email — or find me below.
           </p>
-          <div className="contact-info">
-            {contacts?.map((contact) => (
+          <div className="pf-contact-actions">
+            {actions.map((action, i) => (
               <a
-                href={contact.href}
-                className="contact-item"
-                key={contact.title}
-                target={contact.target}
-                rel={contact.rel}
+                key={i}
+                className="pf-clink"
+                href={action.href}
+                target={action.external ? "_blank" : undefined}
+                rel={action.external ? "noopener noreferrer" : undefined}
               >
-                {contact.target && <ExternalLink size={13} className="contact-item-external" />}
-                <h4>{contact.title}</h4>
-                <p>{contact.value}</p>
+                <DynamicIcon name={action.icon} size={16} /> {action.label}
               </a>
             ))}
           </div>
