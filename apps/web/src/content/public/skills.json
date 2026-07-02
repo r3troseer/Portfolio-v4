@@ -1,12 +1,12 @@
 {
   "niche": {
     "label": "Applied AI / NLP",
-    "tag": "Focus",
-    "chips": ["Python", "NLP", "LLMs", "FastAPI"],
-    "description": "I turn **messy, unstructured inputs** into **structured, auditable outputs** — retrieval and NLP pipelines with rule-based explainability, evidence-backed evaluation, and defensible scoring.",
+    "tag": "MY NICHE",
+    "chips": ["RAG / retrieval", "Cross-encoder / NLI", "Evidence & validation", "LLM guardrails", "Multi-agent systems"],
+    "description": "My focus: applied AI where the model is wrapped in **architecture, evidence, and validation**, not just a prompt behind a chat box.",
     "flow": {
-      "from": ["docs", "claims", "signals"],
-      "to": ["scores", "evidence", "labels"]
+      "from": ["messy docs"],
+      "to": ["verified signal"]
     }
   },
   "categories": [
@@ -46,13 +46,5 @@
       "note": "core principle",
       "items": ["REST API design", "Testing & coverage", "Evidence-based eval"]
     }
-  ],
-  "groups": [
-    { "title": "Python", "subskill": "Django, FastAPI" },
-    { "title": "C#", "subskill": "ASP.NET, Blazor" },
-    { "title": "Databases", "subskill": "SQL, MongoDB" },
-    { "title": "DevOps", "subskill": "Docker, Git" },
-    { "title": "Performance", "subskill": "Redis, Celery" },
-    { "title": "APIs", "subskill": "REST, Integration" }
   ]
 }

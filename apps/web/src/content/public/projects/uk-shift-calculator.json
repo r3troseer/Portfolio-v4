@@ -8,7 +8,8 @@
     "title": "UK Shift Calculator",
     "subtitle": "PWA for Shift Tracking & Pay Estimation",
     "summary": "Progressive Web App for UK shift workers to log hours, calculate pay with 2024/25 tax and NI rates, and export payroll data. Includes offline support, weekend double pay, and CSV/JSON export.",
-    "technologies": ["React", "PWA", "LocalStorage", "Vercel"]
+    "technologies": ["React", "PWA", "LocalStorage", "Vercel"],
+    "listTech": ["React", "PWA", "LocalStorage"]
   },
   "detail": {
     "overview": "A React-based progressive web app that helps shift workers in the UK log hours, calculate pay, and estimate tax/NI deductions. Features a live time clock, weekend pay boost, common shift detection, and data export. Designed for portability and offline-first use.",

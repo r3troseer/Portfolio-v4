@@ -8,7 +8,8 @@
     "title": "MealSync",
     "subtitle": "AI-Assisted Household Meal Planning Platform",
     "summary": "AI-assisted household meal planning platform. Collaborative meal scheduling, recipe management, and automated grocery lists powered by Google Gemini. 77 automated tests, 93% AI service coverage. Built with FastAPI, React, and PostgreSQL.",
-    "technologies": ["FastAPI", "React", "TypeScript", "Google Gemini AI", "PostgreSQL", "Pytest"]
+    "technologies": ["FastAPI", "React", "TypeScript", "Google Gemini AI", "PostgreSQL", "Pytest"],
+    "listTech": ["FastAPI", "Google Gemini", "PostgreSQL"]
   },
   "detail": {
     "overview": "MealSync is a collaborative web app for household meal planning and grocery shopping. It uses Google Gemini for recipe generation, with shared meal scheduling and automated grocery lists. A team project for CN7021 Advanced Software Engineering, built with FastAPI and React, with a layered backend and 93% AI service test coverage.",

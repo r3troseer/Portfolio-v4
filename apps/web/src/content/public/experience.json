@@ -6,10 +6,10 @@
       "date": "January 2024 - January 2025",
       "location": "Lagos, Nigeria",
       "responsibilities": [
-        { "t": "Developed and maintained backend systems using .NET technologies", "m": "perf +20%" },
-        { "t": "Implemented logic enhancements that increased program efficiency", "m": "eff +50%" },
-        { "t": "Collaborated with frontend teams to enhance the user experience", "m": "ux +35%" },
-        { "t": "Contributed architectural improvements toward cleaner separation of concerns", "m": "system +15%" }
+        { "t": "Built and maintained .NET backend services", "m": "perf +20%" },
+        { "t": "Refactored core logic paths for throughput", "m": "eff +50%" },
+        { "t": "Partnered with frontend teams to tighten API contracts & response shapes" },
+        { "t": "Drove architecture improvements toward cleaner separation of concerns" }
       ]
     },
     {
@@ -18,11 +18,11 @@
       "date": "2021 - 2023",
       "location": "Ibadan, Nigeria",
       "responsibilities": [
-        { "t": "Built web applications using the Django framework", "m": "latency -30%" },
-        { "t": "Designed RESTful APIs for high-concurrency workloads", "m": "100k req" },
-        { "t": "Improved code maintainability through clean coding practices", "m": "+50%" },
-        { "t": "Achieved high code coverage through testing and code reviews", "m": "95% cov" },
-        { "t": "Reduced critical defects via proactive bug identification and resolution", "m": "-60% defects" }
+        { "t": "Built Django web applications", "m": "latency -30%" },
+        { "t": "Designed RESTful APIs for high-concurrency load", "m": "100k req" },
+        { "t": "Reached 95% test coverage via testing & code reviews", "m": "95% cov" },
+        { "t": "Raised code maintainability through clean-code practices" },
+        { "t": "Cut critical defects through proactive triage & resolution" }
       ]
     }
   ]

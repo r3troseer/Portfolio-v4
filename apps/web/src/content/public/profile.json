@@ -1,30 +1,32 @@
 {
   "name": "Pius Agboola",
-  "role": "Backend Engineer · Fintech & Applied AI",
+  "role": "Backend & Data Engineer · Applied AI / NLP",
+  "headline": "I build evidence-based AI: systems that turn messy inputs into verifiable workflows.",
+  "headlineHighlight": "evidence-based AI",
   "tagline": "Backend engineer with a track record in fintech and AI systems. I care about correctness and performance, not just shipping.",
-  "intro": "I build backend systems in Python and C# — fintech infrastructure, multi-agent AI, and NLP data pipelines — with a focus on correctness, performance, and defensible, auditable results.",
+  "intro": "Applied AI with the architecture, evidence, and testing built around it, not just a prompt behind a chat box.",
   "location": "London, United Kingdom",
-  "availability": "Open to roles",
+  "availability": "Available for roles · London",
   "facts": [
     {
-      "icon": "graduation-cap",
-      "label": "Education",
-      "value": "MSc Computer Science, UEL (Distinction-level)"
-    },
-    {
-      "icon": "code",
-      "label": "Focus",
-      "value": "Backend · Applied AI / NLP"
-    },
-    {
       "icon": "map-pin",
-      "label": "Location",
+      "label": "Based in",
       "value": "London, United Kingdom"
     },
     {
-      "icon": "circle-check",
-      "label": "Availability",
-      "value": "Open to roles"
+      "icon": "graduation-cap",
+      "label": "Education",
+      "value": "MSc Computer Science, University of East London (Distinction-level)"
+    },
+    {
+      "icon": "layers",
+      "label": "Focus",
+      "value": "Evidence-based AI · NLP · Data Pipelines"
+    },
+    {
+      "icon": "code",
+      "label": "Core stack",
+      "value": "Python · C# · FastAPI · .NET 8"
     }
   ],
   "bio": [
