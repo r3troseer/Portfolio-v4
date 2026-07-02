@@ -1,0 +1,116 @@
+/*
+ * Profile design — shared primitives.
+ *
+ * Cross-section building blocks for the Profile rebuild (see
+ * docs/ui/profile-ui-refresh.md). Section-specific layout lives in the per-section
+ * files (hero.css, capabilities.css, projects.css, experience.css, contact.css,
+ * assistant.css), each imported by its own component. Tokens live in index.css
+ * (`--pf-*`, `--font-mono`). Plain CSS, `pf-` namespaced. No content/facts here.
+ */
+
+/* --- Section head (eyebrow + centered title) --------------------------- */
+.pf-section-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-3xl);
+}
+
+.pf-section-head .section-title {
+  margin-bottom: 0;
+}
+
+/* --- Eyebrow / label --------------------------------------------------- */
+.pf-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--pf-eyebrow);
+}
+
+/* --- Elevated glass card ----------------------------------------------- */
+.pf-card {
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  transition: transform var(--transition-fast), border-color var(--transition-fast),
+    background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.pf-card:hover {
+  background: var(--pf-surface-hover);
+  border-color: var(--pf-border-strong);
+  box-shadow: var(--pf-elev-shadow);
+}
+
+/* --- Chip -------------------------------------------------------------- */
+.pf-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  padding: 5px 11px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--slate-200);
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+/* --- Buttons ----------------------------------------------------------- */
+.pf-btn-primary,
+.pf-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 12px 26px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform var(--transition-fast), background var(--transition-fast),
+    border-color var(--transition-fast), color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.pf-btn-primary {
+  background: var(--primary-accent);
+  color: var(--slate-900);
+  border: 1px solid var(--primary-accent);
+}
+
+.pf-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(100, 255, 218, 0.2);
+}
+
+.pf-btn-ghost {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
+}
+
+.pf-btn-ghost:hover {
+  border-color: var(--primary-accent);
+  color: var(--primary-accent);
+}
+
+/* --- Keyboard hint ----------------------------------------------------- */
+.pf-kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--radius-sm);
+  padding: 0.1rem 0.4rem;
+}

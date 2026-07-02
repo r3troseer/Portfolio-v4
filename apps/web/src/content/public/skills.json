@@ -1,4 +1,52 @@
 {
+  "niche": {
+    "label": "Applied AI / NLP",
+    "tag": "Focus",
+    "chips": ["Python", "NLP", "LLMs", "FastAPI"],
+    "description": "I turn **messy, unstructured inputs** into **structured, auditable outputs** — retrieval and NLP pipelines with rule-based explainability, evidence-backed evaluation, and defensible scoring.",
+    "flow": {
+      "from": ["docs", "claims", "signals"],
+      "to": ["scores", "evidence", "labels"]
+    }
+  },
+  "categories": [
+    {
+      "key": "lang",
+      "icon": "terminal",
+      "label": "Languages",
+      "count": "04",
+      "primary": "Python",
+      "note": "primary",
+      "items": ["C#", "SQL", "TypeScript"]
+    },
+    {
+      "key": "fw",
+      "icon": "boxes",
+      "label": "Frameworks",
+      "count": "06",
+      "primary": "FastAPI",
+      "note": "most used",
+      "items": ["Django", "ASP.NET", ".NET 8", "Blazor", "React"]
+    },
+    {
+      "key": "data",
+      "icon": "database",
+      "label": "Data & Infra",
+      "count": "09",
+      "primary": "PostgreSQL",
+      "note": "primary store",
+      "items": ["MySQL", "MongoDB", "BigQuery", "Redis", "Celery", "Docker", "GitHub Actions", "CI/CD"]
+    },
+    {
+      "key": "pr",
+      "icon": "shield-check",
+      "label": "Practices",
+      "count": "04",
+      "primary": "Clean Architecture",
+      "note": "core principle",
+      "items": ["REST API design", "Testing & coverage", "Evidence-based eval"]
+    }
+  ],
   "groups": [
     { "title": "Python", "subskill": "Django, FastAPI" },
     { "title": "C#", "subskill": "ASP.NET, Blazor" },

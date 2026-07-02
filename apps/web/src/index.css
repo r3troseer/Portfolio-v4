@@ -106,7 +106,8 @@
   --container-padding: 0 20px;
 
   /* Profile refresh (bento / capabilities / assistant shell) — additive layer.
-     Consumed by src/styles/profile.css; does not affect existing selectors. */
+     Consumed by src/styles/profile/*.css; does not affect existing selectors. */
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --pf-bento-gap: var(--spacing-md);
   --pf-surface: rgba(255, 255, 255, 0.035);
   --pf-surface-hover: rgba(255, 255, 255, 0.06);
@@ -744,6 +745,23 @@ footer p {
   }
   .experience-item {
     padding: var(--spacing-md);
+  }
+}
+
+/* Respect reduced-motion: collapse entrance/scroll animations and transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .fade-in {
+    opacity: 1;
+    transform: none;
   }
 }
 

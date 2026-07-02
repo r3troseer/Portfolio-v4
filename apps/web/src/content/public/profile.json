@@ -1,7 +1,32 @@
 {
   "name": "Pius Agboola",
+  "role": "Backend Engineer · Fintech & Applied AI",
   "tagline": "Backend engineer with a track record in fintech and AI systems. I care about correctness and performance, not just shipping.",
+  "intro": "I build backend systems in Python and C# — fintech infrastructure, multi-agent AI, and NLP data pipelines — with a focus on correctness, performance, and defensible, auditable results.",
   "location": "London, United Kingdom",
+  "availability": "Open to roles",
+  "facts": [
+    {
+      "icon": "graduation-cap",
+      "label": "Education",
+      "value": "MSc Computer Science, UEL (Distinction-level)"
+    },
+    {
+      "icon": "code",
+      "label": "Focus",
+      "value": "Backend · Applied AI / NLP"
+    },
+    {
+      "icon": "map-pin",
+      "label": "Location",
+      "value": "London, United Kingdom"
+    },
+    {
+      "icon": "circle-check",
+      "label": "Availability",
+      "value": "Open to roles"
+    }
+  ],
   "bio": [
     "I'm a backend engineer based in London, currently completing an MSc in Computer Science at the University of East London, with distinction-level results so far across Level 7 modules. I build systems in Python (Django, FastAPI) and C# (ASP.NET, .NET 8), with a focus on clean architecture, performance, and correctness.",
     "Professionally, I've worked at Touch and Pay Technologies (YC W22) building fintech infrastructure in ASP.NET; improving application performance by 20% and refactoring core logic for 50% efficiency gains. Before that at Reymage, I designed REST APIs handling 100k concurrent requests and maintained 95% test coverage across production Django services.",
