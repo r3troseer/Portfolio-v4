@@ -1,0 +1,173 @@
+/*
+ * Profile — Hero section.
+ * Asymmetric two-column: copy (eyebrow, name, intro, availability pill, actions)
+ * beside a glass facts panel with fact rows and social icon-buttons.
+ * Imported by components/Hero.jsx.
+ */
+
+.pf-hero-grid {
+  position: relative;
+  z-index: var(--z-hero);
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: var(--spacing-4xl);
+  align-items: center;
+}
+
+/* --- Left column ------------------------------------------------------- */
+.pf-hero-eyebrow {
+  margin-bottom: var(--spacing-md);
+  animation: fadeInUp 1s ease backwards;
+}
+
+/* `.hero .pf-hero-name` beats the legacy `.hero h1` gradient text-clip on
+   specificity, giving a clean near-white name per the Profile spec. */
+.hero .pf-hero-name {
+  font-size: clamp(2.4rem, 4.5vw, 3.6rem);
+  font-weight: 600;
+  line-height: 1.1;
+  background: none;
+  color: var(--slate-50);
+  -webkit-text-fill-color: var(--slate-50);
+  margin-bottom: var(--spacing-md);
+  animation: fadeInUp 1s ease 0.1s backwards;
+}
+
+.pf-intro {
+  font-size: var(--font-size-lg);
+  color: var(--text-secondary);
+  max-width: 540px;
+  line-height: var(--line-height-base);
+  margin-bottom: var(--spacing-lg);
+  animation: fadeInUp 1s ease 0.2s backwards;
+}
+
+.pf-hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: color-mix(in oklch, var(--primary-accent) 7%, transparent);
+  border: 1px solid color-mix(in oklch, var(--primary-accent) 26%, transparent);
+  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-lg);
+  animation: fadeInUp 1s ease 0.25s backwards;
+}
+
+.pf-hero-pill .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary-accent);
+  box-shadow: 0 0 7px var(--primary-accent);
+  flex-shrink: 0;
+}
+
+.pf-hero-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  animation: fadeInUp 1s ease 0.3s backwards;
+}
+
+.pf-ask-launcher {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--radius-full);
+  padding: 10px 18px;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.pf-ask-launcher:hover {
+  background: var(--pf-surface-hover);
+  border-color: var(--pf-border-strong);
+  color: var(--text-primary);
+}
+
+/* --- Right column: facts panel ----------------------------------------- */
+.pf-facts {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-lg);
+  animation: fadeInUp 1s ease 0.35s backwards;
+}
+
+.pf-fact-row {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.pf-fact-row:last-of-type {
+  border-bottom: none;
+}
+
+.pf-fact-icon {
+  color: var(--primary-accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pf-fact-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.pf-fact-value {
+  font-size: var(--font-size-sm);
+  color: var(--slate-100);
+  font-weight: 500;
+}
+
+.pf-facts-links {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.pf-facts-link {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  transition: color var(--transition-fast), border-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.pf-facts-link:hover {
+  color: var(--primary-accent);
+  border-color: var(--primary-accent);
+  transform: translateY(-2px);
+}
+
+/* --- Responsive -------------------------------------------------------- */
+@media (max-width: 900px) {
+  .pf-hero-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2xl);
+  }
+}
