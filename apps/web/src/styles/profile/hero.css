@@ -16,22 +16,29 @@
 }
 
 /* --- Left column ------------------------------------------------------- */
-.pf-hero-eyebrow {
-  margin-bottom: var(--spacing-md);
-  animation: fadeInUp 1s ease backwards;
-}
-
-/* `.hero .pf-hero-name` beats the legacy `.hero h1` gradient text-clip on
-   specificity, giving a clean near-white name per the Profile spec. */
-.hero .pf-hero-name {
-  font-size: clamp(2.4rem, 4.5vw, 3.6rem);
+.pf-hero-headline {
+  font-size: clamp(2.1rem, 3.7vw, 3.4rem);
   font-weight: 600;
-  line-height: 1.1;
-  background: none;
+  line-height: 1.15;
   color: var(--slate-50);
-  -webkit-text-fill-color: var(--slate-50);
   margin-bottom: var(--spacing-md);
   animation: fadeInUp 1s ease 0.1s backwards;
+}
+
+/* Gradient-emphasis span within the headline. */
+.pf-hero-headline .pf-hl {
+  background: linear-gradient(120deg, var(--primary-accent), var(--tertiary-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.pf-hero-role {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-md);
+  animation: fadeInUp 1s ease 0.15s backwards;
 }
 
 .pf-intro {
