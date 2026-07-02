@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router";
 import { Navigation } from "./components/Navigation";
 import { Footer } from "./components/Footer";
 import { ParticleEffect } from "./components/ParticleEffect";
+import { AssistantShell } from "./components/AssistantShell";
 import { Home } from "./pages/Home";
 import { ScrollToTop } from "./components/ScrollToTop";
 // import { ProjectList } from './pages/ProjectList';
@@ -17,6 +18,7 @@ function Layout() {
       </main>
       <Footer />
       <ParticleEffect />
+      <AssistantShell />
     </>
   );
 }

@@ -1,0 +1,152 @@
+/*
+ * Profile — assistant shell (Cmd/Ctrl+K).
+ * A scroll-aware floating launcher (appears once the hero leaves view, or on
+ * pages without a hero) and a placeholder "Ask about Pius" modal. Shell only:
+ * no backend, LLM, retrieval, or key storage. Imported by AssistantShell.jsx.
+ */
+
+/* --- Floating launcher (fab) ------------------------------------------- */
+.pf-fab {
+  position: fixed;
+  right: var(--spacing-lg);
+  bottom: var(--spacing-lg);
+  z-index: 1200;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 12px 18px;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--slate-800) 92%, transparent);
+  border: 1px solid var(--pf-border-strong);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--pf-elev-shadow);
+  opacity: 0;
+  transform: translateY(20px) scale(0.92);
+  pointer-events: none;
+  transition: opacity var(--transition-fast), transform var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.pf-fab-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.pf-fab:hover {
+  border-color: var(--primary-accent);
+}
+
+/* --- Modal overlay + panel --------------------------------------------- */
+.pf-assistant-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  background: rgba(3, 7, 18, 0.66);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12vh var(--spacing-lg) var(--spacing-lg);
+  animation: fadeInUp 0.2s ease;
+}
+
+.pf-assistant-panel {
+  width: 100%;
+  max-width: 560px;
+  background: var(--slate-800);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--pf-elev-shadow);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.pf-assistant-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pf-assistant-close {
+  display: flex;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.pf-assistant-close:hover {
+  color: var(--text-primary);
+}
+
+.pf-assistant-inputwrap {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--radius-md);
+  padding: 4px 10px 4px 14px;
+}
+
+.pf-assistant-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family);
+  padding: 10px 0;
+}
+
+.pf-assistant-input::placeholder {
+  color: var(--text-muted);
+}
+
+.pf-assistant-placeholder {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--spacing-md);
+}
+
+.pf-assistant-note {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-md);
+}
+
+.pf-assistant-hints {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pf-assistant-hints li {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  padding: 8px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--pf-surface);
+}
+
+/* --- Responsive -------------------------------------------------------- */
+@media (max-width: 500px) {
+  .pf-fab {
+    right: var(--spacing-md);
+    bottom: var(--spacing-md);
+  }
+
+  .pf-assistant-overlay {
+    padding: 8vh var(--spacing-md) var(--spacing-md);
+  }
+}
