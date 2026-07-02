@@ -8,7 +8,7 @@
 /* --- Floating launcher (fab) ------------------------------------------- */
 .pf-fab {
   position: fixed;
-  right: var(--spacing-lg);
+  left: var(--spacing-lg);
   bottom: var(--spacing-lg);
   z-index: 1200;
   display: inline-flex;
@@ -38,6 +38,11 @@
 
 .pf-fab:hover {
   border-color: var(--primary-accent);
+}
+
+/* Cyan sparkle to match the prototype launcher. */
+.pf-fab svg {
+  color: var(--primary-accent);
 }
 
 /* --- Modal overlay + panel --------------------------------------------- */
@@ -142,7 +147,7 @@
 /* --- Responsive -------------------------------------------------------- */
 @media (max-width: 500px) {
   .pf-fab {
-    right: var(--spacing-md);
+    left: var(--spacing-md);
     bottom: var(--spacing-md);
   }
 

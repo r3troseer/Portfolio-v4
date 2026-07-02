@@ -85,7 +85,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-xs);
-  background: var(--pf-surface);
+  background: color-mix(in oklch, var(--slate-800) 88%, transparent);
   border: 1px solid var(--pf-border);
   border-radius: var(--radius-full);
   padding: 10px 18px;
@@ -97,9 +97,14 @@
 }
 
 .pf-ask-launcher:hover {
-  background: var(--pf-surface-hover);
+  background: color-mix(in oklch, var(--slate-750) 90%, transparent);
   border-color: var(--pf-border-strong);
   color: var(--text-primary);
+}
+
+/* Cyan sparkle to match the prototype launcher. */
+.pf-ask-launcher svg {
+  color: var(--primary-accent);
 }
 
 /* --- Right column: facts panel ----------------------------------------- */
