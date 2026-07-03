@@ -12,6 +12,7 @@
     "listTech": ["React", "PWA", "LocalStorage"]
   },
   "detail": {
+    "focus": "PWA · Productivity",
     "overview": "A React-based progressive web app that helps shift workers in the UK log hours, calculate pay, and estimate tax/NI deductions. Features a live time clock, weekend pay boost, common shift detection, and data export. Designed for portability and offline-first use.",
     "links": [
       { "icon": "github", "text": "View Code", "href": "https://github.com/r3troseer/UK-Shift-Calculator" },

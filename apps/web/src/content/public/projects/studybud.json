@@ -12,6 +12,7 @@
     "listTech": ["NLP", "OpenAI", "PDF Processing"]
   },
   "detail": {
+    "focus": "NLP · EdTech",
     "overview": "StudyBud was my final year project, built to help students get more out of their study materials. Users upload PDF or DOCX files, and it uses NLP and GPT-based models to generate summaries and quizzes for revision.",
     "links": [
       { "icon": "github", "text": "View Code", "href": "https://github.com/r3troseer/StudyBud" }

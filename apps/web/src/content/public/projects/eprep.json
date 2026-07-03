@@ -12,6 +12,7 @@
     "listTech": ["Django REST", "OTP Auth", "Mobile Backend"]
   },
   "detail": {
+    "focus": "Mobile Backend · EdTech",
     "overview": "EPrep is an unfinished Django REST Framework backend for a mobile-first exam preparation service. It provides OTP authentication, exam/practice APIs, and Paystack payments. It is not production-ready, but covers the backend architecture and third-party integrations the service would need.",
     "links": [
       { "icon": "github", "text": "View Code", "href": "https://github.com/r3troseer/EPrep" }

@@ -137,6 +137,9 @@ export const getProjectById = (id) => {
       links: detail.links || [],
       badge: detail.badge,
     },
+    // Detail hero meta: optional short focus line + the full stack for chips.
+    focus: detail.focus || null,
+    technologies: card.technologies || [],
     metrics: detail.metrics || [],
     contentCards: resolveContentCards(detail.contentCards),
     problemSolutions: detail.problemSolutions || [],

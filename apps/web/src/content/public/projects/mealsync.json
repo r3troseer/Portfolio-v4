@@ -12,6 +12,7 @@
     "listTech": ["FastAPI", "Google Gemini", "PostgreSQL"]
   },
   "detail": {
+    "focus": "AI Integration · Full-Stack",
     "overview": "MealSync is a collaborative web app for household meal planning and grocery shopping. It uses Google Gemini for recipe generation, with shared meal scheduling and automated grocery lists. A team project for CN7021 Advanced Software Engineering, built with FastAPI and React, with a layered backend and 93% AI service test coverage.",
     "links": [
       { "icon": "github", "text": "Backend Repository", "href": "" },

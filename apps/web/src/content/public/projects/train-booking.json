@@ -12,6 +12,7 @@
     "listTech": ["C#", "CQRS", "Clean Architecture"]
   },
   "detail": {
+    "focus": "Backend · Clean Architecture",
     "overview": "TBS-SeatBooking is a reservation system built with .NET 8 Web API following Clean Architecture principles. It manages routes, schedules, real-time seat availability, bookings, and payments while providing OTP-based authentication for a frictionless user experience.",
     "links": [],
     "badge": { "text": "Private", "type": "private", "size": "small" },
