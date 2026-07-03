@@ -1,6 +1,6 @@
 # Profile UI Refresh — Scope & Decisions
 
-Status: in progress · Branch: `feature/profile-ui-refresh`
+Status: implemented (home + project detail) · Branch: `feature/profile-ui-refresh` · see **Outcomes** below
 
 This note records the agreed scope for integrating the matured design prototype into the real
 `apps/web` app. It is the durable, committed record of what we keep, cut, defer, and leave to a
@@ -50,8 +50,9 @@ and ignored entirely.
 
 ## Defer (later slice — still this repo, no backend)
 
-- Surfacing project gallery imagery more prominently on cards/detail with graceful
-  missing-media fallbacks (see Media note).
+- ~~Surfacing project gallery imagery on the detail page with graceful missing-media fallbacks.~~
+  **Done** — implemented in the detail rebuild (media grid + lightbox + per-image `onError`); see
+  Outcomes.
 - Evidence result **shell** content and ⌘K panel polish.
 - The Refined conservative-polish pass.
 
@@ -106,9 +107,10 @@ selection, and any answer/retrieval generation in the SPA.
 Per-project detail JSONs reference gallery images such as `/images/eprep-login.png`. Those files
 are **not committed to the repo**; `apps/web/vercel.json` rewrites `/images/:path*` to Cloudinary
 (`res.cloudinary.com/dyzzyrfdq/...`), so they resolve **in production**, not locally. Image `src`
-resolution already lives in `projectsAdapter.js`. The later project-presentation slice should
-surface these where they resolve and degrade gracefully (styled fallback, no broken `<img>`)
-where they don't. No images are imported into the repo as part of this refresh.
+resolution already lives in `projectsAdapter.js`. **Implemented** (see Outcomes): the detail page
+surfaces these in a media grid + lightbox where they resolve, and degrades gracefully (failed
+`<img>`s hide via `onError`; the media block hides entirely when all fail) where they don't. No
+images are imported into the repo.
 
 ## Content & governance boundaries
 
@@ -132,3 +134,48 @@ where they don't. No images are imported into the repo as part of this refresh.
 
 Each slice must keep `npm run build` (from `apps/web`) green and must not touch `apps/api`,
 `.notes/`, or `CLAUDE.md`.
+
+## Outcomes (2026-07 — what actually shipped)
+
+The Profile direction was built in three passes on `feature/profile-ui-refresh`, verified with
+headless-Edge (DevTools Protocol) screenshots against the standalone prototype's Profile view at
+each step; `npm run build` stayed green throughout.
+
+**1. Home rebuild (faithful, section by section):**
+- Content + adapters enriched (`profile.json` role/headline/intro/availability/facts/bioShort;
+  `skills.json` niche + categorized `capabilities`; `experience.json` structured responsibilities;
+  per-project curated `card.listTech`). Facts live in JSON, never in JSX.
+- Self-hosted **JetBrains Mono**; modular per-section CSS under `styles/profile/`.
+- Statement-led hero (gradient-emphasis headline, facts panel), capabilities **bento** (niche tile
+  + Languages/Frameworks/Data/Practices), featured project card + numbered "Selected Work" list,
+  résumé-style experience with metric pills, centered contact card.
+- **⌘K assistant shell** (placeholder only — no backend/LLM/keys/RAG): inline hero launcher that
+  animates into a **floating bottom-left** button on scroll; modal styled to the prototype's
+  `pf-ask` system. Nav underline is a **scroll-spy** that follows the active section.
+- Background banding fixed via a fixed gradient + faint SVG-noise dither. `prefers-reduced-motion`
+  guard added.
+
+**2. Project detail rebuild (`pf-pd`):** back link, editorial hero (badge, title, subtitle,
+overview, **Focus / Stack / Links** meta — `detail.focus` added per project), metric cards, markdown
+content cards, rose→cyan problem/solution, dot timeline, gradient CTA. **Galleries kept and extended**
+(prototype had none) with a `pf`-surface lightbox and per-image `onError` that hides failed shots and
+drops the whole media block when all fail. Legacy `projectDetail.css` (556 lines), `styles/base.css`,
+`App.css`, empty `projectList.css`, and `PageHeader`/`ProjectHeader`/`TechTags`/`MetricItem` removed;
+404 restyled in the profile language.
+
+**3. Architecture + bundle:** dead adapter exports removed (`getAllProjectCards`/`getFeaturedProjects`/
+`getRestProjects`/`getSkills`); `getEducation` retained deliberately (silo with no UI consumer yet —
+see `.notes` layer-0 **D22**). Bundle shrunk **537 KB → 311 KB** main (100 KB gzip) by replacing
+`lucide-react/dynamic` with a 16-icon `Icon` registry (emitted JS files **1618 → 3**) and lazy-loading
+the detail/404 routes so react-markdown leaves the home bundle.
+
+**Governance held:** featured project is `gfa-exchange`; ESG/greenwashing stays unregistered; **X-RAG
+genericized** to "RAG / retrieval" in the niche chips. The one remaining `xRAG` mention is PACTGuard's
+own detail markdown — **intentionally left** (Pius's decision). UI never imports `content/public/markdown/`
+and never reads project `ai.*` fields, so the Layer-0 seam for the future RAG layer stays clean.
+
+**Deliberately not done / deferred:** terminal, Evidence-as-variant, real assistant/RAG (backend
+phase), a dedicated Education section (data ready), and any PR/merge to `master` (Pius's call).
+
+**Commit convention:** history on this branch carries **no `Co-Authored-By`/AI-attribution trailer**
+(also recorded in `CLAUDE.md`).
