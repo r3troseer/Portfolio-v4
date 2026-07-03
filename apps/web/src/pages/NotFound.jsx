@@ -1,14 +1,14 @@
 import { Link } from "react-router";
-import "../styles/projectDetail.css";
+import { ArrowLeft } from "lucide-react";
+import "../styles/profile/base.css";
 
-export const NotFound = () => {
-  return (
-    <section className="not-found">
-      <div className="container">
-        <p>404</p>
-        <h2>Page not found</h2>
-        <Link to="/" className="cta-button">Back to home</Link>
-      </div>
-    </section>
-  );
-};
+export const NotFound = () => (
+  <section className="pf-notfound">
+    <span className="pf-eyebrow">404</span>
+    <h2>Page not found</h2>
+    <p>That page doesn&apos;t exist — let&apos;s get you back to the work.</p>
+    <Link to="/" className="pf-btn-primary">
+      <ArrowLeft size={16} /> Back home
+    </Link>
+  </section>
+);

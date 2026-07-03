@@ -101,6 +101,30 @@
   color: var(--primary-accent);
 }
 
+/* --- 404 / NotFound ---------------------------------------------------- */
+.pf-notfound {
+  flex: 1;
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-2xl);
+}
+
+.pf-notfound h2 {
+  font-size: var(--font-size-4xl);
+  color: var(--slate-50);
+  font-weight: 600;
+}
+
+.pf-notfound p {
+  color: var(--text-secondary);
+  max-width: 42ch;
+}
+
 /* --- Keyboard hint ----------------------------------------------------- */
 .pf-kbd {
   display: inline-flex;
