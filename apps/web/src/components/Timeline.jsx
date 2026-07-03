@@ -1,8 +1,9 @@
 export const Timeline = ({ items }) => {
   return (
-    <div className="timeline">
+    <div className="pf-pd-timeline">
       {items.map((item, index) => (
-        <div key={index} className="timeline-item">
+        <div key={index} className="pf-pd-tl-item">
+          <span className="pf-pd-tl-dot" />
           <h4>{item.title}</h4>
           <p>{item.description}</p>
         </div>
@@ -10,5 +11,3 @@ export const Timeline = ({ items }) => {
     </div>
   );
 };
-
-// merge timeline with experience

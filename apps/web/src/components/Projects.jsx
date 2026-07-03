@@ -1,46 +1,47 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { ProjectCard } from "./ProjectCard";
-import { getFeaturedProjects, getRestProjects } from "../content/adapters/projectsAdapter";
-export const Projects = () => {
-  const [showAll, setShowAll] = useState(false);
+import { FeaturedProject } from "./FeaturedProject";
+import { ProjectList } from "./ProjectList";
+import {
+  getFeaturedProject,
+  getProjectListItems,
+} from "../content/adapters/projectsAdapter";
+import "../styles/profile/projects.css";
 
-  const featured = getFeaturedProjects();
-  const rest = getRestProjects();
+const INITIAL_COUNT = 4;
+
+export const Projects = () => {
+  const featured = getFeaturedProject();
+  const items = getProjectListItems();
+  const [showAll, setShowAll] = useState(false);
+  const visible = showAll ? items : items.slice(0, INITIAL_COUNT);
 
   return (
     <section id="projects">
       <div className="container">
-        <h2 className="section-title fade-in">Featured Projects</h2>
-        <div className="projects-grid">
-          {featured.map((project) => (
-            <ProjectCard
-              key={project.id}
-              id={project.id}
-              title={project.title}
-              description={project.description}
-              technologies={project.technologies}
-            />
-          ))}
-          {showAll && rest.map((project) => (
-            <ProjectCard
-              key={project.id}
-              id={project.id}
-              title={project.title}
-              description={project.description}
-              technologies={project.technologies}
-              revealed
-            />
-          ))}
-        </div>
-        <div className="projects-toggle-wrap">
-          <button
-            className="projects-toggle"
-            onClick={() => setShowAll(!showAll)}
-          >
-            {showAll ? <><ChevronUp size={16} /> Show less</> : <>Show more projects <ChevronDown size={16} /></>}
-          </button>
-        </div>
+        <h2 className="section-title fade-in">Selected Work</h2>
+
+        {featured && <FeaturedProject {...featured} />}
+        <ProjectList items={visible} />
+
+        {items.length > INITIAL_COUNT && (
+          <div className="pf-list-morewrap">
+            <button
+              className="pf-list-morebtn"
+              onClick={() => setShowAll((v) => !v)}
+            >
+              {showAll ? (
+                <>
+                  <ChevronUp size={16} /> Show less
+                </>
+              ) : (
+                <>
+                  <ChevronDown size={16} /> View more ({items.length - INITIAL_COUNT})
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

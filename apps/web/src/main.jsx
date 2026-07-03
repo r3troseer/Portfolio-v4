@@ -1,6 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
+import "./styles/fonts.css";
+import "./styles/profile/base.css";
 import App from "./App.jsx";
 import { Analytics } from "@vercel/analytics/react";
 

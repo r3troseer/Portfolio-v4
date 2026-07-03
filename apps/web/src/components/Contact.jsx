@@ -1,39 +1,40 @@
-import { ExternalLink } from "lucide-react";
+import { Icon } from "./Icon";
 import { getLinks } from "../content/adapters/profileAdapter";
+import "../styles/profile/contact.css";
+
+const iconByLabel = {
+  LinkedIn: "linkedin",
+  GitHub: "github",
+  Twitter: "twitter",
+  X: "twitter",
+};
 
 export const Contact = () => {
   const links = getLinks();
-  const contacts = [
-    { title: "Email", value: links.email, href: `mailto:${links.email}` },
-    ...links.profiles.map((profile) => ({
-      title: profile.label,
-      value: profile.value,
-      href: profile.href,
-      target: profile.external ? "_blank" : undefined,
-      rel: profile.external ? "noopener noreferrer" : undefined,
-    })),
-  ];
+
   return (
     <section id="contact">
       <div className="container">
-        <h2 className="section-title fade-in">Let's Connect</h2>
-        <div className="contact-content fade-in">
+        <div className="pf-contact fade-in">
+          <h2>Let&apos;s build something solid.</h2>
           <p>
-            I'm always open to discussing new opportunities and interesting
-            projects. Feel free to reach out if you'd like to collaborate!
+            I&apos;m open to backend and platform engineering roles. If you&apos;ve
+            got an interesting problem, I&apos;d like to hear about it.
           </p>
-          <div className="contact-info">
-            {contacts?.map((contact) => (
+          <div className="pf-contact-actions">
+            <a className="pf-clink pf-clink-primary" href={`mailto:${links.email}`}>
+              <Icon name="mail" size={16} /> {links.email}
+            </a>
+            {links.profiles.map((profile) => (
               <a
-                href={contact.href}
-                className="contact-item"
-                key={contact.title}
-                target={contact.target}
-                rel={contact.rel}
+                key={profile.label}
+                className="pf-clink"
+                href={profile.href}
+                target={profile.external ? "_blank" : undefined}
+                rel={profile.external ? "noopener noreferrer" : undefined}
               >
-                {contact.target && <ExternalLink size={13} className="contact-item-external" />}
-                <h4>{contact.title}</h4>
-                <p>{contact.value}</p>
+                <Icon name={iconByLabel[profile.label] || "link"} size={16} />{" "}
+                {profile.label}
               </a>
             ))}
           </div>

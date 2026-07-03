@@ -1,60 +1,70 @@
 import { useState } from "react";
 import Markdown from "react-markdown";
-// import "../styles/content-card.css";
 import { GalleryItem } from "./GalleryItem";
-import { TechTags } from "./TechTags";
 import { Modal } from "./Modal";
 import { PencilRuler, Lightbulb, Images } from "lucide-react";
 
+const iconByType = {
+  Architecture: <PencilRuler size={18} />,
+  Features: <Lightbulb size={18} />,
+};
+
 export const ContentCard = ({ markdown, type, tags, gallery, children }) => {
   const [modalData, setModalData] = useState(null);
+  const [failedCount, setFailedCount] = useState(0);
+  // Hide the whole media block (incl. its title) once every image has failed.
+  const galleryVisible = gallery && failedCount < gallery.images.length;
 
-  const iconMap = {
-    Architecture: <PencilRuler className="icon" />,
-    Features: <Lightbulb className="icon" />,
-  };
   return (
-    <div className="content-card">
-      {/* add icon to markdown title */}
+    <div className="pf-pd-card">
       {markdown && (
-        <Markdown
-          components={{
-            h3: ({ node, ...props }) => {
-              //   const text = String(props.children);
-              const icon = iconMap[type] || null;
-              return (
+        <div className="md-render">
+          <Markdown
+            components={{
+              h3: ({ node, ...props }) => (
                 <h3 {...props}>
-                  {icon}
+                  {iconByType[type] || null}
                   {props.children}
                 </h3>
-              );
-            },
-          }}
-        >
-          {markdown}
-        </Markdown>
+              ),
+            }}
+          >
+            {markdown}
+          </Markdown>
+        </div>
       )}
-      {/* Tags */}
-      {tags && <TechTags tags={tags} />}
-      {/* Gallery items */}
-      {gallery && (
-        <div className="inline-gallery">
-          <div className="gallery-title">
-            <Images /> {/*add class or use iconNode*/}
-            {gallery.title || "Gallery"}
-          </div>
-          <div className="gallery-grid">
+
+      {tags && (
+        <div className="pf-pd-card-tags">
+          {tags.map((tag, i) => (
+            <span className="pf-pd-stack" key={i}>
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {galleryVisible && (
+        <div className="pf-pd-media">
+          <span className="pf-pd-media-title">
+            <Images size={13} /> {gallery.title || "Gallery"}
+          </span>
+          <div className="pf-pd-media-grid">
             {gallery.images.map((img, i) => (
-              <GalleryItem key={i} img={img} setModalData={setModalData} />
+              <GalleryItem
+                key={i}
+                img={img}
+                setModalData={setModalData}
+                onFail={() => setFailedCount((c) => c + 1)}
+              />
             ))}
           </div>
         </div>
       )}
+
       {children}
-      {/* Modal */}
-      {modalData && (
-        <Modal onClose={() => setModalData(null)} data={modalData} />
-      )}
+
+      {modalData && <Modal onClose={() => setModalData(null)} data={modalData} />}
     </div>
   );
 };

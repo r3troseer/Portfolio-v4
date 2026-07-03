@@ -11,6 +11,7 @@
     "technologies": ["FastAPI", "React", "TypeScript", "Multi-Agent AI", "SQLAlchemy", "Zustand"]
   },
   "detail": {
+    "focus": "Multi-Agent AI · Fintech",
     "overview": "Built for the UKFinnovator hackathon by Ukfin+, this platform tackles a structural problem in UK SME lending: loans end up with the wrong lenders by accident rather than by fit. The system uses a multi-agent AI pipeline to identify mismatched loans, score reallocation opportunities, and match lenders through a privacy-preserving marketplace, with financial inclusion treated as a first-class metric throughout. Received an Honourable Mention.",
     "links": [
       {

@@ -64,24 +64,41 @@ const resolveContentCards = (contentCards = []) =>
       : card
   );
 
-// Map a registry entry to the props ProjectCard expects.
-const toCard = (entry) => {
+// Profile "featured showcase": the single top project by displayOrder
+// (gfa-exchange). Governance: we intentionally feature a public registry project,
+// never ESG/X-RAG. Includes up to four detail metrics for the side-panel.
+export const getFeaturedProject = () => {
+  const entry = orderedRegistry[0];
+  if (!entry) return null;
   const project = projectsById[entry.id];
   return {
     id: project.id,
     title: project.card.title,
+    subtitle: project.card.subtitle,
     description: project.card.summary,
-    technologies: project.card.technologies,
+    technologies: project.card.technologies || [],
+    metrics: (project.detail.metrics || []).slice(0, 4),
   };
 };
 
-export const getAllProjectCards = () => orderedRegistry.map(toCard);
-
-export const getFeaturedProjects = () =>
-  orderedRegistry.filter((entry) => entry.featured).map(toCard);
-
-export const getRestProjects = () =>
-  orderedRegistry.filter((entry) => !entry.featured).map(toCard);
+// Profile "selected work" list: every project after the featured showcase, as
+// numbered rows (index + title + subtitle + a short tech line).
+export const getProjectListItems = () =>
+  orderedRegistry.slice(1).map((entry, i) => {
+    const project = projectsById[entry.id];
+    // Featured showcase counts as 01, so the list numbering starts at 02.
+    // Prefer the curated distinctive `listTech`, else the first three technologies.
+    const techLine = project.card.listTech
+      ? project.card.listTech.join(" · ")
+      : (project.card.technologies || []).slice(0, 3).join(" · ");
+    return {
+      id: project.id,
+      idx: String(i + 2).padStart(2, "0"),
+      title: project.card.title,
+      subtitle: project.card.subtitle,
+      techLine,
+    };
+  });
 
 // Returns a legacy-compatible object so ProjectDetail.jsx renders unchanged:
 // { id, header: { title, subtitle, overview, links, badge }, metrics,
@@ -100,6 +117,9 @@ export const getProjectById = (id) => {
       links: detail.links || [],
       badge: detail.badge,
     },
+    // Detail hero meta: optional short focus line + the full stack for chips.
+    focus: detail.focus || null,
+    technologies: card.technologies || [],
     metrics: detail.metrics || [],
     contentCards: resolveContentCards(detail.contentCards),
     problemSolutions: detail.problemSolutions || [],

@@ -1,0 +1,158 @@
+/*
+ * Profile — Hero section.
+ * Asymmetric two-column: copy (eyebrow, name, intro, availability pill, actions)
+ * beside a glass facts panel with fact rows and social icon-buttons.
+ * Imported by components/Hero.jsx.
+ */
+
+.pf-hero-grid {
+  position: relative;
+  z-index: var(--z-hero);
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: var(--spacing-4xl);
+  align-items: center;
+}
+
+/* --- Left column ------------------------------------------------------- */
+.pf-hero-headline {
+  font-size: clamp(2.1rem, 3.7vw, 3.4rem);
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--slate-50);
+  margin-bottom: var(--spacing-md);
+  animation: fadeInUp 1s ease 0.1s backwards;
+}
+
+/* Gradient-emphasis span within the headline. */
+.pf-hero-headline .pf-hl {
+  background: linear-gradient(120deg, var(--primary-accent), var(--tertiary-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.pf-hero-role {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-md);
+  animation: fadeInUp 1s ease 0.15s backwards;
+}
+
+.pf-intro {
+  font-size: var(--font-size-lg);
+  color: var(--text-secondary);
+  max-width: 540px;
+  line-height: var(--line-height-base);
+  margin-bottom: var(--spacing-lg);
+  animation: fadeInUp 1s ease 0.2s backwards;
+}
+
+.pf-hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: color-mix(in oklch, var(--primary-accent) 7%, transparent);
+  border: 1px solid color-mix(in oklch, var(--primary-accent) 26%, transparent);
+  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-lg);
+  animation: fadeInUp 1s ease 0.25s backwards;
+}
+
+.pf-hero-pill .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary-accent);
+  box-shadow: 0 0 7px var(--primary-accent);
+  flex-shrink: 0;
+}
+
+.pf-hero-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  animation: fadeInUp 1s ease 0.3s backwards;
+}
+
+/* Ask launcher visuals come from the shared .pf-ask-pill (profile/base.css). */
+
+/* --- Right column: facts panel ----------------------------------------- */
+.pf-facts {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-lg);
+  animation: fadeInUp 1s ease 0.35s backwards;
+}
+
+.pf-fact-row {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* The socials row below carries no border-top, so the last fact row's
+   border-bottom is the single divider before the social links. */
+
+.pf-fact-icon {
+  color: var(--primary-accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pf-fact-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.pf-fact-value {
+  font-size: var(--font-size-sm);
+  color: var(--slate-100);
+  font-weight: 500;
+}
+
+.pf-facts-links {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.pf-facts-link {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--pf-wash);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  transition: color var(--transition-fast), border-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.pf-facts-link:hover {
+  color: var(--primary-accent);
+  border-color: var(--primary-accent);
+  transform: translateY(-2px);
+}
+
+/* --- Responsive -------------------------------------------------------- */
+@media (max-width: 900px) {
+  .pf-hero-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2xl);
+  }
+}

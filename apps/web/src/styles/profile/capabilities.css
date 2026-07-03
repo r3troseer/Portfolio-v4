@@ -1,0 +1,292 @@
+/*
+ * Profile — Capabilities bento.
+ * A "niche" focus tile (gradient, chips, messy->structured data-flow) beside four
+ * capability tiles (lead skill + count badge + "also" list). Imported by
+ * components/Capabilities.jsx.
+ */
+
+/* Second heading inside the About section needs its own top spacing. */
+.pf-cap-title {
+  margin-top: var(--spacing-3xl);
+}
+
+/* Slim About lead paragraph above the Capabilities heading. */
+.pf-about-lead {
+  max-width: 640px;
+  margin: 0 auto var(--spacing-2xl);
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-base);
+}
+
+.pf-bento-e {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  grid-template-areas:
+    "niche lang fw"
+    "niche data pr";
+  gap: var(--spacing-md);
+  align-items: stretch;
+}
+
+.pf-bento-hero { grid-area: niche; }
+.pf-cap-lang { grid-area: lang; }
+.pf-cap-fw { grid-area: fw; }
+.pf-cap-data { grid-area: data; }
+.pf-cap-pr { grid-area: pr; }
+
+/* --- Niche tile -------------------------------------------------------- */
+.pf-bento-hero {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(150deg, rgba(100, 255, 218, 0.09), rgba(138, 43, 226, 0.07));
+  border: 1px solid color-mix(in oklch, var(--primary-accent) 28%, transparent);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.pf-bento-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.pf-bento-head h4 {
+  margin: 0;
+  color: var(--slate-50);
+  font-weight: 600;
+  font-size: var(--font-size-lg);
+}
+
+.pf-niche-tag {
+  font-size: 0.64rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--primary-accent);
+  border: 1px solid color-mix(in oklch, var(--primary-accent) 32%, transparent);
+  border-radius: var(--radius-full);
+  padding: 3px 11px;
+  white-space: nowrap;
+}
+
+.pf-niche-chips {
+  margin-bottom: var(--spacing-md);
+}
+
+.pf-bento-desc {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 38ch;
+  margin: 0;
+}
+
+.pf-bento-desc strong {
+  color: var(--slate-100);
+  font-weight: 500;
+}
+
+/* --- Data-flow (messy -> structured) ----------------------------------- */
+.pf-flow {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+  margin-top: auto;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.pf-flow-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pf-flow-chip {
+  font-size: 0.7rem;
+  padding: 3px 9px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  text-align: center;
+}
+
+.pf-flow-chip.messy {
+  background: rgba(251, 113, 133, 0.08);
+  border: 1px dashed rgba(251, 113, 133, 0.32);
+  color: #fda4af;
+}
+
+.pf-flow-chip.structured {
+  background: rgba(45, 212, 191, 0.08);
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  color: #99f6e4;
+}
+
+.pf-flow-arrow {
+  flex: 1;
+  height: 2px;
+  position: relative;
+  background: linear-gradient(90deg, #fb7185, var(--primary-accent));
+}
+
+.pf-flow-arrow::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid var(--primary-accent);
+}
+
+.pf-flow-arrow .dot {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 6px #fff;
+  animation: flowDot 2.6s ease-in-out infinite;
+}
+
+@keyframes flowDot {
+  0% { left: 0; opacity: 0.35; }
+  50% { opacity: 1; }
+  100% { left: calc(100% - 6px); opacity: 0.35; }
+}
+
+/* --- Capability tiles -------------------------------------------------- */
+.pf-cap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.pf-cap:hover {
+  border-color: color-mix(in oklch, var(--primary-accent) 25%, transparent);
+  background: var(--bg-card-hover);
+}
+
+.pf-cap-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary-accent);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  margin-bottom: var(--spacing-md);
+}
+
+.pf-cap-count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  background: var(--pf-wash);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  padding: 2px 8px;
+}
+
+.pf-cap-lead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--slate-50);
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.pf-cap-lead .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary-accent);
+  flex-shrink: 0;
+  box-shadow: 0 0 8px color-mix(in oklch, var(--primary-accent) 60%, transparent);
+}
+
+.pf-cap-note {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding-left: 15px;
+}
+
+.pf-cap-rest {
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  align-items: center;
+}
+
+.pf-cap-rest::before {
+  content: "also";
+  display: block;
+  width: 100%;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 7px;
+}
+
+.pf-cap-rest span {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.pf-cap-rest span:not(:last-child)::after {
+  content: "·";
+  margin-left: 6px;
+  color: var(--text-muted);
+}
+
+/* --- Responsive -------------------------------------------------------- */
+@media (max-width: 860px) {
+  .pf-bento-e {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "niche niche"
+      "lang fw"
+      "data pr";
+  }
+}
+
+@media (max-width: 560px) {
+  .pf-bento-e {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "niche"
+      "lang"
+      "fw"
+      "data"
+      "pr";
+  }
+}

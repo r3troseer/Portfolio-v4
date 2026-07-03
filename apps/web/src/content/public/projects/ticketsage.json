@@ -8,9 +8,11 @@
     "title": "TicketSage",
     "subtitle": "Movie Ticket Booking Platform",
     "summary": "Django-based movie booking system with TMDB API integration, user authentication, and automated showtime scheduling for cinema management.",
-    "technologies": ["Django", "TMDB API", "Authentication", "PythonAnywhere"]
+    "technologies": ["Django", "TMDB API", "Authentication", "PythonAnywhere"],
+    "listTech": ["Django", "TMDB API", "Auth"]
   },
   "detail": {
+    "focus": "Django · Booking Platform",
     "overview": "TicketSage is a full-stack movie booking system built with Django REST Framework (backend) and Next.js (frontend). It integrates with the TMDB API to fetch movie data, allows users to browse listings, select seats, and book tickets, while providing an admin dashboard for cinema and booking management. My main role focused on building the backend architecture, APIs, and booking logic.",
     "links": [
       { "icon": "github", "text": "View Code", "href": "https://github.com/r3troseer/TicketSage" }

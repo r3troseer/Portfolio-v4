@@ -8,9 +8,11 @@
     "title": "StudyBud",
     "subtitle": "AI-Powered Document Analysis & Quiz Generation",
     "summary": "AI-powered tool for generating summaries and quizzes from documents. Features advanced NLP techniques for text extraction from PDF and DOCX files, integrated with OpenAI's language models.",
-    "technologies": ["Django", "NLP", "OpenAI", "PDF Processing"]
+    "technologies": ["Django", "NLP", "OpenAI", "PDF Processing"],
+    "listTech": ["NLP", "OpenAI", "PDF Processing"]
   },
   "detail": {
+    "focus": "NLP · EdTech",
     "overview": "StudyBud was my final year project, built to help students get more out of their study materials. Users upload PDF or DOCX files, and it uses NLP and GPT-based models to generate summaries and quizzes for revision.",
     "links": [
       { "icon": "github", "text": "View Code", "href": "https://github.com/r3troseer/StudyBud" }

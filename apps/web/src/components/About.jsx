@@ -1,20 +1,15 @@
-import { Skill } from "./Skill";
+import { Capabilities } from "./Capabilities";
 import { getProfile } from "../content/adapters/profileAdapter";
 
 export const About = () => {
-  const { bio } = getProfile();
+  const { bioShort } = getProfile();
   return (
     <section id="about">
       <div className="container">
-        <h2 className="section-title fade-in">About Me</h2>
-        <div className="about-content fade-in">
-          <div className="about-text">
-            {bio.map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))}
-          </div>
-          <Skill />
-        </div>
+        <h2 className="section-title fade-in">About</h2>
+        {bioShort && <p className="pf-about-lead fade-in">{bioShort}</p>}
+        <h2 className="section-title pf-cap-title fade-in">Capabilities</h2>
+        <Capabilities />
       </div>
     </section>
   );

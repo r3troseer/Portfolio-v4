@@ -8,9 +8,11 @@
     "title": "Online Printing Service",
     "subtitle": "Clean Architecture .NET Backend + Blazor Frontend",
     "summary": "Document printing platform with .NET backend and Blazor frontend. Users upload files, pay online, receive a unique code, and retrieve their prints at a connected printing station.",
-    "technologies": [".NET", "Blazor", "Cloud Storage", "Payments"]
+    "technologies": [".NET", "Blazor", "Cloud Storage", "Payments"],
+    "listTech": ["Blazor", ".NET", "Payments"]
   },
   "detail": {
+    "focus": ".NET · E-Commerce",
     "overview": "OPS is a full-stack document printing service built with ASP.NET Core Web API and a Blazor Server UI. Users upload documents, pay online, and get a unique code to collect their prints at a physical station. It uses Clean Architecture with MongoDB/MySQL persistence, Redis caching, Azure Blob storage, and JWT authentication.",
     "links": [],
     "badge": { "text": "Private", "type": "private", "size": "small" },

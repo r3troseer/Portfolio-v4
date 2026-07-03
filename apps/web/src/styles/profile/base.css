@@ -1,0 +1,179 @@
+/*
+ * Profile design — shared primitives.
+ *
+ * Cross-section building blocks for the Profile rebuild (see
+ * docs/ui/profile-ui-refresh.md). Section-specific layout lives in the per-section
+ * files (hero.css, capabilities.css, projects.css, experience.css, contact.css,
+ * assistant.css), each imported by its own component. Tokens live in index.css
+ * (`--pf-*`, `--font-mono`). Plain CSS, `pf-` namespaced. No content/facts here.
+ */
+
+/* --- Section head (eyebrow + centered title) --------------------------- */
+.pf-section-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-3xl);
+}
+
+.pf-section-head .section-title {
+  margin-bottom: 0;
+}
+
+/* --- Eyebrow / label --------------------------------------------------- */
+.pf-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--pf-eyebrow);
+}
+
+/* --- Elevated glass card ----------------------------------------------- */
+.pf-card {
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  transition: transform var(--transition-fast), border-color var(--transition-fast),
+    background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.pf-card:hover {
+  background: var(--pf-surface-hover);
+  border-color: var(--pf-border-strong);
+  box-shadow: var(--pf-elev-shadow);
+}
+
+/* --- Chip -------------------------------------------------------------- */
+.pf-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  padding: 5px 11px;
+  border-radius: var(--radius-full);
+  background: var(--pf-wash);
+  border: 1px solid var(--border-subtle);
+  color: var(--slate-200);
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+/* --- Buttons ----------------------------------------------------------- */
+.pf-btn-primary,
+.pf-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 12px 26px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform var(--transition-fast), background var(--transition-fast),
+    border-color var(--transition-fast), color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.pf-btn-primary {
+  background: var(--primary-accent);
+  color: var(--slate-900);
+  border: 1px solid var(--primary-accent);
+}
+
+.pf-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(100, 255, 218, 0.2);
+}
+
+.pf-btn-ghost {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
+}
+
+.pf-btn-ghost:hover {
+  border-color: var(--primary-accent);
+  color: var(--primary-accent);
+}
+
+/* --- 404 / NotFound ---------------------------------------------------- */
+.pf-notfound {
+  flex: 1;
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-2xl);
+}
+
+.pf-notfound h2 {
+  font-size: var(--font-size-4xl);
+  color: var(--slate-50);
+  font-weight: 600;
+}
+
+.pf-notfound p {
+  color: var(--text-secondary);
+  max-width: 42ch;
+}
+
+/* --- Keyboard hint ----------------------------------------------------- */
+.pf-kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  background: var(--pf-kbd-bg);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--radius-sm);
+  padding: 0.1rem 0.4rem;
+}
+
+/* --- Ask launcher pill (shared by the hero launcher and the floating fab;
+       visuals from the prototype's .pf-ask-launch) ----------------------- */
+.pf-ask-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 14px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  color: var(--slate-200);
+  background: var(--pf-ask-surface);
+  border: 1px solid var(--pf-ask-border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--pf-ask-shadow);
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.pf-ask-pill:hover {
+  transform: translateY(-2px);
+  border-color: var(--pf-ask-border-hover);
+  background: var(--pf-ask-surface-hover);
+}
+
+.pf-ask-pill svg {
+  color: var(--primary-accent);
+}
+
+.pf-ask-pill .pf-kbd {
+  font-size: 0.66rem;
+  color: var(--slate-400);
+  background: var(--pf-kbd-bg);
+  border: 1px solid var(--pf-card-line);
+  border-radius: 5px;
+  padding: 2px 6px;
+}

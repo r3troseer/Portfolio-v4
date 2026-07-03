@@ -8,9 +8,11 @@
     "title": "Train Booking System",
     "subtitle": "A Clean Architecture .NET 8 train seat booking system",
     "summary": ".NET 8 backend for booking train tickets, with seat availability checks, category-based pricing, and trip schedule management.",
-    "technologies": [".NET", "C#", "MariaDB", "CQRS", "Clean Architecture"]
+    "technologies": [".NET", "C#", "MariaDB", "CQRS", "Clean Architecture"],
+    "listTech": ["C#", "CQRS", "Clean Architecture"]
   },
   "detail": {
+    "focus": "Backend · Clean Architecture",
     "overview": "TBS-SeatBooking is a reservation system built with .NET 8 Web API following Clean Architecture principles. It manages routes, schedules, real-time seat availability, bookings, and payments while providing OTP-based authentication for a frictionless user experience.",
     "links": [],
     "badge": { "text": "Private", "type": "private", "size": "small" },

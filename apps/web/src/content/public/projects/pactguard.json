@@ -8,9 +8,11 @@
     "title": "PACTGuard",
     "subtitle": "Pre-Release Compliance Middleware for AI-Era Financial Communications",
     "summary": "RegTech middleware that reviews AI-generated financial communications and robo-advice before release. Compares three independent engines (deterministic rules, semantic retrieval, and a Gemini AI judge), then applies a Pass / Adjust / Check / Terminate decision with an evidence-bound explanation. Built for the Cambridge Spark 'Financial Regulation in an AI-Driven World' challenge.",
-    "technologies": ["Django", "DRF", "React", "Gemini 2.0 Flash", "Sentence-Transformers", "RegTech"]
+    "technologies": ["Django", "DRF", "React", "Gemini 2.0 Flash", "Sentence-Transformers", "RegTech"],
+    "listTech": ["Sentence-Transformers", "LLM Judge", "NLI / Evidence"]
   },
   "detail": {
+    "focus": "RegTech · AI Compliance",
     "overview": "PACTGuard is pre-release compliance middleware and a regulatory sandbox for customer-facing financial communications. It checks AI-generated, AI-assisted, and human-written promotional, chatbot, CRM, and robo-advice outputs before they reach customers, applies a Pass / Adjust / Check / Terminate release decision, and produces an evidence-bound Evidence Pack for firms and regulator-style reviewers. Built by team PACTful for the Cambridge Spark 'Financial Regulation in an AI-Driven World' challenge, it is FCA-aligned, not FCA-certified, and does not provide financial or legal advice or imply regulatory approval.",
     "links": [
       { "icon": "github", "text": "View Code", "href": "https://github.com/r3troseer/PACTGuard" }

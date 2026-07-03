@@ -3,29 +3,63 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { getProfile } from "../content/adapters/profileAdapter";
 import "../styles/navigation.css";
 
+const SECTIONS = [
+  { id: "home", label: "Home" },
+  { id: "about", label: "About" },
+  { id: "projects", label: "Projects" },
+  { id: "experience", label: "Experience" },
+  { id: "contact", label: "Contact" },
+];
+
+// Sections start "under" the fixed nav; treat a section as active once its top
+// passes this offset so the underline hands over at a natural point.
+const SPY_OFFSET = 120;
+
 export const Navigation = () => {
   const [navBackground, setNavBackground] = useState(false);
+  const [activeSection, setActiveSection] = useState("home");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const isHomePage = location.pathname === "/";
   const { name } = getProfile();
 
+  // One rAF-throttled scroll handler: nav background + scroll-spy. The active
+  // link's underline (CSS .active) follows the section currently in view.
   useEffect(() => {
     let ticking = false;
+
+    const compute = () => {
+      setNavBackground(window.scrollY > 100);
+
+      if (!isHomePage) return;
+      const offset = window.scrollY + SPY_OFFSET;
+      let current = SECTIONS[0].id;
+      for (const { id } of SECTIONS) {
+        const el = document.getElementById(id);
+        if (el && el.offsetTop <= offset) current = id;
+      }
+      // At the very bottom, the last section wins even if it's short.
+      if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 2) {
+        current = SECTIONS[SECTIONS.length - 1].id;
+      }
+      setActiveSection(current);
+    };
+
     const handleScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
-          setNavBackground(window.scrollY > 100);
+          compute();
           ticking = false;
         });
         ticking = true;
       }
     };
 
+    compute();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isHomePage]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -54,25 +88,27 @@ export const Navigation = () => {
 
   const sectionHref = (id) => (isHomePage ? `#${id}` : `/#${id}`);
 
+  const linkClass = (id) =>
+    isHomePage && activeSection === id ? "active" : "";
+
+  const renderLinks = () =>
+    SECTIONS.map(({ id, label }) => (
+      <li key={id}>
+        <a
+          href={sectionHref(id)}
+          onClick={(e) => scrollToSection(e, id)}
+          className={linkClass(id)}
+        >
+          {label}
+        </a>
+      </li>
+    ));
+
   return (
     <nav className={`nav ${navBackground ? "nav-scrolled" : ""}`}>
       <div className="nav-container">
         <Link to="/" className="logo">{name}</Link>
-        <ul className="nav-links">
-          <li>
-            <a
-              href={sectionHref("home")}
-              onClick={(e) => scrollToSection(e, "home")}
-              className={isHomePage ? "active" : ""}
-            >
-              Home
-            </a>
-          </li>
-          <li><a href={sectionHref("about")} onClick={(e) => scrollToSection(e, "about")}>About</a></li>
-          <li><a href={sectionHref("projects")} onClick={(e) => scrollToSection(e, "projects")}>Projects</a></li>
-          <li><a href={sectionHref("experience")} onClick={(e) => scrollToSection(e, "experience")}>Experience</a></li>
-          <li><a href={sectionHref("contact")} onClick={(e) => scrollToSection(e, "contact")}>Contact</a></li>
-        </ul>
+        <ul className="nav-links">{renderLinks()}</ul>
 
         {/* Mobile Hamburger Button */}
         <button
@@ -88,21 +124,7 @@ export const Navigation = () => {
 
         {/* Mobile Navigation Menu */}
         <div className={`mobile-menu ${isMobileMenuOpen ? "active" : ""}`}>
-          <ul className="mobile-nav-links">
-            <li>
-              <a
-                href={sectionHref("home")}
-                onClick={(e) => scrollToSection(e, "home")}
-                className={isHomePage ? "active" : ""}
-              >
-                Home
-              </a>
-            </li>
-            <li><a href={sectionHref("about")} onClick={(e) => scrollToSection(e, "about")}>About</a></li>
-            <li><a href={sectionHref("projects")} onClick={(e) => scrollToSection(e, "projects")}>Projects</a></li>
-            <li><a href={sectionHref("experience")} onClick={(e) => scrollToSection(e, "experience")}>Experience</a></li>
-            <li><a href={sectionHref("contact")} onClick={(e) => scrollToSection(e, "contact")}>Contact</a></li>
-          </ul>
+          <ul className="mobile-nav-links">{renderLinks()}</ul>
         </div>
       </div>
 
