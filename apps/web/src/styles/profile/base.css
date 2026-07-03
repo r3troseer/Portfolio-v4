@@ -56,7 +56,7 @@
   font-size: var(--font-size-xs);
   padding: 5px 11px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--pf-wash);
   border: 1px solid var(--border-subtle);
   color: var(--slate-200);
   transition: border-color var(--transition-fast), color var(--transition-fast);
@@ -109,8 +109,47 @@
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--pf-kbd-bg);
   border: 1px solid var(--pf-border);
   border-radius: var(--radius-sm);
   padding: 0.1rem 0.4rem;
+}
+
+/* --- Ask launcher pill (shared by the hero launcher and the floating fab;
+       visuals from the prototype's .pf-ask-launch) ----------------------- */
+.pf-ask-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 14px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  color: var(--slate-200);
+  background: var(--pf-ask-surface);
+  border: 1px solid var(--pf-ask-border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--pf-ask-shadow);
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.pf-ask-pill:hover {
+  transform: translateY(-2px);
+  border-color: var(--pf-ask-border-hover);
+  background: var(--pf-ask-surface-hover);
+}
+
+.pf-ask-pill svg {
+  color: var(--primary-accent);
+}
+
+.pf-ask-pill .pf-kbd {
+  font-size: 0.66rem;
+  color: var(--slate-400);
+  background: var(--pf-kbd-bg);
+  border: 1px solid var(--pf-card-line);
+  border-radius: 5px;
+  padding: 2px 6px;
 }

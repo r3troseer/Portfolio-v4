@@ -117,6 +117,21 @@
   --pf-eyebrow: color-mix(in srgb, var(--primary-accent) 78%, white);
   --pf-chip-bg: rgba(100, 255, 218, 0.05);
   --pf-chip-border: rgba(100, 255, 218, 0.22);
+
+  /* Shared faint-white surfaces (used across pf- components) */
+  --pf-wash: rgba(255, 255, 255, 0.04);
+  --pf-hairline: rgba(255, 255, 255, 0.08);
+  --pf-card-faint: rgba(255, 255, 255, 0.03);
+  --pf-card-line: rgba(255, 255, 255, 0.1);
+  --pf-kbd-bg: rgba(255, 255, 255, 0.06);
+
+  /* Ask/assistant (launcher pill + modal), values from the prototype */
+  --pf-ask-surface: rgba(17, 22, 34, 0.82);
+  --pf-ask-surface-hover: rgba(20, 26, 40, 0.9);
+  --pf-ask-border: rgba(255, 255, 255, 0.14);
+  --pf-ask-border-hover: rgba(100, 255, 218, 0.4);
+  --pf-ask-shadow: 0 8px 28px rgba(0, 0, 0, 0.38);
+  --pf-ask-panel: rgba(15, 19, 29, 0.97);
 }
 
 * {
@@ -226,6 +241,16 @@ nav {
 }
 
 .nav-links a:hover::after {
+  width: 100%;
+}
+
+/* Scroll-spy: the active link is highlighted and keeps its underline, so the
+   underline appears to follow the active section while scrolling. */
+.nav-links a.active {
+  color: var(--primary-accent);
+}
+
+.nav-links a.active::after {
   width: 100%;
 }
 

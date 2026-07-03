@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Sparkles, X } from "lucide-react";
+import { Sparkles, X, Info, ArrowUp, CornerDownRight, ShieldCheck } from "lucide-react";
 import "../styles/profile/assistant.css";
 
 // Assistant shell: the Cmd/Ctrl+K launcher + a placeholder "Ask about Pius"
@@ -60,7 +60,7 @@ export const AssistantShell = () => {
     <>
       <button
         type="button"
-        className={`pf-fab${showFloating ? " pf-fab-visible" : ""}`}
+        className={`pf-fab pf-ask-pill${showFloating ? " pf-fab-visible" : ""}`}
         onClick={() => setOpen(true)}
         aria-label="Ask about Pius (Command or Control + K)"
       >
@@ -77,10 +77,23 @@ export const AssistantShell = () => {
             aria-label="Ask about Pius"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="pf-assistant-head">
-              <span className="pf-eyebrow">
-                <Sparkles size={13} /> Ask about Pius
+            <div className="pf-ask-inputrow">
+              <span className="pf-ask-inputicon">
+                <Sparkles size={18} />
               </span>
+              <input
+                className="pf-assistant-input"
+                placeholder="Ask anything about Pius: his work, skills, experience"
+                disabled
+              />
+              <button
+                type="button"
+                className="pf-ask-submit"
+                disabled
+                aria-label="Ask (coming soon)"
+              >
+                <ArrowUp size={17} />
+              </button>
               <button
                 type="button"
                 className="pf-assistant-close"
@@ -91,25 +104,37 @@ export const AssistantShell = () => {
               </button>
             </div>
 
-            <div className="pf-assistant-inputwrap">
-              <input
-                className="pf-assistant-input"
-                placeholder="Ask anything about Pius's work, skills, or experience…"
-                disabled
-              />
-              <span className="pf-kbd">Enter</span>
+            <div className="pf-ask-body">
+              <div className="pf-ask-note">
+                <Info size={16} />
+                <span>
+                  The grounded assistant is coming soon. It will answer using
+                  only Pius&apos;s public work — with cited evidence, not
+                  guesses.
+                </span>
+              </div>
+              <span className="pf-ask-suggestlabel">
+                Grounded in Pius&apos;s portfolio. Try asking:
+              </span>
+              <div className="pf-ask-suggestions">
+                <button type="button" className="pf-ask-suggestion" disabled>
+                  <CornerDownRight size={14} /> What is Pius best at?
+                </button>
+                <button type="button" className="pf-ask-suggestion" disabled>
+                  <CornerDownRight size={14} /> Show me his AI and NLP work
+                </button>
+                <button type="button" className="pf-ask-suggestion" disabled>
+                  <CornerDownRight size={14} /> What did he build at Touch and Pay?
+                </button>
+                <button type="button" className="pf-ask-suggestion" disabled>
+                  <CornerDownRight size={14} /> Is he a good fit for a backend role?
+                </button>
+              </div>
             </div>
 
-            <div className="pf-assistant-placeholder">
-              <p className="pf-assistant-note">
-                The grounded assistant is coming soon. It will answer using only
-                Pius&apos;s public work — with cited evidence, not guesses.
-              </p>
-              <ul className="pf-assistant-hints">
-                <li>“What has Pius built with FastAPI?”</li>
-                <li>“Show his fintech experience.”</li>
-                <li>“Which projects use NLP or retrieval?”</li>
-              </ul>
+            <div className="pf-ask-foot">
+              <ShieldCheck size={14} /> Answers are grounded in Pius&apos;s
+              portfolio data
             </div>
           </div>
         </div>

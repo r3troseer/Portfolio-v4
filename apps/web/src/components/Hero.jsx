@@ -74,7 +74,7 @@ export const Hero = () => {
               </button>
               <button
                 type="button"
-                className="pf-ask-launcher"
+                className="pf-ask-launcher pf-ask-pill"
                 onClick={openAssistant}
                 aria-label="Ask about Pius (Command or Control + K)"
               >

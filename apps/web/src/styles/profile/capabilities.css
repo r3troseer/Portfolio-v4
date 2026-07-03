@@ -5,6 +5,11 @@
  * components/Capabilities.jsx.
  */
 
+/* Second heading inside the About section needs its own top spacing. */
+.pf-cap-title {
+  margin-top: var(--spacing-3xl);
+}
+
 /* Slim About lead paragraph above the Capabilities heading. */
 .pf-about-lead {
   max-width: 640px;
@@ -197,7 +202,7 @@
   font-size: 0.62rem;
   letter-spacing: 0.06em;
   color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--pf-wash);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-full);
   padding: 2px 8px;
