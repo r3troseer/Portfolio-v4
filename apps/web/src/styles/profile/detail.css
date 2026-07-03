@@ -1,0 +1,558 @@
+/*
+ * Profile — project detail page (pf-pd), re-authored from the prototype spec.
+ * Editorial case study: back link, hero (badge, title, subtitle, overview,
+ * Focus/Stack/Links meta), metric cards, markdown content cards (.md-render),
+ * media gallery (our extension — prototype has none), problem→solution split,
+ * dot timeline, gradient CTA. Imported by pages/ProjectDetail.jsx.
+ */
+
+.pf-pd-wrap {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 110px var(--spacing-lg) var(--spacing-2xl);
+}
+
+/* --- Back link ----------------------------------------------------------- */
+.pf-pd-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-2xl);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  transition: all var(--transition-fast);
+}
+
+.pf-pd-back:hover {
+  color: var(--primary-accent);
+  gap: 11px;
+}
+
+/* --- Hero ---------------------------------------------------------------- */
+.pf-pd-hero {
+  padding-bottom: var(--spacing-2xl);
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.pf-pd-hero-top {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.pf-pd-title {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--slate-50);
+  line-height: 1.05;
+  margin-bottom: var(--spacing-md);
+}
+
+.pf-pd-subtitle {
+  font-size: var(--font-size-xl);
+  color: var(--slate-200);
+  line-height: 1.4;
+  margin-bottom: var(--spacing-lg);
+  font-weight: 400;
+}
+
+.pf-pd-overview {
+  font-size: var(--font-size-lg);
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 70ch;
+  margin-bottom: var(--spacing-xl);
+}
+
+/* --- Meta row: Focus / Stack / Links ------------------------------------- */
+.pf-pd-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xl);
+}
+
+.pf-pd-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pf-pd-meta-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.pf-pd-meta-val {
+  font-size: var(--font-size-base);
+  color: var(--slate-100);
+  font-weight: 500;
+}
+
+.pf-pd-meta-stacks,
+.pf-pd-links,
+.pf-pd-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.pf-pd-stack {
+  font-size: var(--font-size-xs);
+  color: var(--slate-200);
+  background: var(--pf-wash);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+}
+
+.pf-pd-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-sm);
+  color: var(--primary-accent);
+  text-decoration: none;
+  border: 1px solid color-mix(in oklch, var(--primary-accent) 30%, transparent);
+  border-radius: var(--radius-full);
+  padding: 5px 13px;
+  transition: all var(--transition-fast);
+}
+
+.pf-pd-link:hover {
+  background: color-mix(in oklch, var(--primary-accent) 12%, transparent);
+}
+
+/* --- Metrics ------------------------------------------------------------- */
+.pf-pd-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.pf-pd-metric {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+}
+
+.pf-pd-metric-num {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 700;
+  color: var(--primary-accent);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.pf-pd-metric-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-top: 10px;
+  line-height: 1.4;
+}
+
+/* --- Sections ------------------------------------------------------------ */
+.pf-pd-section {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.pf-pd-h {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  color: var(--slate-50);
+  margin-bottom: var(--spacing-lg);
+  letter-spacing: -0.01em;
+}
+
+/* --- Content cards (markdown) --------------------------------------------- */
+.pf-pd-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.pf-pd-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+}
+
+.pf-pd-card .md-render {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.pf-pd-card .md-render p {
+  margin-bottom: var(--spacing-sm);
+}
+
+.pf-pd-card .md-render ul {
+  padding-left: var(--spacing-md);
+}
+
+.pf-pd-card .md-render li {
+  margin-bottom: var(--spacing-xs);
+}
+
+/* Section header (Architecture / Features) — set apart from the body. */
+.pf-pd-card .md-render h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0 0 var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  color: var(--primary-accent);
+  border-bottom: 1px solid color-mix(in oklch, var(--primary-accent) 22%, var(--border-subtle));
+}
+
+.pf-pd-card .md-render h4 {
+  color: var(--slate-50);
+  margin: var(--spacing-md) 0 var(--spacing-sm);
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+}
+
+.pf-pd-card .md-render strong {
+  color: var(--slate-50);
+}
+
+.pf-pd-card .md-render a {
+  color: var(--primary-accent);
+}
+
+.pf-pd-card .md-render code {
+  color: var(--primary-accent);
+  background: var(--pf-kbd-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-family: var(--font-mono);
+}
+
+.pf-pd-card-tags {
+  margin-top: var(--spacing-md);
+}
+
+/* --- Media gallery (our extension; graceful when images fail) ------------- */
+.pf-pd-media {
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.pf-pd-media-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+}
+
+.pf-pd-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.pf-pd-shot {
+  position: relative;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  aspect-ratio: 16 / 10;
+  background: var(--pf-card-faint);
+  padding: 0;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.pf-pd-shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--transition-fast);
+}
+
+.pf-pd-shot:hover {
+  border-color: var(--pf-border-strong);
+  transform: translateY(-2px);
+}
+
+.pf-pd-shot:hover img {
+  transform: scale(1.04);
+}
+
+.pf-pd-shot-label {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 8px 12px;
+  font-size: var(--font-size-xs);
+  color: var(--slate-100);
+  background: linear-gradient(transparent, rgba(3, 7, 18, 0.85));
+  text-align: left;
+}
+
+/* Lightbox (aligned with the assistant modal surfaces) */
+.pf-pd-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg);
+  background: rgba(3, 7, 18, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: pfAskFade 0.2s ease;
+}
+
+.pf-pd-lightbox-inner {
+  position: relative;
+  max-width: min(1000px, 94vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--pf-ask-panel);
+  border: 1px solid var(--pf-card-line);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.pf-pd-lightbox-inner img {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.pf-pd-lightbox-info {
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.pf-pd-lightbox-info h3 {
+  font-size: var(--font-size-lg);
+  color: var(--slate-50);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.pf-pd-lightbox-info p {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.pf-pd-lightbox-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: rgba(3, 7, 18, 0.55);
+  color: var(--slate-300);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pf-pd-lightbox-close:hover {
+  background: rgba(3, 7, 18, 0.8);
+  color: var(--slate-50);
+}
+
+/* --- Problem → Solution ---------------------------------------------------- */
+.pf-pd-ps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.pf-pd-ps-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+}
+
+.pf-pd-ps-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: var(--spacing-md);
+  color: #fb7185;
+}
+
+.pf-pd-solution {
+  border-left: 3px solid var(--primary-accent);
+}
+
+.pf-pd-solution .pf-pd-ps-tag {
+  color: var(--primary-accent);
+}
+
+.pf-pd-ps-card h4 {
+  font-size: var(--font-size-lg);
+  color: var(--slate-50);
+  margin-bottom: var(--spacing-sm);
+  font-weight: 600;
+}
+
+.pf-pd-ps-card p {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-sm);
+}
+
+.pf-pd-ps-card p strong {
+  color: var(--slate-100);
+}
+
+/* --- Timeline -------------------------------------------------------------- */
+.pf-pd-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding-left: var(--spacing-md);
+  border-left: 1px solid var(--border-subtle);
+}
+
+.pf-pd-tl-item {
+  position: relative;
+  padding-left: var(--spacing-lg);
+}
+
+.pf-pd-tl-dot {
+  position: absolute;
+  left: calc(-1 * var(--spacing-md) - 5px);
+  top: 6px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--primary-accent);
+  border: 2px solid var(--slate-900);
+}
+
+.pf-pd-tl-item h4 {
+  font-size: var(--font-size-base);
+  color: var(--slate-100);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.pf-pd-tl-item p {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* --- CTA -------------------------------------------------------------------- */
+.pf-pd-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+  background: linear-gradient(135deg, rgba(100, 255, 218, 0.07), rgba(138, 43, 226, 0.05));
+  border: 1px solid color-mix(in oklch, var(--primary-accent) 22%, transparent);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  margin-top: var(--spacing-2xl);
+}
+
+.pf-pd-cta h3 {
+  font-size: var(--font-size-xl);
+  color: var(--slate-50);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.pf-pd-cta p {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.pf-pd-cta-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.pf-pd-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  text-decoration: none;
+  padding: 10px 18px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+  color: var(--slate-100);
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+
+.pf-pd-cta-btn:hover {
+  border-color: var(--primary-accent);
+}
+
+.pf-pd-cta-primary {
+  background: var(--primary-accent);
+  color: var(--slate-900);
+  border-color: var(--primary-accent);
+}
+
+.pf-pd-cta-primary:hover {
+  opacity: 0.88;
+}
+
+/* --- Responsive -------------------------------------------------------------- */
+@media (max-width: 700px) {
+  .pf-pd-wrap {
+    padding: 96px var(--spacing-md) var(--spacing-2xl);
+  }
+
+  .pf-pd-ps {
+    grid-template-columns: 1fr;
+  }
+
+  .pf-pd-cta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

@@ -2,13 +2,12 @@ import { Siren, SquareCheck } from "lucide-react";
 
 export const ProblemSolutionCard = ({ problem, solution }) => {
   return (
-    <div className="problem-solution">
-      <div className="problem-card">
-        <h4>
-          <Siren className="icon" />
-          &nbsp;&nbsp;
-          {problem.title}
-        </h4>
+    <div className="pf-pd-ps">
+      <div className="pf-pd-ps-card">
+        <span className="pf-pd-ps-tag">
+          <Siren size={13} /> Problem
+        </span>
+        <h4>{problem.title}</h4>
         <p>
           <strong>Issue:</strong> {problem.issue}
         </p>
@@ -16,12 +15,11 @@ export const ProblemSolutionCard = ({ problem, solution }) => {
           <strong>Impact:</strong> {problem.impact}
         </p>
       </div>
-      <div className="solution-card">
-        <h4>
-          <SquareCheck className="icon" />
-          &nbsp;&nbsp;
-          {solution.title}
-        </h4>
+      <div className="pf-pd-ps-card pf-pd-solution">
+        <span className="pf-pd-ps-tag">
+          <SquareCheck size={13} /> Solution
+        </span>
+        <h4>{solution.title}</h4>
         <p>
           <strong>Implementation:</strong> {solution.implementation}
         </p>
