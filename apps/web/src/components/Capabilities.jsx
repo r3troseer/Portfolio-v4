@@ -1,4 +1,4 @@
-import { DynamicIcon } from "lucide-react/dynamic";
+import { Icon } from "./Icon";
 import { getCapabilities } from "../content/adapters/profileAdapter";
 import "../styles/profile/capabilities.css";
 
@@ -58,7 +58,7 @@ export const Capabilities = () => {
       {categories.map((cat) => (
         <div className={`pf-cap ${cellClassByKey[cat.key] || ""}`} key={cat.key}>
           <div className="pf-cap-header">
-            <DynamicIcon name={cat.icon} size={16} />
+            <Icon name={cat.icon} size={16} />
             {cat.label}
             <span className="pf-cap-count">{cat.count}</span>
           </div>

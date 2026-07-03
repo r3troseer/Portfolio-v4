@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
-import { DynamicIcon } from "lucide-react/dynamic";
+import { Icon } from "../components/Icon";
 import { getProjectById } from "../content/adapters/projectsAdapter";
 import { NotFound } from "./NotFound";
 import { Badge } from "../components/Badge";
@@ -82,10 +82,7 @@ export const ProjectDetail = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <DynamicIcon
-                      name={linkIconMap[link.icon] || "link"}
-                      size={14}
-                    />
+                    <Icon name={linkIconMap[link.icon] || "link"} size={14} />
                     {link.text}
                   </a>
                 ))}

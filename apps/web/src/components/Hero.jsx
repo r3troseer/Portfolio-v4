@@ -1,5 +1,5 @@
-import { DynamicIcon } from "lucide-react/dynamic";
 import { Sparkles, ArrowDown } from "lucide-react";
+import { Icon } from "./Icon";
 import { getProfile, getLinks } from "../content/adapters/profileAdapter";
 import "../styles/profile/hero.css";
 
@@ -87,7 +87,7 @@ export const Hero = () => {
           <aside className="pf-facts">
             {facts?.map((fact, index) => (
               <div className="pf-fact-row" key={index}>
-                <DynamicIcon name={fact.icon} size={18} className="pf-fact-icon" />
+                <Icon name={fact.icon} size={18} className="pf-fact-icon" />
                 <div>
                   <div className="pf-fact-label">{fact.label}</div>
                   <div className="pf-fact-value">{fact.value}</div>
@@ -104,7 +104,7 @@ export const Hero = () => {
                   target={social.external ? "_blank" : undefined}
                   rel={social.external ? "noopener noreferrer" : undefined}
                 >
-                  <DynamicIcon name={social.icon} size={18} />
+                  <Icon name={social.icon} size={18} />
                 </a>
               ))}
             </div>

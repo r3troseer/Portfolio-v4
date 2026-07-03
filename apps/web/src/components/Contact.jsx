@@ -1,4 +1,4 @@
-import { DynamicIcon } from "lucide-react/dynamic";
+import { Icon } from "./Icon";
 import { getLinks } from "../content/adapters/profileAdapter";
 import "../styles/profile/contact.css";
 
@@ -23,7 +23,7 @@ export const Contact = () => {
           </p>
           <div className="pf-contact-actions">
             <a className="pf-clink pf-clink-primary" href={`mailto:${links.email}`}>
-              <DynamicIcon name="mail" size={16} /> {links.email}
+              <Icon name="mail" size={16} /> {links.email}
             </a>
             {links.profiles.map((profile) => (
               <a
@@ -33,7 +33,7 @@ export const Contact = () => {
                 target={profile.external ? "_blank" : undefined}
                 rel={profile.external ? "noopener noreferrer" : undefined}
               >
-                <DynamicIcon name={iconByLabel[profile.label] || "link"} size={16} />{" "}
+                <Icon name={iconByLabel[profile.label] || "link"} size={16} />{" "}
                 {profile.label}
               </a>
             ))}
