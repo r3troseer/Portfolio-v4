@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-03
 **Reviewed at:** `feature/profile-ui-refresh` @ `93d6c14` (18 commits ahead of `master`, contains `master`, `npm run build` green)
-**Scope:** the product idea, the engineering approach, the architecture of the profile-UI-refresh branch, and a head-to-tail read of every source file in the repository (both apps, all content, styles, docs, and config). Review only — no code changes were made.
+**Scope:** the product idea, the engineering approach, the architecture of the profile-UI-refresh branch, a head-to-tail read of every source file in the repository (both apps, all content, styles, docs, and config), and a review of the portfolio-related items in the idea backlog (Part VI). Review only — no code changes were made.
 
 ---
 
@@ -151,3 +151,61 @@ The three planning docs are excellent and, unusually, accurate to the code. CI b
 7. Before Layer 1 ships: assistant focus management (15) and the gallery/modal a11y pass (16).
 
 **Overall verdict.** This is a disciplined, well-documented codebase whose architecture is real rather than aspirational: content/adapter separation holds everywhere, governance boundaries are enforced by structure (the private project is unreachable by construction), and the assistant shell contains none of the anti-patterns its own scope doc bans. The idea is coherent — the portfolio demonstrates the exact skill it advertises — and the approach (sliced migrations, docs-first, fail-closed defaults) is executing as planned. The defects cluster in the pre-refresh legacy layer and in build hygiene; nothing found is a security or data-exposure issue. The one strategic correction: the repo's values are currently enforced by authorial care, and the observed drift shows it's time to let CI carry some of that weight.
+
+---
+
+## Part VI — Idea Backlog Review (portfolio-related items only)
+
+Reviewed against the actual repo state at `feature/profile-ui-refresh` @ `93d6c14`. In scope: backlog §1 (AI-driven portfolio), §2.1 (monorepo/CI), the portfolio-facing slices of §3–§5, §7–§9, §11–§12, §16–§19, §22–§27, §29–§32. Out of scope (ignored per instruction): the ESG/X-RAG research pipeline internals, GDELT/BigQuery work, and product-feature work on OPS, MealSync, EPrep, TicketSage, etc.
+
+The headline: **the backlog is materially out of date — a substantial share of its OPEN/PARTIAL portfolio items are done and shipped**, a few items conflict with decisions already committed in the repo docs, and two items conflict with each other.
+
+### VI.1 Backlog items that are actually DONE (close them)
+
+- **§1.2 CRA → Vite** — done (Vite 8, React 19, engines pinned, CI building). The follow-ups (`?raw`, `import.meta.glob`, markdown-as-source-of-truth) were resolved *differently and better*: strict JSON + static imports for the UI, markdown reserved for the AI layer. Do not retrofit glob imports — the explicit registry in `projectsAdapter.js` is the governance gate, not CRA residue.
+- **§1.7 Markdown vs JSON vs JSON-LD** — resolved exactly as the backlog's "likely best direction": JSON for UI metadata, markdown for AI-facing narrative, and JSON-LD already shipped (Person schema in `index.html`), which also partially closes §19's "add JSON-LD later."
+- **§1.3 Profile UI refresh** — essentially complete on the branch; every hard constraint verified: no backend/LLM calls, no keys, no fake RAG, no terminal, `apps/api` untouched, build green, `.notes/`/`CLAUDE.md` ignored.
+- **§9 Train Booking schema** — exactly 2 contentCards ✓, exactly 2 problemSolutions ✓, stop-ranking and seat-hold are the two problem/solution stories ✓. The **metrics item remains open** (see VI.2, item 6).
+- **§12 EPrep marked MVP** — done (`status: "mvp"` + badge).
+- **§22/§3 ESG public-safe description** — drafted; `esg-greenwashing.json` is precisely the backlog's "safe angle" wording (research context, evidence alignment, human review; no methods/datasets/scoring internals).
+- **§26 Safety guard layer** — designed (Layer S policy + per-file governance fields + registry gating). Vocabulary mismatch remains (VI.2, item 3).
+- **§27 ⌘K Evidence flow** — shell shipped (launcher, panel, scroll-aware fab); the *actions* are the open part.
+- **§32 portfolio checklist** — already satisfied: schema ✓, content files ✓ (JSON, not md), Evidence-in-⌘K-only ✓, terminal out ✓, ESG summary ✓ (visibility decision pending), PACTGuard case study ✓ (registered, featured #2 in registry), GFA case study ✓, TBS case study ✓. Remaining: skill map, evidence-metadata surfacing, CV action, RAG, UI-intent work.
+
+### VI.2 Conflicts and drift to resolve (backlog ↔ repo ↔ docs)
+
+1. **Layer ordering disagreement.** Backlog: Layer **1.5 AI-selected UI before Layer 2 tools**. `agent-architecture-plan.md`: guarded generative UI is Layer **2.5, after tools**. Real sequencing decision, not naming. Recommendation: the backlog's order is right for a portfolio — evidence UI is the differentiator and exercises the exact component catalog later layers need; CV tools are lower value. Whichever wins, reconcile the plan doc.
+2. **ESG visibility three-way inconsistency — the backlog's §3 constraint settles it.** The supervisor external-use restriction is the authoritative input and supports the file's actual `visibility: "private"` — meaning `layer-s-policy.md`'s example ("ESG is `public_summary_only`") is the stale artifact, not the file. Fix the policy doc. And given the plan's own rule that truly restricted material shouldn't be committed at all, decide deliberately that the sanitized text is *publishable prose that happens to be UI-hidden* — otherwise remove the file.
+3. **Safety-level vocabulary mismatch.** Backlog: `public / public_summary_only / interview_high_level / private / restricted_do_not_use`. Policy doc: `public / public_summary_only / limited / private / blocked`. Same intent, two vocabularies — the future validation CI needs exactly one.
+4. **XpressMart does not exist in the repo.** Backlog §8 wants it as the "strongest backend example" and the terminal idea references `compare xpressmart train-booking` — but there is no `xpressmart.json`, no registry entry, no mention anywhere in the codebase. Either it was the hidden private project (commit `10a50eb`) or it never migrated into Layer 0. Decide: add it or strike it from the backlog.
+5. **StudyMate is StudyBud.** The repo's canonical id/title is `studybud`; the backlog consistently says StudyMate. The RAG index will inherit whatever name the content uses — pick one.
+6. **Train Booking metrics violate the backlog's own rule.** The backlog says the metrics were "wrong/insignificant and need fixing," and §30 says "do not invent metrics." Current values — `99.9% conflict-free booking reliability`, `<150ms availability check`, `500+ seats` — read as invented precision unless actually backed. For a portfolio whose brand is *evidence*, unverifiable metrics on a case study are a self-inflicted wound. Replace with defensible ones (test counts, query round-trips eliminated, concrete flow properties) or drop them.
+7. **`open project xrag` in the deferred terminal command list** contradicts the §3 restriction — X-RAG must not be an openable portfolio object, even in a deferred sketch. Strike it.
+8. **§1.4 (merge Profile/Refined; "3 main views + terminal HTML") is superseded** by the newer, better decision already committed in `docs/ui/profile-ui-refresh.md`: one primary experience, Refined as a polish pass, no variant switcher, Evidence never a view. Close as resolved-by-supersession.
+
+### VI.3 Review of the genuinely open ideas
+
+- **§1.5 Functional Evidence (strongest open idea).** Matches the biggest critique in Part I: the disabled ⌘K panel is the branch's weak point. A *deterministic* query→evidence mapping (skill-to-project map from `ai.evidenceSkills`, proof cards, comparison table) needs no model, no backend, no fabrication risk — and converts the "coming soon" shell into a working feature while doubling as the component registry Layers 1.5/2.5 need. Pull it forward ahead of the RAG chatbot. Layer 0 already anticipates it: `evidenceSkills`, `safeTalkingPoints`, and `status` exist and are unconsumed.
+- **§1.8 RAG chatbot.** Requirements align with the plan. Make one synergy explicit: the "don't overclaim / distinguish MVP vs complete" behaviour is already encoded in the `status` field — carry it into the index schema so answers can say "prototype, ~70% implemented" (the GFA card already honestly displays this).
+- **§1.9/§1.10/§17 Tools and the AI-selected-UI package.** The strategic note is correct: build in-portfolio, extract only after repeated use. Two cautions: the three-package split (`ai-ui-core/react/portfolio`) is premature detail — a sketch, not a plan; and Zod + UI-intent schemas implicitly pull the repo toward TypeScript, which is its own migration for a plain-JSX codebase. Budget for that before committing to the schema approach.
+- **§1.11 Bounty / "break my portfolio agent".** Highest-risk item in the backlog. On-brand (adversarial testing of an evidence-grounded system is exactly the niche), but it invites hostile traffic against a paid model endpoint, makes rate-limiting/budget caps load-bearing on day one, and *requires* the logging/retention/deletion apparatus the backlog itself lists — the rules page is a prerequisite, not a follow-up. Run it only after Layer 1 has been quietly stable; scope it to prompt-injection against the same public-only index (nothing secret to leak by construction — that is the point being demonstrated); treat the attack logs as the eval dataset — that is the real payoff.
+- **§1.12 Visitor personalization.** The resolution ("declared intent, not hidden profiling") is correct and already half-built: the `roleLenses` vocabulary *is* the intent picker, and the policy doc's deferred `?src=`/`?view=` routing is the same feature. Merge the three fragments into one design when the time comes.
+- **§1.13 Cheap model strategy.** Right priorities (content + guardrails before model choice). Note: the backlog leans Gemini-Flash-style while the architecture plan says default to latest Claude models — not a real conflict (every provider has a cheap tier), but it is a decision the backend config phase makes once, server-side, exactly as the scope doc requires.
+- **§1.14/§18 No frameworks yet.** Already encoded in the docs, consistent, agreed — the custom runtime *is* the portfolio piece.
+- **§19 Recruiter agents.** The pragmatic assessment is right (no universal protocol to target). Cheap near-term win: a public read-only endpoint on `apps/api` serving the Layer 0 public JSON — machine-readable profile with zero model cost, and it forces the index-gating code into existence early.
+- **§2.1 Monorepo/CI.** Matches Part IV finding 17: the gap is lint + feature-branch CI + a content-validation script. The backlog says "add tests/linting incrementally when stable" — that point is now; the doc drift found in this review is the evidence that discipline alone has hit its limit.
+- **§16 CLAUDE.md/AGENTS.md.** Minor tension: the repo deliberately gitignores `CLAUDE.md` while the backlog wants a general agents file. Both work if the general one is a sanitized, committed `AGENTS.md` and the personal one stays ignored.
+
+### VI.4 Corrected priority order
+
+Backlog §31 is right in spirit but stale — its items 2, 5, 6, 7 (content foundation, ESG description, PACTGuard/GFA/TBS case studies) are already done. The real remaining sequence, folding in the Part IV findings:
+
+1. **Land the refresh** — fix the duplicate Navigation/ParticleEffect render, static icon map, dead-code sweep, TBS metrics honesty pass → merge.
+2. **Mechanize Layer S** — one safety vocab, fix the policy-doc ESG example, ESLint + feature-branch CI + content-validation script.
+3. **Functional Evidence in ⌘K** (deterministic, no model) — skill-to-project map + proof cards + comparison; backlog ideas 5/23/24 in one slice; kills the "vaporware pill" problem.
+4. **Machine-readable profile endpoint** on `apps/api` (cheap; forces index gating into code).
+5. **Layer 1 RAG**, with `status`-aware honesty in the answer contract.
+6. **AI-selected UI** (backlog's 1.5-before-tools order), reusing the Evidence components.
+7. **Tools (CV gen/download)**, then — only if 5–6 are stable — **the bounty challenge**, rules page first.
+
+**Backlog verdict.** The portfolio thinking in the backlog is coherent, and most of its "decisions already made" have genuinely been executed. Its defects are staleness (roughly a third of the portfolio items are done), three unreconciled contradictions (layer ordering, ESG visibility, safety vocabulary), and one item — the Train Booking metrics — that quietly violates the backlog's own integrity rules.
