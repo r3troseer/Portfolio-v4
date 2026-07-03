@@ -61,10 +61,9 @@ source of truth: presentation/order in `index.json`, content + governance per fi
 
 | Function | Returns |
 |---|---|
-| `getAllProjectCards()` | All projects sorted by `displayOrder`, as `{ id, title, description, technologies }` (ProjectCard props; `description` = `card.summary`). |
-| `getFeaturedProjects()` | Registry `featured: true` entries (card shape). |
-| `getRestProjects()` | Registry `featured: false` entries (card shape). |
-| `getProjectById(id)` | Legacy-compatible detail object `{ id, header, metrics, contentCards, problemSolutions, timeline }`, or `null` if unknown. Gallery image `src` values are base-URL resolved here. |
+| `getFeaturedProject()` | The single top project by `displayOrder` as `{ id, title, subtitle, description, technologies, metrics }` (home "featured showcase"). |
+| `getProjectListItems()` | The remaining projects as numbered rows `{ id, idx, title, subtitle, techLine }` (`idx` continues from the featured card at `02`; `techLine` prefers a curated `card.listTech`). |
+| `getProjectById(id)` | Detail object `{ id, header, focus, technologies, metrics, contentCards, problemSolutions, timeline }`, or `null` if unknown. Gallery image `src` values are base-URL resolved here. |
 
 ### Image resolution
 `gallery.images[].src` rules (applied in the adapter):
@@ -104,8 +103,8 @@ Profile content silos live as strict JSON directly under `public/` and are read 
 
 | Function | Returns (canonical file) |
 |---|---|
-| `getProfile()` | `profile.json`: `{ name, tagline, location, bio: [] }` (feeds Hero, About, Footer, Navigation). |
-| `getSkills()` | `skills.json`: `{ groups: [{ title, subskill }] }` (feeds Skill). |
-| `getExperience()` | `experience.json`: `{ roles: [{ title, company, date, location, responsibilities: [] }] }` (feeds Experience). |
+| `getProfile()` | `profile.json`: `{ name, role, headline, headlineHighlight, intro, availability, location, facts: [], bioShort, bio: [] }` (feeds Hero, About, Navigation). |
+| `getCapabilities()` | `skills.json`: `{ niche, categories: [] }` (feeds the Capabilities bento). |
+| `getExperience()` | `experience.json`: `{ roles: [{ title, company, date, location, responsibilities: [{ t, m? }] }] }` (feeds Experience). |
 | `getEducation()` | `education.json`: `{ entries: [{ institution, qualification, detail }] }` (no UI consumer yet; future Education section + AI). |
 | `getLinks()` | `links.json`: `{ email, profiles: [{ label, value, href, external }] }` (feeds Contact). |

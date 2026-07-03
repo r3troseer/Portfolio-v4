@@ -64,26 +64,6 @@ const resolveContentCards = (contentCards = []) =>
       : card
   );
 
-// Map a registry entry to the props ProjectCard expects.
-const toCard = (entry) => {
-  const project = projectsById[entry.id];
-  return {
-    id: project.id,
-    title: project.card.title,
-    subtitle: project.card.subtitle,
-    description: project.card.summary,
-    technologies: project.card.technologies,
-  };
-};
-
-export const getAllProjectCards = () => orderedRegistry.map(toCard);
-
-export const getFeaturedProjects = () =>
-  orderedRegistry.filter((entry) => entry.featured).map(toCard);
-
-export const getRestProjects = () =>
-  orderedRegistry.filter((entry) => !entry.featured).map(toCard);
-
 // Profile "featured showcase": the single top project by displayOrder
 // (gfa-exchange). Governance: we intentionally feature a public registry project,
 // never ESG/X-RAG. Includes up to four detail metrics for the side-panel.
