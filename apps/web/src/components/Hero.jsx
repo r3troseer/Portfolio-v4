@@ -1,4 +1,4 @@
-import { Sparkles, ArrowDown } from "lucide-react";
+import { Sparkles, ArrowUpRight } from "lucide-react";
 import { Icon } from "./Icon";
 import { getProfile, getLinks } from "../content/adapters/profileAdapter";
 import "../styles/profile/hero.css";
@@ -34,12 +34,6 @@ export const Hero = () => {
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Assistant launcher: signal intent only. The Cmd/Ctrl+K shell listens for this
-  // and opens the placeholder panel. No assistant/backend/LLM logic here.
-  const openAssistant = () => {
-    window.dispatchEvent(new CustomEvent("pf:open-assistant"));
-  };
-
   const socials = [
     { label: "Email", href: `mailto:${links.email}`, icon: "mail", external: false },
     ...links.profiles.map((p) => ({
@@ -66,20 +60,20 @@ export const Hero = () => {
             <div className="pf-hero-role">{role}</div>
             <p className="pf-intro">{intro}</p>
             <div className="pf-hero-actions">
-              <button className="pf-btn-primary" onClick={() => scrollTo("projects")}>
-                View selected work <ArrowDown size={16} />
+              {/* Reserved slot for the flying Ask launcher — the single real
+                  launcher (AskLauncher, rendered by AssistantShell) rests over
+                  this hidden box and reads its rect as the flight's home anchor. */}
+              <span className="pf-ask-slot" aria-hidden="true">
+                <Sparkles className="pf-ask-slot-ico" size={17} />
+                <span className="pf-ask-slot-label">Ask about Pius</span>
+                <span className="pf-ask-slot-sub">grounded in his real work</span>
+                <span className="pf-ask-slot-kbd">⌘K</span>
+              </span>
+              <button className="pf-hero-outline" onClick={() => scrollTo("projects")}>
+                View work
               </button>
-              <button className="pf-btn-ghost" onClick={() => scrollTo("contact")}>
-                Get in touch
-              </button>
-              <button
-                type="button"
-                className="pf-ask-launcher pf-ask-pill"
-                onClick={openAssistant}
-                aria-label="Ask about Pius (Command or Control + K)"
-              >
-                <Sparkles size={14} /> Ask about Pius
-                <span className="pf-kbd">⌘K</span>
+              <button className="pf-hero-textlink" onClick={() => scrollTo("contact")}>
+                Get in touch <ArrowUpRight size={15} />
               </button>
             </div>
           </div>

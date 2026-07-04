@@ -1,29 +1,78 @@
 /*
  * Profile — assistant shell (Cmd/Ctrl+K).
- * Floating launcher + placeholder "Ask about Pius" modal, matching the
- * prototype's pf-ask system. Launcher visuals come from the shared
- * .pf-ask-pill (profile/base.css); surface values are tokens in index.css.
- * Shell only: no backend, LLM, retrieval, or key storage.
- * Imported by AssistantShell.jsx.
+ * Single flying "Ask about Pius" launcher (AskLauncher.jsx) + placeholder modal.
+ * The launcher's position, size, and colour are driven inline per-frame by
+ * useDockFlight — the rules below are the at-rest base only. Surface values are
+ * tokens in index.css. Shell only: no backend, LLM, retrieval, or key storage.
+ * Imported by AssistantShell.jsx. See docs/ui/ask-launcher-flight.md.
  */
 
-/* --- Floating launcher: positioning + scroll-in visibility only --------- */
-.pf-fab {
-  position: fixed;
-  left: 22px;
-  bottom: 22px;
+/* --- Flying launcher: at-rest base (Solid teal); the hook drives the rest --- */
+.pf-ask-fly {
+  position: absolute;
+  top: 0;
+  left: 0;
   z-index: 1100;
-  opacity: 0;
-  transform: translateY(20px) scale(0.92);
-  pointer-events: none;
-  transition: opacity 0.18s ease, transform 0.18s ease, border-color 0.18s ease,
-    background 0.18s ease;
+  visibility: hidden; /* revealed by the hook on its first painted frame */
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 20px;
+  border: 1px solid #64ffda;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
+  /* 1.2 (not 1) so the descriptor's overflow:hidden box has room for descenders
+     ("g"/"work") — line-height:1 clips them vertically. */
+  line-height: 1.2;
+  white-space: nowrap;
+  color: #08131f;
+  background: linear-gradient(180deg, #7dffe6, #64ffda 58%, #50e7ce);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  will-change: left, top;
+  transition: box-shadow 0.2s ease, filter 0.16s ease;
 }
 
-.pf-fab-visible {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
+.pf-ask-fly-ico {
+  color: #08131f;
+  flex-shrink: 0;
+}
+
+.pf-ask-fly-label {
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.pf-ask-fly-sub {
+  display: inline-block;
+  /* overflow stays visible at rest (no clip); the hook flips it to hidden only
+     while the descriptor collapses in flight. Clipping at rest would shave the
+     "g"/"work" descenders, since the line box is ~1px shorter than the glyph ink. */
+  overflow: visible;
+  white-space: nowrap;
+  padding-left: 12px;
+  border-left: 1px solid rgba(10, 14, 26, 0.3);
+  color: rgba(10, 14, 26, 0.78);
+}
+
+.pf-ask-fly-kbd {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 4px 6px;
+  border-radius: 5px;
+  color: rgba(10, 14, 26, 0.85);
+  background: rgba(10, 14, 26, 0.13);
+  border: 1px solid rgba(10, 14, 26, 0.26);
+}
+
+/* Reduced motion: the hook already skips the flight; drop the feedback tween too. */
+@media (prefers-reduced-motion: reduce) {
+  .pf-ask-fly {
+    transition: none;
+  }
 }
 
 /* --- Overlay + modal ----------------------------------------------------- */
@@ -223,11 +272,6 @@
 
 /* --- Responsive ---------------------------------------------------------- */
 @media (max-width: 500px) {
-  .pf-fab {
-    left: 16px;
-    bottom: 16px;
-  }
-
   .pf-assistant-overlay {
     padding: 6vh 12px 12px;
   }
