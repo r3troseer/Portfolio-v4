@@ -77,11 +77,96 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--spacing-sm);
+  gap: 16px;
   animation: fadeInUp 1s ease 0.3s backwards;
 }
 
-/* Ask launcher visuals come from the shared .pf-ask-pill (profile/base.css). */
+/* --- Ask launcher slot (variant E: the launcher is the primary action) -----
+   A hidden placeholder that reserves the flying launcher's box and leads the
+   row. The single real launcher (AskLauncher, rendered by AssistantShell) rests
+   over this and reads its rect as the flight anchor; useDockFlight collapses the
+   slot width as the pill leaves so the row reflows. Mirror the pill's box so the
+   two align exactly. */
+.pf-ask-slot {
+  visibility: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 20px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  font-size: 1rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.pf-ask-slot-ico {
+  flex-shrink: 0;
+}
+
+.pf-ask-slot-label {
+  font-weight: 600;
+}
+
+.pf-ask-slot-sub {
+  padding-left: 12px;
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.pf-ask-slot-kbd {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 2px 6px;
+}
+
+/* --- Variant E demoted actions (hero-scoped; must not touch .pf-btn-primary,
+       which NotFound.jsx also uses) ------------------------------------------ */
+.pf-hero-outline {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 22px;
+  border-radius: 11px;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #fff;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.pf-hero-outline:hover {
+  border-color: rgba(100, 255, 218, 0.5);
+  background: rgba(100, 255, 218, 0.07);
+}
+
+.pf-hero-textlink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 0.98rem;
+  cursor: pointer;
+  color: #cbd5e1;
+  background: transparent;
+  border: none;
+  transition: color 0.18s ease;
+}
+
+.pf-hero-textlink svg {
+  transition: transform 0.18s ease;
+}
+
+.pf-hero-textlink:hover {
+  color: #64ffda;
+}
+
+.pf-hero-textlink:hover svg {
+  transform: translate(2px, -2px);
+}
 
 /* --- Right column: facts panel ----------------------------------------- */
 .pf-facts {
@@ -154,5 +239,14 @@
   .pf-hero-grid {
     grid-template-columns: 1fr;
     gap: var(--spacing-2xl);
+  }
+}
+
+/* Mirror the mobile launcher: the descriptor and ⌘K are dropped on phones, so
+   the reserved slot must not reserve their width. */
+@media (max-width: 600px) {
+  .pf-ask-slot-sub,
+  .pf-ask-slot-kbd {
+    display: none;
   }
 }

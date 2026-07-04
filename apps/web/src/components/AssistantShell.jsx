@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { Sparkles, X, Info, ArrowUp, CornerDownRight, ShieldCheck } from "lucide-react";
+import { AskLauncher } from "./AskLauncher";
 import "../styles/profile/assistant.css";
 
-// Assistant shell: the Cmd/Ctrl+K launcher + a placeholder "Ask about Pius"
-// panel. Shell only — no backend, LLM, retrieval, or key storage. The real
-// grounded assistant is a future backend concern (docs/ui/profile-ui-refresh.md).
+// Assistant shell: owns the single flying "Ask about Pius" launcher + a
+// placeholder panel, plus the Cmd/Ctrl+K handler, pf:open-assistant listener,
+// and body-scroll lock. Shell only — no backend, LLM, retrieval, or key storage.
+// The real grounded assistant is a future backend concern (docs/ui/profile-ui-refresh.md).
 export const AssistantShell = () => {
   const [open, setOpen] = useState(false);
-  const [showFloating, setShowFloating] = useState(true);
 
   // Cmd/Ctrl+K toggles the panel; Escape closes it.
   useEffect(() => {
@@ -23,27 +24,11 @@ export const AssistantShell = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // The hero's inline launcher opens the panel via this event.
+  // The launcher (and any other trigger) opens the panel via this event.
   useEffect(() => {
     const onOpen = () => setOpen(true);
     window.addEventListener("pf:open-assistant", onOpen);
     return () => window.removeEventListener("pf:open-assistant", onOpen);
-  }, []);
-
-  // The floating launcher appears once the hero scrolls out of view — or
-  // immediately on pages that have no hero (e.g. project detail).
-  useEffect(() => {
-    const hero = document.getElementById("home");
-    if (!hero) {
-      setShowFloating(true);
-      return;
-    }
-    const observer = new IntersectionObserver(
-      ([entry]) => setShowFloating(!entry.isIntersecting),
-      { threshold: 0, rootMargin: "-72px 0px 0px 0px" }
-    );
-    observer.observe(hero);
-    return () => observer.disconnect();
   }, []);
 
   // Lock body scroll while the panel is open.
@@ -58,15 +43,7 @@ export const AssistantShell = () => {
 
   return (
     <>
-      <button
-        type="button"
-        className={`pf-fab pf-ask-pill${showFloating ? " pf-fab-visible" : ""}`}
-        onClick={() => setOpen(true)}
-        aria-label="Ask about Pius (Command or Control + K)"
-      >
-        <Sparkles size={16} /> Ask about Pius
-        <span className="pf-kbd">⌘K</span>
-      </button>
+      <AskLauncher />
 
       {open && (
         <div className="pf-assistant-overlay" onClick={() => setOpen(false)}>
