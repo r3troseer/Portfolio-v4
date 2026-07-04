@@ -149,9 +149,12 @@ each step; `npm run build` stayed green throughout.
 - Statement-led hero (gradient-emphasis headline, facts panel), capabilities **bento** (niche tile
   + Languages/Frameworks/Data/Practices), featured project card + numbered "Selected Work" list,
   résumé-style experience with metric pills, centered contact card.
-- **⌘K assistant shell** (placeholder only — no backend/LLM/keys/RAG): inline hero launcher that
-  animates into a **floating bottom-left** button on scroll; modal styled to the prototype's
-  `pf-ask` system. Nav underline is a **scroll-spy** that follows the active section.
+- **⌘K assistant shell** (placeholder only — no backend/LLM/keys/RAG): an "Ask about Pius"
+  launcher that flies from the hero action row to a **docked bottom-left** corner on scroll (and
+  back on scroll-up); modal styled to the prototype's `pf-ask` system. (The launcher was later
+  reworked from the original inline→floating crossfade into a single flying element — see
+  `docs/ui/ask-launcher-flight.md`.) Nav underline is a **scroll-spy** that follows the active
+  section.
 - Background banding fixed via a fixed gradient + faint SVG-noise dither. `prefers-reduced-motion`
   guard added.
 
