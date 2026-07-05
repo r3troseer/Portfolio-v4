@@ -1,0 +1,8 @@
+{
+  "visibility": "public",
+  "sensitivity": "safe",
+  "email": "fixture@example.com",
+  "profiles": [
+    { "label": "GitHub", "value": "fixture", "href": "https://github.com/fixture", "external": true }
+  ]
+}

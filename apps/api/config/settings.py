@@ -36,10 +36,13 @@ ALLOWED_HOSTS = _env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 
 
 # --- Applications ----------------------------------------------------------
-# Minimal: only DRF + corsheaders. No contrib apps (no admin/auth/sessions/DB).
+# Minimal: DRF + corsheaders + this project's core app. No contrib apps
+# (no admin/auth/sessions/DB). core is installed so its management commands
+# (build_evidence_index) and tests are discoverable; it has no models.
 INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
+    "core",
 ]
 
 # Minimal middleware for an API-only, GET-only skeleton: no sessions/auth/CSRF.

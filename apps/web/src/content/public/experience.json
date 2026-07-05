@@ -1,4 +1,6 @@
 {
+  "visibility": "public",
+  "sensitivity": "safe",
   "roles": [
     {
       "title": "ASP.NET Developer",

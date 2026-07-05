@@ -17,6 +17,9 @@ build
 __pycache__/
 *.py[cod]
 
+# generated backend artifacts (e.g. the Layer 1 evidence index) — never committed
+/apps/api/var/
+
 # local notes / planning (not part of the codebase)
 /.notes
 

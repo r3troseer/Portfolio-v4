@@ -1,4 +1,6 @@
 {
+  "visibility": "public",
+  "sensitivity": "safe",
   "niche": {
     "label": "Applied AI / NLP",
     "icon": "brain-circuit",

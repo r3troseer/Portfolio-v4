@@ -1,4 +1,6 @@
 {
+  "visibility": "public",
+  "sensitivity": "safe",
   "name": "Pius Agboola",
   "role": "Backend & Data Engineer · Applied AI / NLP",
   "headline": "I build evidence-based AI: systems that turn messy inputs into verifiable workflows.",

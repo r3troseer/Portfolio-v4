@@ -1,0 +1,15 @@
+{
+  "id": "badvis-project",
+  "visibility": "internal",
+  "status": "live",
+  "sensitivity": "safe",
+  "card": { "title": "Bad Visibility", "summary": "BADVIS_MARKER", "technologies": [] },
+  "detail": {},
+  "ai": {
+    "publicSummary": "BADVIS_MARKER unknown visibility must fail closed.",
+    "roleLenses": [],
+    "evidenceSkills": [],
+    "safeTalkingPoints": [],
+    "sensitivity": "safe"
+  }
+}
