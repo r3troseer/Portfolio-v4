@@ -76,7 +76,9 @@ CORS_ALLOWED_ORIGINS = _env_list(
 
 # --- DRF -------------------------------------------------------------------
 REST_FRAMEWORK = {
-    # JSON only — avoids the browsable API's template/staticfiles dependencies.
+    # JSON only in production — avoids the browsable API's template/staticfiles
+    # dependencies. The DEBUG-only block below adds the browsable API for
+    # local manual testing.
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
@@ -97,6 +99,23 @@ REST_FRAMEWORK = {
         "anon": os.environ.get("DJANGO_ANON_THROTTLE_RATE", "60/min"),
     },
 }
+
+# Dev only: enable DRF's browsable API for manual endpoint testing. Needs the
+# staticfiles app (page CSS/JS, served by runserver in DEBUG) and an APP_DIRS
+# template engine (DRF's api.html). Production stays JSON-only and minimal.
+if DEBUG:
+    INSTALLED_APPS.append("django.contrib.staticfiles")
+    TEMPLATES = [
+        {
+            "BACKEND": "django.template.backends.django.DjangoTemplates",
+            "DIRS": [],
+            "APP_DIRS": True,
+            "OPTIONS": {},
+        }
+    ]
+    REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"].append(
+        "rest_framework.renderers.BrowsableAPIRenderer"
+    )
 
 # Layer S request-size foundation: cap non-file request bodies (default 1 MiB).
 # This bounds payload size now; full message-length / token budgets come with Layer 1.

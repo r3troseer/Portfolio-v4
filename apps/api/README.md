@@ -28,6 +28,10 @@ uv run python manage.py test core         # unit tests (stdlib unittest, no DB)
 
 To add a dependency later: `uv add <package>` (updates `pyproject.toml` + `uv.lock`).
 
+With `DJANGO_DEBUG=true`, DRF's **browsable API** is enabled for manual endpoint testing -
+open `http://127.0.0.1:8000/api/retrieve/` in a browser and use the POST form. Production
+(`DEBUG` off) stays JSON-only with no template/staticfiles machinery.
+
 ## Layer 1: public evidence index
 
 `core/layer1/` builds the first Layer 1 artifact: deterministic **evidence records** from the
