@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 /*
- * useDialogA11y — shared modal-dialog accessibility for the assistant panel and
+ * useDialogA11y - shared modal-dialog accessibility for the assistant panel and
  * the media lightbox. While `open`, it:
  *   - moves focus into the panel (first focusable, else the panel itself),
  *   - traps Tab / Shift+Tab inside the panel,

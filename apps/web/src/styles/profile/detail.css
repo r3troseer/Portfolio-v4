@@ -1,8 +1,8 @@
 /*
- * Profile — project detail page (pf-pd), re-authored from the prototype spec.
+ * Profile - project detail page (pf-pd), re-authored from the prototype spec.
  * Editorial case study: back link, hero (badge, title, subtitle, overview,
  * Focus/Stack/Links meta), metric cards, markdown content cards (.md-render),
- * media gallery (our extension — prototype has none), problem→solution split,
+ * media gallery (our extension - prototype has none), problem->solution split,
  * dot timeline, gradient CTA. Imported by pages/ProjectDetail.jsx.
  */
 
@@ -208,7 +208,7 @@
   margin-bottom: var(--spacing-xs);
 }
 
-/* Section header (Architecture / Features) — set apart from the body. */
+/* Section header (Architecture / Features) - set apart from the body. */
 .pf-pd-card .md-render h3 {
   display: flex;
   align-items: center;
@@ -387,7 +387,7 @@
   color: var(--slate-50);
 }
 
-/* --- Problem → Solution ---------------------------------------------------- */
+/* --- Problem -> Solution ---------------------------------------------------- */
 .pf-pd-ps {
   display: grid;
   grid-template-columns: 1fr 1fr;

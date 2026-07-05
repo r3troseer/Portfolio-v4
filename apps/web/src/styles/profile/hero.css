@@ -1,5 +1,5 @@
 /*
- * Profile — Hero section.
+ * Profile - Hero section.
  * Asymmetric two-column: copy (eyebrow, name, intro, availability pill, actions)
  * beside a glass facts panel with fact rows and social icon-buttons.
  * Imported by components/Hero.jsx.
@@ -242,7 +242,7 @@
   }
 }
 
-/* Mirror the mobile launcher: the descriptor and ⌘K are dropped on phones, so
+/* Mirror the mobile launcher: the descriptor and CmdK are dropped on phones, so
    the reserved slot must not reserve their width. */
 @media (max-width: 600px) {
   .pf-ask-slot-sub,

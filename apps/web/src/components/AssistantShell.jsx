@@ -6,7 +6,7 @@ import "../styles/profile/assistant.css";
 
 // Assistant shell: owns the single flying "Ask about Pius" launcher + a
 // placeholder panel, plus the Cmd/Ctrl+K handler, pf:open-assistant listener,
-// and body-scroll lock. Shell only — no backend, LLM, retrieval, or key storage.
+// and body-scroll lock. Shell only - no backend, LLM, retrieval, or key storage.
 // The real grounded assistant is a future backend concern (docs/ui/profile-ui-refresh.md).
 export const AssistantShell = () => {
   const [open, setOpen] = useState(false);
@@ -92,7 +92,7 @@ export const AssistantShell = () => {
                 <Info size={16} />
                 <span>
                   The grounded assistant is coming soon. It will answer using
-                  only Pius&apos;s public work — with cited evidence, not
+                  only Pius&apos;s public work - with cited evidence, not
                   guesses.
                 </span>
               </div>

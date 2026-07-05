@@ -105,7 +105,7 @@
   --container-max-width: 1200px;
   --container-padding: 0 20px;
 
-  /* Profile refresh (bento / capabilities / assistant shell) — additive layer.
+  /* Profile refresh (bento / capabilities / assistant shell) - additive layer.
      Consumed by src/styles/profile/*.css; does not affect existing selectors. */
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --pf-bento-gap: var(--spacing-md);
@@ -181,8 +181,8 @@ main {
 }
 
 /* Navigation styles live in styles/navigation.css (its single owner, loaded by
-   the always-mounted Navigation component — including the mobile menu and the
-   ≤768px `.nav-links { display: none }` rule). Kept out of index.css to avoid the
+   the always-mounted Navigation component - including the mobile menu and the
+   <=768px `.nav-links { display: none }` rule). Kept out of index.css to avoid the
    duplicate-block drift where edits had to be made in two places. */
 
 /* Visible keyboard focus everywhere. `:focus-visible` keeps the ring for keyboard
@@ -342,7 +342,7 @@ section {
   text-align: left;
 }
 
-/* Tech tag pills — still used by TechTags.jsx (project detail). */
+/* Tech tag pills - still used by TechTags.jsx (project detail). */
 .tech-tags {
   display: flex;
   flex-wrap: wrap;

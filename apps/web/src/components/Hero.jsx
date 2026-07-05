@@ -1,4 +1,4 @@
-import { Sparkles, ArrowUpRight } from "lucide-react";
+import { Sparkles, ArrowUpRight, Command } from "lucide-react";
 import { Icon } from "./Icon";
 import { getProfile, getLinks } from "../content/adapters/profileAdapter";
 import "../styles/profile/hero.css";
@@ -60,14 +60,16 @@ export const Hero = () => {
             <div className="pf-hero-role">{role}</div>
             <p className="pf-intro">{intro}</p>
             <div className="pf-hero-actions">
-              {/* Reserved slot for the flying Ask launcher — the single real
+              {/* Reserved slot for the flying Ask launcher - the single real
                   launcher (AskLauncher, rendered by AssistantShell) rests over
                   this hidden box and reads its rect as the flight's home anchor. */}
               <span className="pf-ask-slot" aria-hidden="true">
                 <Sparkles className="pf-ask-slot-ico" size={17} />
                 <span className="pf-ask-slot-label">Ask about Pius</span>
                 <span className="pf-ask-slot-sub">grounded in his real work</span>
-                <span className="pf-ask-slot-kbd">⌘K</span>
+                <span className="pf-ask-slot-kbd">
+                  <Command size={11} />K
+                </span>
               </span>
               <button className="pf-hero-outline" onClick={() => scrollTo("projects")}>
                 View work
