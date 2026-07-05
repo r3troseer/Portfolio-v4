@@ -39,7 +39,6 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
-          {/* <Route path="projects" element={<ProjectList />} />*/}
           <Route path="projects/:id" element={<ProjectDetail />} />
           <Route path="*" element={<NotFound />} />
         </Route>
