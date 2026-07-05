@@ -26,6 +26,7 @@ from typing import Any
 from core.layer1.frontmatter import FrontMatterError, parse_front_matter
 from core.layer1.records import (
     INDEXABLE,
+    SENSITIVITY,
     SOURCE_MARKDOWN,
     SOURCE_PROFILE,
     SOURCE_PROJECT,
@@ -114,6 +115,22 @@ def _gate_visibility(visibility: Any) -> str | None:
     return None
 
 
+def _gate_sensitivity(sensitivity: Any) -> str | None:
+    """Return an error reason if ``sensitivity`` is missing/out of vocabulary.
+
+    Sensitivity is not an index gate (safe and sensitive items may both be
+    indexed - it guides wording, not access), but a record must never carry an
+    unvalidated value: missing/unknown sensitivity is a governance error.
+    """
+    if not isinstance(sensitivity, str) or sensitivity not in SENSITIVITY:
+        return (
+            "missing_sensitivity"
+            if sensitivity is None
+            else f"unknown_sensitivity:{sensitivity}"
+        )
+    return None
+
+
 def _is_governance_error(reason: str) -> bool:
     """Expected exclusions (private/blocked/limited/unregistered) are not errors."""
     return not reason.startswith("visibility_not_indexable:") and reason != "unregistered"
@@ -178,6 +195,8 @@ def _index_projects(
             reason = "unregistered"
         if reason is None and not isinstance(data.get("ai"), dict):
             reason = "missing_ai_block"
+        if reason is None:
+            reason = _gate_sensitivity(data.get("sensitivity"))
         if reason is not None:
             exclusions.append(
                 ExcludedSource(rel_path, source_id, reason, _is_governance_error(reason))
@@ -209,7 +228,7 @@ def _index_projects(
                 title=str(card.get("title") or source_id),
                 text="\n".join(parts),
                 visibility=visibility,
-                sensitivity=str(data.get("sensitivity", "")),
+                sensitivity=data["sensitivity"],
                 role_lenses=_clean_str_tuple(ai.get("roleLenses")),
                 tags=_clean_str_tuple(ai.get("evidenceSkills")),
                 project_id=source_id,
@@ -244,6 +263,8 @@ def _index_markdown(
             continue
 
         reason = _gate_visibility(fields.get("visibility"))
+        if reason is None:
+            reason = _gate_sensitivity(fields.get("sensitivity"))
         if reason is not None:
             exclusions.append(
                 ExcludedSource(rel_path, source_id, reason, _is_governance_error(reason))
@@ -264,7 +285,7 @@ def _index_markdown(
                 title=fields.get("title", source_id),
                 text=text,
                 visibility=visibility,
-                sensitivity=fields.get("sensitivity", ""),
+                sensitivity=fields["sensitivity"],
                 role_lenses=(role_lens,) if role_lens else (),
                 tags=(),
                 project_id=None,
@@ -299,6 +320,8 @@ def _index_profile_silos(
             continue
 
         reason = _gate_visibility(data.get("visibility"))
+        if reason is None:
+            reason = _gate_sensitivity(data.get("sensitivity"))
         if reason is not None:
             exclusions.append(
                 ExcludedSource(name, source_id, reason, _is_governance_error(reason))
@@ -318,7 +341,7 @@ def _index_profile_silos(
                 title=source_id,
                 text=text,
                 visibility=visibility,
-                sensitivity=str(data.get("sensitivity", "")),
+                sensitivity=data["sensitivity"],
                 role_lenses=(),
                 tags=(),
                 project_id=None,

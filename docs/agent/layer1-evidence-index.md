@@ -15,9 +15,11 @@ Layer S index gate in code before anything model-shaped exists:
   `visibility`/`sensitivity` fields).
 - **Index gate (fail-closed):** only `public` / `public_summary_only` sources are indexed.
   `private` / `blocked` / `limited` and unregistered project files are excluded (expected,
-  reported as info). Missing or out-of-vocabulary governance - unknown `visibility`,
-  unparseable front matter, a missing `ai` block - is excluded **and** treated as an error,
-  never silently indexed.
+  reported as info). Missing or out-of-vocabulary governance - unknown/missing `visibility`
+  or `sensitivity`, unparseable front matter, a missing `ai` block - is excluded **and**
+  treated as an error, never silently indexed. (`sensitivity` is not an index gate - `safe`
+  and `sensitive` items may both be indexed - but a record never carries an unvalidated
+  value.)
 - **`public_summary_only` redaction:** the curated summary enters; deep detail (project
   `detail.*`, markdown bodies) is withheld. No live content uses it yet; the behaviour is
   proven by test fixtures.

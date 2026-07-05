@@ -92,7 +92,9 @@ class FixtureGatingTests(unittest.TestCase):
         expected = {
             "projects/badvis-project.json": "unknown_visibility:internal",
             "projects/novis-project.json": "missing_visibility",
+            "projects/badsens-project.json": "unknown_sensitivity:spicy",
             "markdown/broken.md": "invalid_front_matter",
+            "markdown/no-sensitivity.md": "missing_sensitivity",
             "skills.json": "missing_visibility",
         }
         for path, reason in expected.items():
@@ -109,6 +111,8 @@ class FixtureGatingTests(unittest.TestCase):
             "UNREG_MARKER",
             "BADVIS_MARKER",
             "NOVIS_MARKER",
+            "BADSENS_MARKER",
+            "NOSENS_MD_MARKER",
             "BROKEN_MARKER",
             "MD_DEEP_DETAIL_MARKER",
             "NOVIS_SILO_MARKER",

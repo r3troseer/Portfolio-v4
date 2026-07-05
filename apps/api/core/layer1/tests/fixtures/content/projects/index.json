@@ -5,6 +5,7 @@
     { "id": "blocked-project", "displayOrder": 3, "featured": false },
     { "id": "limited-project", "displayOrder": 4, "featured": false },
     { "id": "badvis-project", "displayOrder": 5, "featured": false },
-    { "id": "novis-project", "displayOrder": 6, "featured": false }
+    { "id": "novis-project", "displayOrder": 6, "featured": false },
+    { "id": "badsens-project", "displayOrder": 7, "featured": false }
   ]
 }
