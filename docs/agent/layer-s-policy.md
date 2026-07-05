@@ -28,8 +28,11 @@ Visibility levels:
 Examples:
 - A project with a private source repo stays a normal **public** card but sets
   `repo.visibility: "private"` and shows no repo link.
-- The ESG/greenwashing research is `visibility: "public_summary_only"` +
-  `sensitivity: "sensitive"`: described at a high level only.
+- The ESG/greenwashing research is `visibility: "private"` + `sensitivity: "sensitive"`:
+  kept out of the UI (present-but-unregistered in the projects registry) and excluded from
+  the future agent index; only sanitized, high-level prose lives in the repo.
+- No project currently uses `public_summary_only`; it is reserved for IP-sensitive work that
+  may later be described at summary level only (summary in, deep detail withheld).
 
 **Agent-index rule:** only `public` and `public_summary_only` content may ever enter the
 future agent/RAG index.
