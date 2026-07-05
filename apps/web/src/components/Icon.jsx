@@ -15,6 +15,7 @@ import {
   BookOpen,
   PlayCircle,
   Globe,
+  BrainCircuit,
 } from "lucide-react";
 
 // Explicit registry of the icons referenced by name in canonical content
@@ -38,6 +39,7 @@ const registry = {
   "book-open": BookOpen,
   "play-circle": PlayCircle,
   globe: Globe,
+  "brain-circuit": BrainCircuit,
 };
 
 export const Icon = ({ name, ...props }) => {

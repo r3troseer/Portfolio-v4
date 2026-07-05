@@ -23,7 +23,10 @@ export const Capabilities = () => {
     <div className="pf-bento-e">
       <div className="pf-bento-hero">
         <div className="pf-bento-head">
-          <h4>{niche.label}</h4>
+          <h4>
+            {niche.icon && <Icon name={niche.icon} size={16} />}
+            {niche.label}
+          </h4>
           <span className="pf-niche-tag">{niche.tag}</span>
         </div>
         <div className="pf-cap-chips pf-niche-chips">

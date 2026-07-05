@@ -59,11 +59,18 @@
   margin-bottom: var(--spacing-md);
 }
 
+/* Match the sibling capability headers (.pf-cap-header): uppercase, teal,
+   icon-led, same rhythm — the niche tile is a peer, not a louder title. */
 .pf-bento-head h4 {
   margin: 0;
-  color: var(--slate-50);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary-accent);
   font-weight: 600;
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .pf-niche-tag {
