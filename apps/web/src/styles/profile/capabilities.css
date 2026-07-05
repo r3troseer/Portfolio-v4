@@ -85,6 +85,14 @@
   white-space: nowrap;
 }
 
+/* Chip row: flex-wrap with an 8px gap (handoff .pf-cap-chips). Without this the
+   chips pack tight with no row spacing and read as squashed. */
+.pf-cap-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
 .pf-niche-chips {
   margin-bottom: var(--spacing-md);
 }
