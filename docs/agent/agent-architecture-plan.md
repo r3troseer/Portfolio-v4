@@ -152,10 +152,10 @@ Practical view of each rule: where it is enforced, what happens on violation, an
 
 ## 4. Layer 1 - RAG scope
 
-> **Progress:** the first Layer 1 increment - the backend-owned public evidence index with
-> fail-closed gating - is implemented; see
-> [`layer1-evidence-index.md`](./layer1-evidence-index.md). Retrieval, grounded answers, and
-> the web chat surface remain future slices.
+> **Progress:** the backend-owned public evidence index (fail-closed gating) and the
+> deterministic lexical retrieval endpoint (`POST /api/retrieve/`) are implemented; see
+> [`layer1-evidence-index.md`](./layer1-evidence-index.md). Grounded answers and the web
+> chat surface remain future slices.
 
 Layer 1 is a **public portfolio assistant only**. Deliberately small:
 

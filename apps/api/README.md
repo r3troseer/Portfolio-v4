@@ -64,12 +64,44 @@ The service deploys to Railway (separately from the Vercel frontend, per the arc
 
 ## Endpoints
 
-| Method | Path           | Response                                          |
-|--------|----------------|---------------------------------------------------|
-| GET    | `/health/`     | `{"status": "ok", "service": "portfolio-api"}`    |
-| GET    | `/api/health/` | `{"status": "ok", "service": "portfolio-api"}`    |
+| Method | Path             | Response                                          |
+|--------|------------------|---------------------------------------------------|
+| GET    | `/health/`       | `{"status": "ok", "service": "portfolio-api"}`    |
+| GET    | `/api/health/`   | `{"status": "ok", "service": "portfolio-api"}`    |
+| POST   | `/api/retrieve/` | Ranked evidence matches + meta (see below)        |
 
-Both reuse the same view (`core/views.py`); health is exempt from throttling.
+Both health paths reuse the same view (`core/views.py`); health is exempt from throttling.
+
+### `POST /api/retrieve/` - Layer 1 retrieval
+
+Deterministic lexical retrieval over the evidence index. **No generated answer, no LLM, no
+embeddings** - just ranked, publicly-indexable evidence records. Covered by the global anon
+throttle (deliberately not exempted).
+
+Request (JSON body):
+
+```json
+{ "query": "multi-agent fintech", "role_lens": "backend", "top_k": 5 }
+```
+
+- `query` - required, non-empty, max 500 chars.
+- `role_lens` - optional; a soft ranking boost (+2), never a filter, so lens-less records
+  (profile silos, about) still rank. Max 50 chars.
+- `top_k` - optional integer, 1-20, default 5.
+
+Response: `200` with `{"matches": [{...evidence record fields..., "score": n}], "meta":
+{"total_records", "top_k", "role_lens", "index_source"}}`. An empty `matches` list is the
+deterministic no-results response. `400` on invalid input; `405` on non-POST.
+
+Scoring is integer token overlap per unique query token: text +1, tags +2, title +3, plus
+the role-lens boost; ties break on record id, so results are reproducible.
+
+**Index sourcing (fail-closed):** if the Layer 0 content root exists (dev/CI/monorepo) the
+corpus is built in-process; otherwise the shipped `var/evidence_index.json` artifact is read
+(deployed environments - build it in CI/deploy via `build_evidence_index`). The endpoint
+returns `503` and serves nothing if neither source works, if the build reports any
+governance error, or if the artifact contains a non-indexable record. The corpus is cached
+for the process lifetime, so local content edits need a server restart to appear.
 
 ## Configuration (environment variables)
 
@@ -96,5 +128,7 @@ Per [`docs/agent/layer-s-policy.md`](../../docs/agent/layer-s-policy.md), this s
 - **Server-side secrets only** — `SECRET_KEY` from the environment; no secrets committed.
 - **Fail-closed defaults** — `DEBUG` off unless explicitly enabled.
 
-Still to come (Layer 1): concurrency limits, token/output budgets, message-length limits,
-grounded-answer enforcement, and prompt/log minimisation.
+Landed with the retrieval endpoint: message-length limits for `/api/retrieve/` (query and
+role_lens caps, bounded top_k) and fail-closed index sourcing. Still to come (Layer 1):
+concurrency limits, token/output budgets, grounded-answer enforcement, and prompt/log
+minimisation.
