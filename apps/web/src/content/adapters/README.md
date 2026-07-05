@@ -99,7 +99,10 @@ structured.
 ## `profileAdapter.js` API
 
 Profile content silos live as strict JSON directly under `public/` and are read by
-`profileAdapter.js` (UI adapter for the non-project content).
+`profileAdapter.js` (UI adapter for the non-project content). Each silo carries the same
+top-level governance fields as projects (`visibility`, `sensitivity`; all currently
+`public` / `safe`) so the Layer 1 evidence index (`apps/api/core/layer1/`) can gate them
+fail-closed. The UI adapter ignores these fields.
 
 | Function | Returns (canonical file) |
 |---|---|

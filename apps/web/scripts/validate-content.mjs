@@ -11,7 +11,8 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, basename } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const projectsDir = join(here, "..", "src", "content", "public", "projects");
+const publicDir = join(here, "..", "src", "content", "public");
+const projectsDir = join(publicDir, "projects");
 
 // Controlled vocabularies (single source for the validator). Keep in step with
 // docs/agent/layer-s-policy.md.
@@ -136,6 +137,34 @@ for (const [id, { file }] of byId) {
   }
 }
 
+// --- Profile silos -----------------------------------------------------------
+// The non-project silos carry the same top-level governance fields as projects
+// (added for the Layer 1 evidence index; the index builder in
+// apps/api/core/layer1/ fail-closes on a missing/unknown visibility).
+const SILO_FILES = [
+  "profile.json",
+  "skills.json",
+  "experience.json",
+  "education.json",
+  "links.json",
+];
+
+for (const file of SILO_FILES) {
+  let data;
+  try {
+    data = JSON.parse(readFileSync(join(publicDir, file), "utf8"));
+  } catch (e) {
+    err(file, `invalid JSON (${e.message})`);
+    continue;
+  }
+  if (!VISIBILITY.has(data.visibility)) {
+    err(file, `visibility "${data.visibility}" not in controlled vocabulary`);
+  }
+  if (!SENSITIVITY.has(data.sensitivity)) {
+    err(file, `sensitivity "${data.sensitivity}" not in controlled vocabulary`);
+  }
+}
+
 // --- Report -----------------------------------------------------------------
 for (const line of infos) console.log(`info  ${line}`);
 
@@ -146,5 +175,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `\nContent validation passed: ${files.length} project file(s), ${registeredIds.size} registered.`
+  `\nContent validation passed: ${files.length} project file(s), ${registeredIds.size} registered, ${SILO_FILES.length} profile silo(s).`
 );
