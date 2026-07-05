@@ -61,7 +61,7 @@
 
 /* Match the sibling capability headers (.pf-cap-header): uppercase, teal,
    icon-led, same rhythm — the niche tile is a peer, not a louder title. */
-.pf-bento-head h4 {
+.pf-bento-head h3 {
   margin: 0;
   display: inline-flex;
   align-items: center;

@@ -19,8 +19,11 @@ const NotFound = lazy(() =>
 function Layout() {
   return (
     <>
+      <a href="#main" className="pf-skip-link">
+        Skip to content
+      </a>
       <Navigation />
-      <main>
+      <main id="main" tabIndex={-1}>
         <Suspense fallback={null}>
           <Outlet />
         </Suspense>

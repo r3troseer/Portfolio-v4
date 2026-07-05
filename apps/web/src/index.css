@@ -185,6 +185,40 @@ main {
    ≤768px `.nav-links { display: none }` rule). Kept out of index.css to avoid the
    duplicate-block drift where edits had to be made in two places. */
 
+/* Visible keyboard focus everywhere. `:focus-visible` keeps the ring for keyboard
+   / AT users without showing it on mouse clicks. Accent ring + offset reads on the
+   dark surfaces; the UA default was low-contrast and inconsistent. */
+:focus-visible {
+  outline: 2px solid var(--primary-accent);
+  outline-offset: 2px;
+}
+
+/* Skip link: hidden off-screen until focused, then drops into view so keyboard
+   users can jump past the nav to <main>. */
+.pf-skip-link {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2000;
+  transform: translateY(-120%);
+  background: var(--primary-accent);
+  color: var(--slate-900);
+  padding: 10px 16px;
+  border-radius: 0 0 var(--radius-sm) 0;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform var(--transition-fast);
+}
+
+.pf-skip-link:focus {
+  transform: translateY(0);
+}
+
+/* Don't ring the whole <main> region when the skip link hands it focus. */
+main:focus {
+  outline: none;
+}
+
 /* Hero Section */
 .hero {
   min-height: 100vh;

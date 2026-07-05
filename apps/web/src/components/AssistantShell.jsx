@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sparkles, X, Info, ArrowUp, CornerDownRight, ShieldCheck } from "lucide-react";
 import { AskLauncher } from "./AskLauncher";
+import { useDialogA11y } from "../hooks/useDialogA11y";
 import "../styles/profile/assistant.css";
 
 // Assistant shell: owns the single flying "Ask about Pius" launcher + a
@@ -9,6 +10,10 @@ import "../styles/profile/assistant.css";
 // The real grounded assistant is a future backend concern (docs/ui/profile-ui-refresh.md).
 export const AssistantShell = () => {
   const [open, setOpen] = useState(false);
+  const panelRef = useRef(null);
+
+  // Focus into the panel on open, trap Tab, Escape to close, restore focus on close.
+  useDialogA11y(open, () => setOpen(false), panelRef);
 
   // Cmd/Ctrl+K toggles the panel; Escape closes it.
   useEffect(() => {
@@ -48,6 +53,7 @@ export const AssistantShell = () => {
       {open && (
         <div className="pf-assistant-overlay" onClick={() => setOpen(false)}>
           <div
+            ref={panelRef}
             className="pf-assistant-panel"
             role="dialog"
             aria-modal="true"

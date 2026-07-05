@@ -111,6 +111,13 @@ export const ParticleEffect = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // Respect reduced-motion: the global CSS rule can't stop this canvas rAF, so
+    // skip the animation entirely (no drifting particles) and leave the canvas blank.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      resizeCanvas();
+      return;
+    }
+
     // Initial setup
     resizeCanvas();
     lastTimeRef.current = performance.now();
