@@ -1,10 +1,10 @@
 # Pre-Layer-1 Validation Plan
 
-**Date:** 2026-07-05 · **Status:** plan only (nothing implemented yet).
+**Date:** 2026-07-05 · **Status:** step 1 implemented; steps 2-4 deferred.
 
 > Documents the lightest useful validation path for the content/governance layer, so
-> Layer S stops relying purely on authorial care. **Decision (checkpoint 4):** document
-> now, implement later — no script or CI change lands with this note.
+> Layer S stops relying purely on authorial care. Step 1 (the content-validation script and
+> its CI wiring) is now implemented; steps 2-4 remain deferred as described below.
 
 ## Why
 The consolidated review (finding 17 / Part II) flagged that the repo's values
@@ -20,9 +20,9 @@ branch. A small validation step would have caught that mechanically.
 
 ## Proposed (lightest first)
 
-### 1. Content-validation script — **recommended first step, zero new dependencies**
-`apps/web/scripts/validate-content.mjs` (pure Node ESM: `fs` + `JSON.parse`), run via a
-new `npm run validate:content`, and added as a CI step. Checks:
+### 1. Content-validation script — IMPLEMENTED (zero new dependencies)
+`apps/web/scripts/validate-content.mjs` (pure Node ESM: `fs` + `JSON.parse`), run via
+`npm run validate:content`, and wired into the `web` CI job (before `npm run build`). Checks:
 
 - **Strict JSON:** every `src/content/public/projects/*.json` parses; `id` matches filename.
 - **Governance fields present + controlled vocab:**
