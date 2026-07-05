@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import Any
 
 from core.layer1.builder import DEFAULT_ARTIFACT_PATH, DEFAULT_CONTENT_ROOT, build_index
-from core.layer1.records import INDEXABLE, EvidenceRecord
+from core.layer1.records import INDEXABLE, SENSITIVITY, EvidenceRecord
 
 # Request validation limits (Layer S message-length limits for this endpoint).
 QUERY_MAX_LENGTH = 500
@@ -209,11 +209,16 @@ def _load_corpus(
         raise IndexUnavailableError("no evidence index source available")
 
     # Defense in depth: whatever the source, refuse the whole corpus if any
-    # record is not publicly indexable (tampered/corrupted/stale artifact).
+    # record is not publicly indexable or carries out-of-vocabulary
+    # sensitivity (tampered/corrupted/stale artifact).
     for record in records:
         if record.visibility not in INDEXABLE:
             raise IndexUnavailableError(
                 f"corpus contains a non-indexable record ({record.id})"
+            )
+        if record.sensitivity not in SENSITIVITY:
+            raise IndexUnavailableError(
+                f"corpus contains a record with invalid sensitivity ({record.id})"
             )
 
     return Corpus(entries=tuple(_make_entry(r) for r in records), source=source)

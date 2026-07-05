@@ -160,6 +160,15 @@ class LoadCorpusTests(unittest.TestCase):
             with self.assertRaises(IndexUnavailableError):
                 _load_corpus(content_root=MISSING_ROOT, artifact_path=artifact)
 
+    def test_tampered_artifact_with_unknown_sensitivity_is_refused(self) -> None:
+        payload = records_as_dicts(build_index(DEFAULT_CONTENT_ROOT))
+        payload["records"][0]["sensitivity"] = "spicy"
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact = Path(tmp) / "evidence_index.json"
+            artifact.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaises(IndexUnavailableError):
+                _load_corpus(content_root=MISSING_ROOT, artifact_path=artifact)
+
     def test_unreadable_artifact_is_refused(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             artifact = Path(tmp) / "evidence_index.json"
