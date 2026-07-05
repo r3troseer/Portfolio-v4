@@ -1,8 +1,9 @@
 # Layer 1, step 1: the public evidence index
 
-**Status: implemented** (branch `feature/layer1-evidence-index`). First increment of the
-Layer 1 RAG scope in [`agent-architecture-plan.md`](./agent-architecture-plan.md) Section 4;
-gating rules per [`layer-s-policy.md`](./layer-s-policy.md) Section 1.
+**Status: implemented** (index: branch `feature/layer1-evidence-index`; retrieval endpoint:
+branch `feature/layer1-retrieval-api`). First increments of the Layer 1 RAG scope in
+[`agent-architecture-plan.md`](./agent-architecture-plan.md) Section 4; gating rules per
+[`layer-s-policy.md`](./layer-s-policy.md) Section 1.
 
 ## What this step is
 
@@ -49,16 +50,23 @@ That is safe because indexing is a local/CI command, not a runtime dependency: t
 API (Railway) never reads raw web content. When a retrieval endpoint arrives, the CI-built
 index artifact ships with the deploy.
 
+## Retrieval endpoint (second slice)
+
+`POST /api/retrieve/` (branch `feature/layer1-retrieval-api`) is the first runtime consumer
+of the index: deterministic lexical retrieval (`core/layer1/retrieval.py`) with validated
+inputs, a soft role-lens boost, and fail-closed corpus loading - built in-process where the
+content root exists, else read from the shipped `var/evidence_index.json` artifact, else
+(or on any governance error / non-indexable record) refuse with 503 and serve nothing. See
+`apps/api/README.md` for the request/response contract. Still no generated answer.
+
 ## What is deliberately NOT here yet
 
-Each of these is a later, separate slice - kept out so this branch stays small and reviewable:
+Each of these is a later, separate slice - kept out so each branch stays small and reviewable:
 
-- **No LLM / model calls** - nothing to generate answers with; the corpus must exist and be
-  provably safe first.
-- **No embeddings / vector DB** - chunking and embedding decisions belong with the retrieval
-  slice; premature now and would add dependencies.
-- **No retrieval API endpoint** - the index has no consumer yet; exposing one would be a
-  public surface with no purpose and new abuse-control obligations.
+- **No LLM / model calls** - nothing to generate answers with; retrieval must be provably
+  safe and deterministic first.
+- **No embeddings / vector DB** - lexical retrieval establishes the safety shape without
+  dependencies; embeddings can replace the scorer behind the same endpoint later.
 - **No playground / chat UI** - `apps/web` gets a chat surface only once there is a grounded
   answer pipeline to call.
 

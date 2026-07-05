@@ -18,9 +18,12 @@ from typing import Any
 
 from django.core.management.base import BaseCommand, CommandError
 
-from core.layer1.builder import DEFAULT_CONTENT_ROOT, build_index, records_as_dicts
-
-DEFAULT_OUT = Path(__file__).resolve().parents[3] / "var" / "evidence_index.json"
+from core.layer1.builder import (
+    DEFAULT_ARTIFACT_PATH,
+    DEFAULT_CONTENT_ROOT,
+    build_index,
+    records_as_dicts,
+)
 
 
 class Command(BaseCommand):
@@ -66,11 +69,11 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"Evidence index check passed: {summary}"))
             return
 
-        DEFAULT_OUT.parent.mkdir(parents=True, exist_ok=True)
-        DEFAULT_OUT.write_text(
+        DEFAULT_ARTIFACT_PATH.parent.mkdir(parents=True, exist_ok=True)
+        DEFAULT_ARTIFACT_PATH.write_text(
             json.dumps(records_as_dicts(result), indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",
         )
         self.stdout.write(
-            self.style.SUCCESS(f"Wrote {DEFAULT_OUT} - {summary}")
+            self.style.SUCCESS(f"Wrote {DEFAULT_ARTIFACT_PATH} - {summary}")
         )
