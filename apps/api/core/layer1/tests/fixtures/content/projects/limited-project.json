@@ -1,0 +1,15 @@
+{
+  "id": "limited-project",
+  "visibility": "limited",
+  "status": "prototype",
+  "sensitivity": "safe",
+  "card": { "title": "Limited Project", "summary": "LIMITED_MARKER", "technologies": [] },
+  "detail": {},
+  "ai": {
+    "publicSummary": "LIMITED_MARKER only for approved contexts.",
+    "roleLenses": [],
+    "evidenceSkills": [],
+    "safeTalkingPoints": [],
+    "sensitivity": "safe"
+  }
+}

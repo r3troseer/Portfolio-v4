@@ -1,0 +1,15 @@
+{
+  "id": "unregistered-pub",
+  "visibility": "public",
+  "status": "live",
+  "sensitivity": "safe",
+  "card": { "title": "Unregistered Public", "summary": "UNREG_MARKER", "technologies": [] },
+  "detail": {},
+  "ai": {
+    "publicSummary": "UNREG_MARKER public but deliberately not registered.",
+    "roleLenses": [],
+    "evidenceSkills": [],
+    "safeTalkingPoints": [],
+    "sensitivity": "safe"
+  }
+}

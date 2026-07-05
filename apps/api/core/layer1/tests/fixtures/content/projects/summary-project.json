@@ -1,0 +1,24 @@
+{
+  "id": "summary-project",
+  "visibility": "public_summary_only",
+  "status": "case-study",
+  "sensitivity": "sensitive",
+  "card": {
+    "title": "Summary-Only Project",
+    "summary": "Card summary.",
+    "technologies": ["C#"]
+  },
+  "detail": {
+    "overview": "DEEP_DETAIL_MARKER ip-sensitive detail that must be withheld.",
+    "contentCards": [
+      { "markdown": "DEEP_DETAIL_MARKER proprietary approach", "type": "Architecture", "tags": [] }
+    ]
+  },
+  "ai": {
+    "publicSummary": "High-level summary that is allowed into the index.",
+    "roleLenses": ["fintech"],
+    "evidenceSkills": ["ASP.NET"],
+    "safeTalkingPoints": ["Talking point that must be withheld for summary-only."],
+    "sensitivity": "sensitive"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "blocked-project",
+  "visibility": "blocked",
+  "status": "archived",
+  "sensitivity": "sensitive",
+  "card": { "title": "Blocked Project", "summary": "BLOCKED_MARKER", "technologies": [] },
+  "detail": {},
+  "ai": {
+    "publicSummary": "BLOCKED_MARKER must never be indexed.",
+    "roleLenses": [],
+    "evidenceSkills": [],
+    "safeTalkingPoints": [],
+    "sensitivity": "sensitive"
+  }
+}

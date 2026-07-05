@@ -1,0 +1,15 @@
+{
+  "id": "private-project",
+  "visibility": "private",
+  "status": "in-progress",
+  "sensitivity": "sensitive",
+  "card": { "title": "Private Research", "summary": "PRIVATE_MARKER", "technologies": [] },
+  "detail": { "overview": "PRIVATE_MARKER internals." },
+  "ai": {
+    "publicSummary": "PRIVATE_MARKER even the ai summary must not leak.",
+    "roleLenses": ["ai-nlp"],
+    "evidenceSkills": [],
+    "safeTalkingPoints": [],
+    "sensitivity": "sensitive"
+  }
+}

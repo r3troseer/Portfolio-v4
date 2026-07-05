@@ -1,0 +1,24 @@
+{
+  "id": "pub-project",
+  "visibility": "public",
+  "status": "live",
+  "sensitivity": "safe",
+  "card": {
+    "title": "Public Project",
+    "summary": "Card summary (UI-facing).",
+    "technologies": ["Python"]
+  },
+  "detail": {
+    "overview": "DEEP_DETAIL_MARKER overview must never enter the index.",
+    "contentCards": [
+      { "markdown": "DEEP_DETAIL_MARKER card body", "type": "Architecture", "tags": [] }
+    ]
+  },
+  "ai": {
+    "publicSummary": "Curated public summary for pub-project.",
+    "roleLenses": ["backend"],
+    "evidenceSkills": ["Python", "Django"],
+    "safeTalkingPoints": ["Safe talking point one."],
+    "sensitivity": "safe"
+  }
+}
