@@ -42,3 +42,7 @@ jobs:
           cache-dependency-glob: apps/api/uv.lock
       - run: uv sync --locked
       - run: uv run python manage.py check
+      # Layer 1 evidence-index gating: fails on any governance error
+      # (checkout is the full monorepo, so ../web content is present).
+      - run: uv run python manage.py build_evidence_index --check
+      - run: uv run python manage.py test core
