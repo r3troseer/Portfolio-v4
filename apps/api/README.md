@@ -1,9 +1,10 @@
 # portfolio-api
 
-Django 6 + Django REST Framework **health-only skeleton** — migration step 3 of
-[`docs/agent/agent-architecture-plan.md`](../../docs/agent/agent-architecture-plan.md). This is
-the backend seam the future RAG runtime (Layer 1) and Layer S runtime controls grow into. It is
-deliberately minimal: no database, no admin/auth/sessions, no models, no AI.
+Django 6 + Django REST Framework backend - migration step 3 of
+[`docs/agent/agent-architecture-plan.md`](../../docs/agent/agent-architecture-plan.md), plus the
+first Layer 1 slice (the public evidence index, see below). This is the backend seam the future
+RAG runtime (Layer 1) and Layer S runtime controls grow into. It remains deliberately minimal:
+no database, no admin/auth/sessions, no models, no AI/LLM calls.
 
 ## Prerequisites
 
@@ -21,9 +22,23 @@ All commands run from `apps/api/`:
 uv sync                                   # install/sync from pyproject + uv.lock
 uv run python manage.py check             # system checks
 DJANGO_DEBUG=true uv run python manage.py runserver   # dev server on :8000
+uv run python manage.py build_evidence_index --check  # Layer 1 index gating check
+uv run python manage.py test core         # unit tests (stdlib unittest, no DB)
 ```
 
 To add a dependency later: `uv add <package>` (updates `pyproject.toml` + `uv.lock`).
+
+## Layer 1: public evidence index
+
+`core/layer1/` builds the first Layer 1 artifact: deterministic **evidence records** from the
+approved Layer 0 content in `apps/web/src/content/public/`, with the Layer S index gate
+enforced fail-closed in code (only `public` / `public_summary_only` is indexed;
+`public_summary_only` is redacted to its curated summary; missing/unknown governance is an
+error, never silently indexed). `manage.py build_evidence_index` writes the gitignored
+`var/evidence_index.json`; `--check` validates without writing and exits non-zero on
+governance errors. No LLM, embeddings, vector store, or retrieval endpoint yet - see
+[`docs/agent/layer1-evidence-index.md`](../../docs/agent/layer1-evidence-index.md) for the
+full rationale and the record/contract shape (kept API-local until a second consumer exists).
 
 > Note: the production WSGI server **gunicorn** is a dependency (used on Railway). It is
 > Unix-only and does not run on Windows — locally, use `manage.py runserver` as above.
