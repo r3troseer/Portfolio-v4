@@ -111,6 +111,13 @@ export const ParticleEffect = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // Respect reduced-motion: the global CSS rule can't stop this canvas rAF, so
+    // skip the animation entirely (no drifting particles) and leave the canvas blank.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      resizeCanvas();
+      return;
+    }
+
     // Initial setup
     resizeCanvas();
     lastTimeRef.current = performance.now();
@@ -132,14 +139,20 @@ export const ParticleEffect = () => {
     };
   }, [animate, resizeCanvas]);
 
-  // Pause animation when tab is not visible (performance optimization)
+  // Pause animation when tab is not visible (performance optimization).
   useEffect(() => {
+    // Reduced motion: the setup effect never starts the loop, so don't register a
+    // handler that could restart it when the tab regains focus.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        if (animationFrameRef.current) {
+        if (animationFrameRef.current !== null) {
           cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
         }
-      } else {
+      } else if (animationFrameRef.current === null) {
+        // Only restart when nothing is scheduled, so we never stack rAF loops.
         lastTimeRef.current = performance.now();
         animationFrameRef.current = requestAnimationFrame(animate);
       }

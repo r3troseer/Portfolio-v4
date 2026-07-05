@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 /*
- * useDockFlight — drives the single "Ask about Pius" launcher on a scroll-linked
+ * useDockFlight - drives the single "Ask about Pius" launcher on a scroll-linked
  * flight between its hero action-row slot and the persistent bottom-left dock.
  *
  * Re-authored from the locked design prototype (variant E · Triggered · Solid
@@ -10,7 +10,7 @@ import { useEffect, useRef } from "react";
  * `.notes/prototypes/cmdk-launcher-flight/.../CmdK Hero Dock Exploration.dc.html`.
  *
  * The look is applied imperatively to the launcher element and the hero
- * placeholder every frame (via refs/selectors) — never through React state, so
+ * placeholder every frame (via refs/selectors) - never through React state, so
  * the flight never triggers a re-render. The hook returns hover/press setters
  * the component wires to its mouse handlers.
  */
@@ -21,7 +21,7 @@ const END = 340;
 const UP = 0.62; // commit to dock
 const DOWN = 0.38; // commit to row
 
-// Colour endpoints (Solid teal → dark dock). [r, g, b, a].
+// Colour endpoints (Solid teal -> dark dock). [r, g, b, a].
 const FROM = {
   bg: [100, 255, 218, 1],
   bd: [100, 255, 218, 1],
@@ -104,10 +104,10 @@ export const useDockFlight = (
     window.addEventListener("scroll", onScroll, { passive: true });
 
     const apply = (p) => {
-      // Revealed on the first painted frame — avoids a flash before it's measured.
+      // Revealed on the first painted frame - avoids a flash before it's measured.
       if (fly.style.visibility !== "visible") fly.style.visibility = "visible";
       const slot = document.querySelector(slotSelector);
-      // No hero placeholder on this page → the launcher lives docked (no flight).
+      // No hero placeholder on this page -> the launcher lives docked (no flight).
       const hasSlot = !!slot;
 
       if (slot) {
@@ -163,7 +163,7 @@ export const useDockFlight = (
       fly.style.paddingLeft = padH + "px";
       fly.style.paddingRight = padH + "px";
       // Docked pill is slightly smaller than the rest pill.
-      const dsz = eOut; // 0 rest → 1 docked
+      const dsz = eOut; // 0 rest -> 1 docked
       fly.style.fontSize = 1 + (0.9 - 1) * dsz + "rem";
       fly.style.paddingTop = 13 + (11 - 13) * dsz + "px";
       fly.style.paddingBottom = 13 + (11 - 13) * dsz + "px";
@@ -178,8 +178,8 @@ export const useDockFlight = (
       if (sub) {
         const c = Math.max(0, Math.min(1, p / 0.4));
         // Measure the descriptor's natural width (re-measured at rest) rather
-        // than assume a fixed 220px — the app's system font (Segoe UI on Windows)
-        // is wider than the prototype's Inter, so a hard cap clips "…real work".
+        // than assume a fixed 220px - the app's system font (Segoe UI on Windows)
+        // is wider than the prototype's Inter, so a hard cap clips "...real work".
         if (subFullW == null || p < 0.02) {
           sub.style.maxWidth = "none";
           subFullW = sub.getBoundingClientRect().width || 220;
@@ -191,7 +191,7 @@ export const useDockFlight = (
         sub.style.paddingLeft = 12 * (1 - c) + "px";
       }
 
-      // Colour settles to the dark dock chrome by p≈0.85. Solid teal has dark ink.
+      // Colour settles to the dark dock chrome by p~0.85. Solid teal has dark ink.
       const ec = Math.min(1, p / 0.85);
       const ece = 1 - Math.pow(1 - ec, 2);
       const L = (a, b) =>
@@ -205,13 +205,13 @@ export const useDockFlight = (
       const hover = hoverRef.current;
       const press = pressRef.current;
       if (p < 0.05) {
-        // Gradient rest look (solid teal ≈ gradient base, so the seam is imperceptible).
+        // Gradient rest look (solid teal ~ gradient base, so the seam is imperceptible).
         paintRest(fly, ico, hover, press);
       } else {
         fly.style.background = L(FROM.bg, TO.bg);
         fly.style.color = L(FROM.tx, TO.tx);
         if (ico) ico.style.color = L(FROM.ic, TO.ic);
-        // Docked hover/press feedback — only once settled enough to read as the
+        // Docked hover/press feedback - only once settled enough to read as the
         // launcher (p>0.6). No lift (per the project's micro-interaction rules).
         const dockHover = hover && p > 0.6;
         const dockPress = press && p > 0.6;
@@ -230,7 +230,7 @@ export const useDockFlight = (
             ")";
       }
 
-      // Sub-label divider + ⌘K: dark ink on the teal fill, resolving to the
+      // Sub-label divider + CmdK: dark ink on the teal fill, resolving to the
       // light launcher styling by the time it docks.
       const cc = Math.max(0, Math.min(1, p / 0.4));
       if (sub) {
@@ -252,8 +252,8 @@ export const useDockFlight = (
       if (sub) sub.style.display = mobile ? "none" : "";
       if (kbd) kbd.style.display = mobile ? "none" : "";
       if (mobile) {
-        const D = 52; // FAB diameter (≥ 44px touch target)
-        const m = eOut; // 0 rest → 1 docked, front-loaded like the position
+        const D = 52; // FAB diameter (>= 44px touch target)
+        const m = eOut; // 0 rest -> 1 docked, front-loaded like the position
         if (hasSlot && p < 0.02) {
           // TRUE REST: leave the pill natural so the label can't be pixel-clipped
           // by a stale measurement; constraints only apply once a flight starts.
@@ -319,13 +319,13 @@ export const useDockFlight = (
     let rafId = 0;
 
     const loop = () => {
-      if (ownerSeq !== myId) return; // superseded — stop painting
+      if (ownerSeq !== myId) return; // superseded - stop painting
       const now = performance.now();
       if (now - lastScrollT > 120) scrollVel *= 0.85; // decay when idle
 
       const slotPresent = !!document.querySelector(slotSelector);
       if (!slotPresent) {
-        // No hero on this page → dock immediately, no flight.
+        // No hero on this page -> dock immediately, no flight.
         committed = 1;
         animP = 1;
       } else {
@@ -342,7 +342,7 @@ export const useDockFlight = (
           flightStart = now;
         }
         if (reduce) {
-          // Reduced motion: snap to the committed end — no travel.
+          // Reduced motion: snap to the committed end - no travel.
           animP = committed;
         } else {
           const DUR = Math.max(430, Math.min(560, 560 - scrollVel * 26));

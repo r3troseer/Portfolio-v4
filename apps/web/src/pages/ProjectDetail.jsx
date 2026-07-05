@@ -113,7 +113,7 @@ export const ProjectDetail = () => {
         </div>
       )}
 
-      {/* Problem → Solution */}
+      {/* Problem -> Solution */}
       {project.problemSolutions.length > 0 && (
         <div className="pf-pd-section">
           <h2 className="pf-pd-h">Challenges &amp; Solutions</h2>

@@ -1,5 +1,5 @@
 /*
- * Profile — Projects.
+ * Profile - Projects.
  * A single featured showcase card (body + gradient metrics side-panel) followed
  * by a numbered "selected work" list. Imported by components/Projects.jsx.
  */
@@ -63,15 +63,29 @@
 .pf-featured-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-xs);
-  margin-bottom: var(--spacing-md);
+  gap: var(--spacing-xs); /* 8px - matches handoff */
+  margin-bottom: var(--spacing-sm); /* 16px - matches handoff */
+}
+
+/* Featured-card tech chips - exact handoff `.tech-tag` values (source
+   portfolio.css:122): 1px teal @20% border, ~2% teal fill, radius-sm, 0.4/0.9rem
+   padding, text = accent mixed 70/30 with white (a lighter teal, not pure accent).
+   Scoped to the featured card so the global .pf-chip pill and niche chips stay put. */
+.pf-featured-tags .pf-chip {
+  padding: 0.4rem 0.9rem;
+  background: color-mix(in oklch, var(--primary-accent) 2%, transparent);
+  border-color: color-mix(in oklch, var(--primary-accent) 20%, transparent);
+  color: color-mix(in srgb, var(--primary-accent) 70%, white);
+  border-radius: var(--radius-sm);
 }
 
 .pf-featured-cta {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: auto;
+  /* 24px below the chips (handoff), not pushed to the card bottom via auto -
+     the body sits top-aligned with slack below when the metrics side is taller. */
+  margin-top: var(--spacing-md);
   color: var(--primary-accent);
   font-size: var(--font-size-sm);
   font-weight: 500;
@@ -87,8 +101,12 @@
   padding: var(--spacing-2xl) var(--spacing-xl);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  align-content: center;
-  gap: var(--spacing-xl) var(--spacing-lg);
+  /* Two equal rows fill the panel height, each stat centred within its half -
+     the handoff's even 2-top / 2-bottom distribution (measured off the handoff:
+     grid-template-rows 1fr 1fr, row-gap 0, stat content vertically centred). */
+  grid-template-rows: 1fr 1fr;
+  align-items: center;
+  gap: 0 var(--spacing-lg);
 }
 
 .pf-featured-metric .n {
@@ -213,6 +231,10 @@
     border-left: none;
     border-top: 1px solid var(--border-subtle);
     padding: var(--spacing-xl);
+    /* Stacked below the body: size rows to content with a normal gap rather
+       than forcing the tight full-height 1fr split used on desktop. */
+    grid-template-rows: auto auto;
+    row-gap: var(--spacing-xl);
   }
 
   .pf-list-row {

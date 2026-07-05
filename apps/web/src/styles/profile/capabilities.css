@@ -1,5 +1,5 @@
 /*
- * Profile — Capabilities bento.
+ * Profile - Capabilities bento.
  * A "niche" focus tile (gradient, chips, messy->structured data-flow) beside four
  * capability tiles (lead skill + count badge + "also" list). Imported by
  * components/Capabilities.jsx.
@@ -59,11 +59,18 @@
   margin-bottom: var(--spacing-md);
 }
 
-.pf-bento-head h4 {
+/* Match the sibling capability headers (.pf-cap-header): uppercase, teal,
+   icon-led, same rhythm - the niche tile is a peer, not a louder title. */
+.pf-bento-head h3 {
   margin: 0;
-  color: var(--slate-50);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary-accent);
   font-weight: 600;
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .pf-niche-tag {
@@ -76,6 +83,14 @@
   border-radius: var(--radius-full);
   padding: 3px 11px;
   white-space: nowrap;
+}
+
+/* Chip row: flex-wrap with an 8px gap (handoff .pf-cap-chips). Without this the
+   chips pack tight with no row spacing and read as squashed. */
+.pf-cap-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
 }
 
 .pf-niche-chips {

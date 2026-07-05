@@ -19,8 +19,11 @@ const NotFound = lazy(() =>
 function Layout() {
   return (
     <>
+      <a href="#main" className="pf-skip-link">
+        Skip to content
+      </a>
       <Navigation />
-      <main>
+      <main id="main" tabIndex={-1}>
         <Suspense fallback={null}>
           <Outlet />
         </Suspense>
@@ -39,7 +42,6 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
-          {/* <Route path="projects" element={<ProjectList />} />*/}
           <Route path="projects/:id" element={<ProjectDetail />} />
           <Route path="*" element={<NotFound />} />
         </Route>

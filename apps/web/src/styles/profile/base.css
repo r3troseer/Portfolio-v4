@@ -1,5 +1,5 @@
 /*
- * Profile design — shared primitives.
+ * Profile design - shared primitives.
  *
  * Cross-section building blocks for the Profile rebuild (see
  * docs/ui/profile-ui-refresh.md). Section-specific layout lives in the per-section
@@ -114,7 +114,7 @@
   padding: var(--spacing-2xl);
 }
 
-.pf-notfound h2 {
+.pf-notfound h1 {
   font-size: var(--font-size-4xl);
   color: var(--slate-50);
   font-weight: 600;

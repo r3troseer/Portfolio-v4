@@ -105,7 +105,7 @@
   --container-max-width: 1200px;
   --container-padding: 0 20px;
 
-  /* Profile refresh (bento / capabilities / assistant shell) — additive layer.
+  /* Profile refresh (bento / capabilities / assistant shell) - additive layer.
      Consumed by src/styles/profile/*.css; does not affect existing selectors. */
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --pf-bento-gap: var(--spacing-md);
@@ -180,78 +180,43 @@ main {
   padding: var(--container-padding);
 }
 
-/* Navigation */
-nav {
+/* Navigation styles live in styles/navigation.css (its single owner, loaded by
+   the always-mounted Navigation component - including the mobile menu and the
+   <=768px `.nav-links { display: none }` rule). Kept out of index.css to avoid the
+   duplicate-block drift where edits had to be made in two places. */
+
+/* Visible keyboard focus everywhere. `:focus-visible` keeps the ring for keyboard
+   / AT users without showing it on mouse clicks. Accent ring + offset reads on the
+   dark surfaces; the UA default was low-contrast and inconsistent. */
+:focus-visible {
+  outline: 2px solid var(--primary-accent);
+  outline-offset: 2px;
+}
+
+/* Skip link: hidden off-screen until focused, then drops into view so keyboard
+   users can jump past the nav to <main>. */
+.pf-skip-link {
   position: fixed;
   top: 0;
-  width: 100%;
-  background: var(--bg-nav);
-  backdrop-filter: blur(10px);
-  z-index: var(--z-nav);
-  padding: var(--spacing-sm) 0;
-  transition: all var(--transition-fast);
-}
-
-.nav-scrolled {
-  background: var(--bg-nav-scrolled);
-  transition: all var(--transition-fast);
-}
-
-.nav-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: var(--container-max-width);
-  margin: 0 auto;
-  padding: var(--container-padding);
-}
-
-.logo {
-  font-size: var(--font-size-3xl);
-  font-weight: bold;
-  color: var(--primary-accent);
-}
-
-.nav-links {
-  display: flex;
-  list-style: none;
-  gap: var(--spacing-lg);
-}
-
-.nav-links a {
-  color: var(--text-primary);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-  position: relative;
-}
-
-.nav-links a:hover {
-  color: var(--primary-accent);
-}
-
-.nav-links a::after {
-  content: "";
-  position: absolute;
-  bottom: -5px;
   left: 0;
-  width: 0;
-  height: 2px;
+  z-index: 2000;
+  transform: translateY(-120%);
   background: var(--primary-accent);
-  transition: width var(--transition-fast);
+  color: var(--slate-900);
+  padding: 10px 16px;
+  border-radius: 0 0 var(--radius-sm) 0;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform var(--transition-fast);
 }
 
-.nav-links a:hover::after {
-  width: 100%;
+.pf-skip-link:focus {
+  transform: translateY(0);
 }
 
-/* Scroll-spy: the active link is highlighted and keeps its underline, so the
-   underline appears to follow the active section while scrolling. */
-.nav-links a.active {
-  color: var(--primary-accent);
-}
-
-.nav-links a.active::after {
-  width: 100%;
+/* Don't ring the whole <main> region when the skip link hands it focus. */
+main:focus {
+  outline: none;
 }
 
 /* Hero Section */
@@ -377,7 +342,7 @@ section {
   text-align: left;
 }
 
-/* Tech tag pills — still used by TechTags.jsx (project detail). */
+/* Tech tag pills - still used by TechTags.jsx (project detail). */
 .tech-tags {
   display: flex;
   flex-wrap: wrap;
@@ -408,10 +373,6 @@ footer p {
 
 /* Responsive Design (section-specific responsive rules live in profile/*.css) */
 @media (max-width: 768px) {
-  .nav-links {
-    display: none;
-  }
-
   section {
     padding: var(--spacing-3xl) 0;
   }

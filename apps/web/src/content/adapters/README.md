@@ -93,7 +93,7 @@ source: profile.json     # optional provenance / UI-truth link (used on about.md
 ---
 ```
 
-No dates (git is the record of "when"). No front matter on the JSON files — they are already
+No dates (git is the record of "when"). No front matter on the JSON files - they are already
 structured.
 
 ## `profileAdapter.js` API

@@ -1,8 +1,8 @@
 /*
- * Profile — assistant shell (Cmd/Ctrl+K).
+ * Profile - assistant shell (Cmd/Ctrl+K).
  * Single flying "Ask about Pius" launcher (AskLauncher.jsx) + placeholder modal.
  * The launcher's position, size, and colour are driven inline per-frame by
- * useDockFlight — the rules below are the at-rest base only. Surface values are
+ * useDockFlight - the rules below are the at-rest base only. Surface values are
  * tokens in index.css. Shell only: no backend, LLM, retrieval, or key storage.
  * Imported by AssistantShell.jsx. See docs/ui/ask-launcher-flight.md.
  */
@@ -24,7 +24,7 @@
   font-family: inherit;
   font-size: 1rem;
   /* 1.2 (not 1) so the descriptor's overflow:hidden box has room for descenders
-     ("g"/"work") — line-height:1 clips them vertically. */
+     ("g"/"work") - line-height:1 clips them vertically. */
   line-height: 1.2;
   white-space: nowrap;
   color: #08131f;
