@@ -42,6 +42,11 @@ from core.layer1.records import (
 _REPO_ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_CONTENT_ROOT = _REPO_ROOT / "apps" / "web" / "src" / "content" / "public"
 
+# Where the built index artifact lives (gitignored). Written by the
+# build_evidence_index command; read at runtime by the retrieval service when
+# the raw content root is absent (deployed environments).
+DEFAULT_ARTIFACT_PATH = _REPO_ROOT / "apps" / "api" / "var" / "evidence_index.json"
+
 # The five non-project content silos (see apps/web/src/content/adapters/README.md).
 PROFILE_SILOS = (
     "profile.json",
