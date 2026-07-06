@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router";
+import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from "react-router";
 import { Navigation } from "./components/Navigation";
 import { Footer } from "./components/Footer";
 import { ParticleEffect } from "./components/ParticleEffect";
@@ -15,8 +15,31 @@ const ProjectDetail = lazy(() =>
 const NotFound = lazy(() =>
   import("./pages/NotFound").then((m) => ({ default: m.NotFound }))
 );
+const Playground = lazy(() =>
+  import("./pages/Playground").then((m) => ({ default: m.Playground }))
+);
 
 function Layout() {
+  const { pathname } = useLocation();
+  // The evidence playground is a distinct full-screen mode: it hides the shared
+  // site chrome and renders its own results-only footer and navigation strip.
+  const evidenceMode = pathname.startsWith("/playground");
+
+  if (evidenceMode) {
+    return (
+      <>
+        <a href="#main" className="pf-skip-link">
+          Skip to content
+        </a>
+        <main id="main" tabIndex={-1}>
+          <Suspense fallback={null}>
+            <Outlet />
+          </Suspense>
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
       <a href="#main" className="pf-skip-link">
@@ -42,6 +65,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
+          <Route path="playground" element={<Playground />} />
           <Route path="projects/:id" element={<ProjectDetail />} />
           <Route path="*" element={<NotFound />} />
         </Route>
