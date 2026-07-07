@@ -1,9 +1,16 @@
+import re
+
 from rest_framework import status
 from rest_framework.decorators import api_view, throttle_classes
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from core.layer1.records import EvidenceRecord
+from core.layer1.records import (
+    SOURCE_MARKDOWN,
+    SOURCE_PROFILE,
+    SOURCE_PROJECT,
+    EvidenceRecord,
+)
 from core.layer1.retrieval import (
     IndexUnavailableError,
     RetrievalValidationError,
@@ -20,13 +27,52 @@ def health(request: Request) -> Response:
     return Response({"status": "ok", "service": "portfolio-api"})
 
 
+SNIPPET_MAX_LENGTH = 180
+
+
+def _plain_text(value: str) -> str:
+    """Convert indexed context into a short display-safe source snippet."""
+    text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", value)
+    text = re.sub(r"[`*_>#]", "", text)
+    text = re.sub(r"(?m)^\s*[-+]\s+", "", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
+
+def _snippet(record: EvidenceRecord) -> str:
+    text = _plain_text(record.text or record.title)
+    if len(text) <= SNIPPET_MAX_LENGTH:
+        return text
+    return text[: SNIPPET_MAX_LENGTH - 3].rstrip() + "..."
+
+
+def _entity_type(record: EvidenceRecord) -> str:
+    if record.source_type == SOURCE_PROJECT:
+        return "project"
+    if record.source_type == SOURCE_PROFILE:
+        return "profile"
+    if (
+        record.source_type == SOURCE_MARKDOWN
+        and record.source_id.startswith("role-lenses/")
+    ):
+        return "role_lens"
+    return "content"
+
+
+def _entity_id(record: EvidenceRecord) -> str:
+    return record.project_id or record.source_id
+
+
 def _match_dict(record: EvidenceRecord, score: int) -> dict[str, object]:
-    """Same field set as builder.records_as_dicts, plus the retrieval score."""
+    """Retrieval hit plus user-facing entity display fields."""
     return {
         "id": record.id,
         "source_type": record.source_type,
         "source_id": record.source_id,
+        "entity_id": _entity_id(record),
+        "entity_type": _entity_type(record),
         "title": record.title,
+        "snippet": _snippet(record),
         "text": record.text,
         "visibility": record.visibility,
         "sensitivity": record.sensitivity,
