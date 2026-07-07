@@ -43,7 +43,9 @@ error, never silently indexed). `manage.py build_evidence_index` writes the giti
 governance errors. No LLM, embeddings, or vector store - see
 [`docs/agent/layer1-evidence-index.md`](../../docs/agent/layer1-evidence-index.md) for the
 full rationale and the record/contract shape (kept API-local until a second consumer exists).
-Runtime retrieval is live: `POST /api/retrieve/` (see **Endpoints** below).
+Runtime retrieval is live: `POST /api/retrieve/` (see **Endpoints** below). The web
+retrieval-ledger UI (Cmd+K modal + `/playground`) consumes this endpoint. No generated-answer
+endpoint, chat surface, reranking, or model calls exist yet.
 
 > Note: the production WSGI server **gunicorn** is a dependency (used on Railway). It is
 > Unix-only and does not run on Windows — locally, use `manage.py runserver` as above.

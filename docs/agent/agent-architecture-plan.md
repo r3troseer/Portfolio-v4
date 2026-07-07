@@ -8,8 +8,9 @@
 > repeating it.
 
 The portfolio is phase one of a layered, recruiter-facing assistant (Layers S, 0, 1, 2, 2.5...).
-Layer 0 (the canonical public content foundation) is merged and the SPA now builds on Vite. The
-next phases add a separate backend, shared contracts, and a grounded RAG assistant. This plan
+Layer 0 (the canonical public content foundation) is merged and the SPA now builds on Vite.
+Later phases add shared contracts and a grounded generated-answer assistant; the monorepo backend
+(`apps/api`) and retrieval-ledger UI are partially live today. This plan sets the target shape
 sets the target shape and the migration sequence so each step stays small and reversible.
 
 ---
@@ -17,7 +18,10 @@ sets the target shape and the migration sequence so each step stays small and re
 ## 1. Current baseline
 
 - **Frontend:** Vite + React SPA, deployed directly on **Vercel** (`vercel.json` handles the
-  Cloudinary `/images/*` rewrite and the SPA fallback).
+  Cloudinary `/images/*` rewrite and the SPA fallback). A live Layer 1 **retrieval-ledger UI**
+  (Cmd+K inline retrieval + `/playground`) consumes `POST /api/retrieve/`. The future
+  **generated-answer/chat surface** (grounded answers, citations, refusal cards) is not
+  implemented yet.
 - **Content (Layer 0):** canonical, file-backed **portfolio content safe to commit publicly**
   under `apps/web/src/content/public/` (per-project JSON + `index.json` registry, profile silos,
   and AI-facing markdown), consumed only through `apps/web/src/content/adapters/`. Everything here is already
@@ -49,9 +53,10 @@ repo-root/
 
 - **`apps/web`** - the existing SPA, moved in as-is. Still Vite + React, still on Vercel, same
   routes, content, adapters, and analytics. Migration must be a relocation, not a rewrite.
-- **`apps/api`** - a **Django / DRF** service added later, **deployed separately** from Vercel
-  (Railway / Render / Fly / VPS). Owns the AI/RAG runtime, content indexing, and (eventually)
-  tools. The web app calls it over HTTP; they are never co-deployed.
+- **`apps/api`** - Django / DRF, **deployed separately** from Vercel (Railway). Owns the
+  evidence index and lexical retrieval (`POST /api/retrieve/`) today; the grounded-answer
+  runtime, reranking, and tools land in later slices. The web app calls it over HTTP; they are
+  never co-deployed.
 - **`packages/contracts`** - shared, language-agnostic schemas so web and api never drift:
   the **content shape** (already de-facto defined by Layer 0), **agent response schemas**
   (grounded answers + evidence), and the **typed UI-spec schema** (Layer 2.5). Added only when
@@ -143,7 +148,7 @@ Practical view of each rule: where it is enforced, what happens on violation, an
 
 | Rule | Enforcement location | Failure behaviour | Phase |
 |---|---|---|---|
-| Content schema validation | Build / CI (against `packages/contracts`) | Fail the build; content can't ship | Contracts |
+| Content schema validation | Build / CI (`validate-content.mjs` today; `packages/contracts` later) | Fail the build; content can't ship | Layer 0 / Contracts |
 | Visibility-based index gating | `apps/api` indexer (AI/content adapter) | Item excluded from index; not retrievable | Layer 1 |
 | `public_summary_only` redaction | `apps/api` indexer (pre-embed) | Deep detail dropped; summary-only indexed | Layer 1 |
 | `private` / `blocked` content exclusion | Build + `apps/api` indexer | Excluded from application rendering and indexing; never returned by the API | Layer 1 |
@@ -166,23 +171,27 @@ Practical view of each rule: where it is enforced, what happens on violation, an
 
 > **Progress:** the backend-owned public evidence index (fail-closed gating) and the
 > deterministic lexical retrieval endpoint (`POST /api/retrieve/`) are implemented; see
-> [`layer1-evidence-index.md`](./layer1-evidence-index.md). Grounded answers and the web
-> chat surface remain future slices.
+> [`layer1-evidence-index.md`](./layer1-evidence-index.md). The web **retrieval-ledger UI**
+> (Cmd+K + `/playground`) and `POST /api/retrieve/` are live. **Grounded answers**, citations,
+> refusal cards, reranking, and the future **generated-answer/chat surface** remain deferred.
 
 Layer 1 is a **public portfolio assistant only**. Deliberately small:
 
 - **Indexes only approved public content** - `public` and `public_summary_only` items from
   Layer 0 (and the AI-facing markdown), and nothing else.
-- **Answers with grounded evidence** - every answer is backed by retrieved, citable content;
-  no ungrounded generation.
+- **Answers with grounded evidence** (future target) - every answer backed by retrieved,
+  citable content; no ungrounded generation. Not live today; retrieval returns ranked entities
+  only.
 - **No tools** - retrieval + answer only; no actions, no web access.
 - **No private data** - enforced by the index gate (Section 3), not by prompt wording.
 - **No recruiter identification** - never infer or assert who the visitor is.
 - **No user tracking beyond explicit consent** - no silent profiling or analytics on
   conversation content.
 
-This runs in `apps/api`; `apps/web` gets a chat surface that calls it. The answer/evidence
-shape is defined in `packages/contracts`.
+Retrieval runs in `apps/api` today (`POST /api/retrieve/`). A future **generated-answer/chat
+surface** in `apps/web` will call a grounded-answer endpoint once it exists. Until
+`packages/contracts` is extracted, the retrieval response shape stays **API-local** (see
+`apps/api/README.md` and `core/layer1/records.py`).
 
 ### Backend behaviours the evidence playground needs (handoff-derived)
 
@@ -237,11 +246,12 @@ Small, ordered, reversible steps. Each step lands before the next begins.
 2. **Monorepo setup** - introduce `apps/web` by relocating the current SPA unchanged; keep the
    Vercel deploy working. No backend yet.
 3. **Backend skeleton** - stand up `apps/api` (Django / DRF) deployed separately; health check
-   only, no AI.
+   (done). Lexical retrieval (`POST /api/retrieve/`) and the evidence index are live.
 4. **Contracts** - extract shared schemas into `packages/contracts` once web + api both consume
-   them (content shape first, then agent response shape).
+   them (content shape first, then agent response shape). Deferred; retrieval shape is API-local.
 5. **Layer 1 RAG prototype** - index approved public content, return grounded answers, wire the
-   web chat surface to the api. No tools, no private data. Lands in slices; the first (the
-   evidence index, [`layer1-evidence-index.md`](./layer1-evidence-index.md)) is done.
+   future generated-answer/chat surface to the api. Lands in slices: the evidence index,
+   retrieval endpoint, and retrieval-ledger UI ([`layer1-evidence-index.md`](./layer1-evidence-index.md),
+   [`layer1-playground.md`](./layer1-playground.md)) are done; grounded answers remain.
 
 Layers 2 / 2.5 follow only after Layer 1 is solid.

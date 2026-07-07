@@ -6,6 +6,10 @@ the **retrieval ledger** for a query: ranked public source entities, shown with 
 snippets. Grounded answers, reranking, and model calls are backend behaviours that do not exist
 yet - see the fidelity map below.
 
+This is the **retrieval-ledger UI** only - not the future **generated-answer/chat surface**
+(grounded answers, citations, refusal cards, reranking inspector, model calls). Those depend on
+backend behaviours documented below as CONFLICT/deferred.
+
 ## Flow (as designed in the handoff)
 
 - **Cmd/Ctrl+K opens the assistant modal - an interactive evidence surface, not a launcher.**
