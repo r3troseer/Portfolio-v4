@@ -1,6 +1,6 @@
 # Profile UI Refresh - Scope & Decisions
 
-Status: implemented (home + project detail) · Branch: `feature/profile-ui-refresh` · see **Outcomes** below
+Status: implemented (home + project detail) · see **Outcomes** and **Post-Layer-1 addendum**
 
 This note records the agreed scope for integrating the matured design prototype into the real
 `apps/web` app. It is the durable, committed record of what we keep, cut, defer, and leave to a
@@ -18,7 +18,7 @@ through the existing Layer 0 adapters.
   - a repainted hero + tagline ("Evidence-based AI · NLP · Data Pipelines") and an
     "Ask about Pius" CmdK launcher chip;
   - About/Skills restructured into a **bento capabilities grid** (hero cell + language /
-    framework / data / practices cells), fed by `getProfile()` / `getSkills()`;
+    framework / data / practices cells), fed by `getProfile()` / `getCapabilities()`;
   - more intentional, differentiated project cards (clear Featured vs. rest treatment);
   - experience presented as cleaner "evidence rows".
 - **Evidence** - **not a portfolio variant.** It is the answer surface reached through the
@@ -182,3 +182,42 @@ phase), a dedicated Education section (data ready), and any PR/merge to `master`
 
 **Commit convention:** history on this branch carries **no `Co-Authored-By`/AI-attribution trailer**
 (also recorded in `CLAUDE.md`).
+
+---
+
+## Post-Layer-1 addendum (2026-07)
+
+This section records what changed **after** the Profile refresh shipped. It does not rewrite
+the historical scope above; it supersedes the claims that Evidence and the assistant were
+placeholder-only with no backend.
+
+**What is live now**
+
+- **Cmd/Ctrl+K assistant modal** (`AssistantShell.jsx`) runs `POST /api/retrieve/` and renders
+  a ranked **source-entity ledger** inline - not a placeholder shell.
+- **`/playground`** is the full retrieval workspace (chromeless evidence mode). Authoritative
+  flow and fidelity map: [`docs/agent/layer1-playground.md`](../agent/layer1-playground.md).
+- **Backend** (`apps/api`): public evidence index + lexical retrieval endpoint. No generated
+  answers, reranking inspector, or refusal object yet.
+
+**Scope decisions revisited**
+
+| Original decision (above) | Current reality |
+|---|---|
+| Evidence is a "placeholder shell only" | Live retrieval UI (modal + page) |
+| Cut: "RAG / API playground surfaces" | `/playground` is implemented (retrieval ledger only) |
+| Defer: "Evidence result shell content and CmdK panel polish" | Substantially done for retrieval-only slice |
+| Backend-later: "real assistant answers, retrieval/RAG" | **Retrieval** is live; **grounded answers** remain backend-later |
+| CmdK launcher "as a visual shell only" | Launcher motion is still shell-only; the **modal** is interactive |
+
+**Still cut (unchanged)**
+
+- Browser-side API keys, model selects, answer generation, fake reranking.
+- Terminal and variant switcher.
+- Grounded answer composition (`composing -> answered`), refusal card, passage-detail view.
+
+**Authoritative docs for the Layer 1 slice**
+
+- [`docs/agent/layer1-playground.md`](../agent/layer1-playground.md) - UI flow and handoff fidelity
+- [`docs/agent/layer1-evidence-index.md`](../agent/layer1-evidence-index.md) - index + API contract
+- [`apps/api/README.md`](../../apps/api/README.md) - retrieve endpoint

@@ -57,7 +57,9 @@ of the index: deterministic lexical retrieval (`core/layer1/retrieval.py`) with 
 inputs, a soft role-lens boost, and fail-closed corpus loading - built in-process where the
 content root exists, else read from the shipped `var/evidence_index.json` artifact, else
 (or on any governance error / non-indexable record) refuse with 503 and serve nothing. See
-`apps/api/README.md` for the request/response contract. Still no generated answer.
+`apps/api/README.md` for the request/response contract. The response keeps `text` as retrieval
+context and adds `entity_id`, `entity_type`, and `snippet` for the user-facing source ledger.
+Still no generated answer.
 
 ## What is deliberately NOT here yet
 
@@ -67,8 +69,8 @@ Each of these is a later, separate slice - kept out so each branch stays small a
   safe and deterministic first.
 - **No embeddings / vector DB** - lexical retrieval establishes the safety shape without
   dependencies; embeddings can replace the scorer behind the same endpoint later.
-- **No playground / chat UI** - `apps/web` gets a chat surface only once there is a grounded
-  answer pipeline to call.
+- **No grounded answer UI** - the current web playground can show the retrieved entity ledger,
+  but a chat/answer surface waits for the grounded answer pipeline.
 
 ## Contracts note
 

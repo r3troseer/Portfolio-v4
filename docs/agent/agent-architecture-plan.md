@@ -1,8 +1,9 @@
 # Agent Architecture Plan
 
-> **Status: living document - target architecture, not yet implemented.**
-> This describes where the portfolio agent is going and the order we get there. It does not
-> change the current app. Safety, visibility, and content rules live in
+> **Status: living document - target architecture with partial implementation.**
+> Layer 0, the monorepo layout (`apps/web`, `apps/api`), the public evidence index, lexical
+> retrieval, and the web retrieval-ledger UI are live. Grounded answers, tools, and
+> `packages/contracts` remain future work. Safety, visibility, and content rules live in
 > [`layer-s-policy.md`](./layer-s-policy.md); this document references that policy rather than
 > repeating it.
 
@@ -24,8 +25,11 @@ sets the target shape and the migration sequence so each step stays small and re
   indexing**, not whether the file may exist in the repo. Single source of truth; UI and the
   future AI layer share canonical IDs but use **separate adapters**.
 - **Policy (Layer S seed):** [`layer-s-policy.md`](./layer-s-policy.md) documents the
-  visibility / sensitivity taxonomy and content boundaries. It is **documentation-only** today.
-- **Backend:** none yet. There is no server, database, vector store, LLM, or agent tooling.
+  visibility / sensitivity taxonomy and content boundaries. Index gating and content validation
+  are enforced in CI; full runtime Layer S controls remain future work.
+- **Backend (`apps/api`):** Django 6 + DRF, deployed separately (Railway). Health check and
+  Layer 1 lexical retrieval (`POST /api/retrieve/`) are live. No database, vector store, LLM,
+  grounded-answer pipeline, or agent tooling yet.
 
 ---
 
@@ -60,23 +64,31 @@ edge; the agent runtime lives where it can hold secrets, state, and model access
 
 ## 3. Layer S enforcement roadmap
 
-Layer S today is **intent captured as documentation**. The job of later phases is to turn the
-parts that protect real data into **validation and enforcement** in `apps/api` and the build.
+Layer S policy intent lives in [`layer-s-policy.md`](./layer-s-policy.md). Enforcement is
+**partial today** - content and index rules run in CI/build; full runtime controls (grounded-
+answer egress, refusal, answer-pipeline budgets) remain future work.
 
-**Documentation-only today**
-- The `status` / `visibility` / `sensitivity` taxonomy and the content boundaries are written
-  down in [`layer-s-policy.md`](./layer-s-policy.md) and followed by single-author discipline.
-- Nothing mechanically checks that content respects the rules; nothing strips disallowed
-  fields before they could reach an index.
+**Enforced now (CI, build, retrieval slice)**
+- Content validation: `npm run validate:content` in the web CI job (controlled vocab for
+  `status`, `visibility`, `sensitivity`, `roleLenses`; registry consistency).
+- Index gating (fail-closed): `build_evidence_index --check` in API CI; only `public` /
+  `public_summary_only` enters the index at runtime.
+- **`public_summary_only` redaction** in the indexer (summary in, deep detail out) - proven by
+  test fixtures; no live content uses it yet.
+- **`private` / `blocked` exclusion** from the index (and from the UI via adapter/registry
+  discipline); unregistered project files never surface.
+- Retrieval input limits and fail-closed corpus loading on `POST /api/retrieve/`.
+- Runtime foundations: CORS allowlist, anon rate limiting, request-size cap, server-side secrets
+  only (see `apps/api/README.md`).
 
-**Should become validation / enforcement later**
-- **Schema validation** of canonical content against `packages/contracts` (controlled vocab for
-  `status`, `visibility`, `sensitivity`, `roleLenses`) - fail the build on violations.
-- **Index gating** in the AI/content adapter: only `public` and `public_summary_only` items may
-  enter the agent index, enforced in code, not by convention.
-- **Field-level redaction** for `public_summary_only` (summary in, deep detail out) before
-  anything is embedded or returned.
-- **Egress checks** on agent answers so responses can only cite indexed, approved evidence.
+**Still documentation-only or incomplete**
+- **`packages/contracts` schema validation** - content checks exist in `validate-content.mjs`;
+  shared cross-language contracts are not extracted yet.
+- **Grounded-answer egress** - no answer pipeline; retrieval returns ranked entities only.
+- **Refusal as a first-class response** - out-of-scope queries return empty matches, not a
+  governance refusal object.
+- **Answer-pipeline budgets** - token/output limits, concurrent caps, prompt/log minimisation
+  beyond retrieval; tool allowlist and UI-spec validation (Layers 2 / 2.5).
 
 **Visibility / status / sensitivity rules (unchanged, see policy doc)**
 - `status` = display label only, **never** a privacy signal.
@@ -171,6 +183,34 @@ Layer 1 is a **public portfolio assistant only**. Deliberately small:
 
 This runs in `apps/api`; `apps/web` gets a chat surface that calls it. The answer/evidence
 shape is defined in `packages/contracts`.
+
+### Backend behaviours the evidence playground needs (handoff-derived)
+
+The evidence playground ([`layer1-playground.md`](./layer1-playground.md)) ports the profile
+handoff's "Evidence" view. Its retrieval surface is live against `POST /api/retrieve/`. The
+affordances below are intentional in the handoff but depend on backend behaviours that do not
+exist yet - they are **deferred, not cut**, and must be built server-side (never faked in the
+browser):
+
+1. **Grounded answers** - a cited, grounded answer for a query (retrieval + server-side model).
+   Drives the modal/page answer, citations, and the `composing -> answered` phases. Retrieval-
+   only today.
+2. **Reranking + retrieval ledger** - a rerank step over the lexical candidates that exposes
+   pre- and post-rerank candidate sets, so the UI can show the expanded Retrieval Ledger
+   (`rag-reveal` / `rag-insp`) and the "scores, reranking" the handoff promises. Retrieval is
+   single-pass lexical over source entities today.
+3. **Refusal as a response state** - a first-class Layer S refusal object for out-of-scope /
+   sensitive queries (Section 3), rendered as the assistant's refusal card, not an error.
+4. **Passage / claim detail** - per-entity passages, claims, and signals behind a result,
+   backing a passage-detail view (the evidence cards currently link to the existing project-
+   detail page where a `project_id` exists; records without one are intentionally static). The
+   index carries summary-level `text` plus a short display `snippet` today.
+5. **Slash commands** - the generative/canned slash commands (`/answer`, `/quote`, `/recruiter`
+   ...) depend on the grounded-answer behaviour above; the menu itself is a frontend affordance.
+
+Explicitly **backend-only, never client-side** (the handoff hardcodes these in the browser as a
+prototype shortcut): model selection and API keys (`ev-keypanel`, model selects). Keys and model
+choice live in `apps/api` only.
 
 ---
 

@@ -4,7 +4,7 @@ Adapters translate the **canonical Layer 0 content** (`src/content/public/...`) 
 shapes each consumer needs. Canonical files are the single source of truth; consumers never
 read them directly. UI and AI concerns use **separate adapters** over the same files.
 
-Currently implemented: **`projectsAdapter.js`** (UI adapter for projects).
+Currently implemented: **`projectsAdapter.js`** and **`profileAdapter.js`** (UI adapters).
 
 ## Canonical project shape (`public/projects/<id>.json`)
 

@@ -13,10 +13,12 @@ drift was already observable - e.g. the ESG `visibility` doc<->file mismatch fix
 branch. A small validation step would have caught that mechanically.
 
 ## Current state
-- `apps/web/package.json`: `dev` / `build` / `preview` only - **no lint, no tests**.
-- `.github/workflows/ci.yml`: builds `apps/web` and runs `manage.py check` on `apps/api`,
-  triggered on push/PR to **`dev` and `main`** (feature-branch gap already closed).
-- Governance is documented in `docs/agent/layer-s-policy.md` but not enforced in code.
+- `apps/web/package.json`: `dev` / `build` / `preview` / **`validate:content`**.
+- `.github/workflows/ci.yml`: builds `apps/web` (runs `validate:content` then `npm run build`),
+  runs `manage.py check` and `build_evidence_index --check` on `apps/api`, triggered on push/PR
+  to **`dev` and `main`**.
+- Governance taxonomy in `docs/agent/layer-s-policy.md`; **content validation and index gating
+  are enforced in CI**. Full runtime Layer S controls remain future work.
 
 ## Proposed (lightest first)
 
