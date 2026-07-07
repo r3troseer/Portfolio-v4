@@ -40,9 +40,12 @@ enforced fail-closed in code (only `public` / `public_summary_only` is indexed;
 `public_summary_only` is redacted to its curated summary; missing/unknown governance is an
 error, never silently indexed). `manage.py build_evidence_index` writes the gitignored
 `var/evidence_index.json`; `--check` validates without writing and exits non-zero on
-governance errors. No LLM, embeddings, vector store, or retrieval endpoint yet - see
+governance errors. No LLM, embeddings, or vector store - see
 [`docs/agent/layer1-evidence-index.md`](../../docs/agent/layer1-evidence-index.md) for the
 full rationale and the record/contract shape (kept API-local until a second consumer exists).
+Runtime retrieval is live: `POST /api/retrieve/` (see **Endpoints** below). The web
+retrieval-ledger UI (Cmd+K modal + `/playground`) consumes this endpoint. No generated-answer
+endpoint, chat surface, reranking, or model calls exist yet.
 
 > Note: the production WSGI server **gunicorn** is a dependency (used on Railway). It is
 > Unix-only and does not run on Windows — locally, use `manage.py runserver` as above.
@@ -93,9 +96,11 @@ Request (JSON body):
   (profile silos, about) still rank. Max 50 chars.
 - `top_k` - optional integer, 1-20, default 5.
 
-Response: `200` with `{"matches": [{...evidence record fields..., "score": n}], "meta":
-{"total_records", "top_k", "role_lens", "index_source"}}`. An empty `matches` list is the
-deterministic no-results response. `400` on invalid input; `405` on non-POST.
+Response: `200` with `{"matches": [{...evidence record fields..., "entity_id",
+"entity_type", "snippet", "score": n}], "meta": {"total_records", "top_k",
+"role_lens", "index_source"}}`. `text` remains the longer retrieval/model context; `snippet`
+is the short plain-text display field for the user-facing entity ledger. An empty `matches`
+list is the deterministic no-results response. `400` on invalid input; `405` on non-POST.
 
 Scoring is integer token overlap per unique query token: text +1, tags +2, title +3, plus
 the role-lens boost; ties break on record id, so results are reproducible.

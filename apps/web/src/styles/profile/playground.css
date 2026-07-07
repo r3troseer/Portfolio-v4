@@ -1,0 +1,834 @@
+/*
+ * Profile - evidence playground (/playground).
+ * Ported from the profile handoff's "Evidence" view (the ev-/rag- surface in
+ * .notes/prototypes/profile-handoff). Same layout, tokens, and typography,
+ * re-authored here as pf-pg-* and fed by the live /api/retrieve/ response
+ * (retrieval-only: no answers, rerank, keys, or generated response). Imported by
+ * Playground.jsx. See docs/agent/layer1-playground.md.
+ */
+
+/* Evidence palette from the handoff's .v-evidence mode. */
+.pf-pg {
+  --ev-bg: #0b0f17;
+  --ev-panel: #121826;
+  --ev-line: rgba(148, 163, 184, 0.14);
+  --ev-accent: var(--primary-accent);
+  --ev-accent2: #34d399;
+  --ev-dim: #64748b;
+  --ev-text: #cbd5e1;
+}
+
+.pf-pg {
+  min-height: 100vh;
+  padding: 0;
+  background: var(--ev-bg);
+  color: var(--ev-text);
+  font-family: var(--font-family);
+}
+
+/* Visually hidden but available to assistive tech (label + live region). */
+.pf-pg-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- Query box (shared: hero + strip) ------------------------------------- */
+.pf-pg-query-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.pf-pg-query {
+  background: var(--ev-panel);
+  border: 1px solid var(--ev-line);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  transition: border-color var(--transition-fast);
+}
+
+.pf-pg-query:focus-within {
+  border-color: color-mix(in srgb, var(--ev-accent) 40%, var(--ev-line));
+}
+
+.pf-pg-query-ico {
+  color: var(--ev-accent);
+  flex-shrink: 0;
+}
+
+.pf-pg-query-label {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--ev-dim);
+  flex-shrink: 0;
+}
+
+.pf-pg-query-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--ev-text);
+  font-size: var(--font-size-base);
+  font-family: inherit;
+}
+
+.pf-pg-query-input::placeholder {
+  color: var(--ev-dim);
+}
+
+.pf-pg-query-run {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  border: 1px solid var(--ev-line);
+  background: rgba(100, 255, 218, 0.08);
+  color: var(--ev-accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pf-pg-query-run:hover:not(:disabled) {
+  background: rgba(100, 255, 218, 0.18);
+  border-color: var(--ev-accent);
+}
+
+.pf-pg-query-run:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* --- Hero (empty state) --------------------------------------------------- */
+.pf-pg-hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100dvh;
+  padding: 0 var(--spacing-md) 11vh;
+  text-align: center;
+}
+
+.pf-pg-hero-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  animation: pfPgHeroFade 0.6s ease both;
+}
+
+.pf-pg-hero-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--ev-accent);
+  box-shadow: 0 0 14px rgba(100, 255, 218, 0.55);
+}
+
+.pf-pg-hero-name {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.pf-pg-hero-slash {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--ev-dim);
+}
+
+.pf-pg-hero-sub {
+  margin: 0 0 32px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ev-dim);
+  letter-spacing: 0.04em;
+  animation: pfPgHeroFade 0.6s ease 0.1s both;
+}
+
+.pf-pg-hero .pf-pg-query-wrap {
+  max-width: 600px;
+}
+
+.pf-pg-hero .pf-pg-query {
+  padding: 15px 20px;
+  border-radius: 16px;
+}
+
+.pf-pg-hero .pf-pg-query-input {
+  font-size: var(--font-size-lg);
+}
+
+.pf-pg-hero .pf-pg-query-label {
+  display: none;
+}
+
+/* --- Preset chips --------------------------------------------------------- */
+.pf-pg-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 22px;
+  margin-bottom: 20px;
+  animation: pfPgHeroFade 0.6s ease 0.2s both;
+}
+
+.pf-pg-chip {
+  font-size: 13px;
+  color: var(--ev-dim);
+  border: 1px solid var(--ev-line);
+  border-radius: 999px;
+  padding: 7px 15px;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.14s, border-color 0.14s;
+}
+
+.pf-pg-chip:hover {
+  color: var(--ev-accent);
+  border-color: color-mix(in srgb, var(--ev-accent) 40%, var(--ev-line));
+}
+
+@keyframes pfPgHeroFade {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- Evidence-mode chrome (replaces the site nav) ------------------------- */
+/* Hero: a fixed "< portfolio" exit (handoff: fixed top-left return button). */
+.pf-pg-exit {
+  position: fixed;
+  top: 18px;
+  left: 20px;
+  z-index: 95;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ev-dim);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.14s ease;
+}
+
+.pf-pg-exit:hover {
+  color: #e2e8f0;
+}
+
+/* Results mode: full-width sticky strip from the handoff's .rag-strip. */
+.pf-pg-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  height: 42px;
+  padding: 10px 20px;
+  background: color-mix(in srgb, var(--ev-bg) 70%, #1e2535);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+  animation: pfPgStripIn 0.25s ease both;
+}
+
+.pf-pg-crumb {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.pf-pg-crumb-home {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ev-text);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.14s ease;
+}
+
+.pf-pg-crumb-home:hover {
+  color: #e2e8f0;
+}
+
+.pf-pg-crumb-sep {
+  color: #3f4d63;
+  flex-shrink: 0;
+}
+
+.pf-pg-crumb-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ev-accent);
+  box-shadow: 0 0 9px rgba(100, 255, 218, 0.5);
+  flex-shrink: 0;
+}
+
+.pf-pg-crumb-here {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.pf-pg-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ev-dim);
+  border: 1px solid var(--ev-line);
+  border-radius: 6px;
+  padding: 3px 9px;
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.14s ease, border-color 0.14s ease;
+}
+
+.pf-pg-new:hover {
+  color: #e2e8f0;
+  border-color: color-mix(in srgb, var(--ev-accent) 40%, var(--ev-line));
+}
+
+.pf-pg-chrome-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pf-pg-about-wrap {
+  position: relative;
+}
+
+.pf-pg-about-toggle {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--ev-line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ev-dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  cursor: pointer;
+  transition: color 0.14s ease, border-color 0.14s ease;
+}
+
+.pf-pg-about-toggle:hover,
+.pf-pg-about-toggle[aria-expanded="true"] {
+  color: var(--ev-accent);
+  border-color: color-mix(in srgb, var(--ev-accent) 40%, var(--ev-line));
+}
+
+.pf-pg-about {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  padding: 14px;
+  border: 1px solid var(--ev-line);
+  border-radius: 10px;
+  background: var(--ev-panel);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  color: var(--ev-text);
+}
+
+.pf-pg-about strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #e2e8f0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.pf-pg-about p {
+  color: var(--ev-dim);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.pf-pg-about p + p {
+  margin-top: 7px;
+}
+
+@keyframes pfPgStripIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- Results strip -------------------------------------------------------- */
+.pf-pg-strip {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 32px var(--spacing-md) var(--spacing-3xl);
+}
+
+.pf-pg-query-wrap.is-sticky {
+  position: sticky;
+  top: 42px;
+  z-index: 90;
+  background: var(--ev-bg);
+  padding-bottom: 10px;
+}
+
+.pf-pg-seclabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ev-dim);
+  margin: var(--spacing-xl) 0 var(--spacing-sm);
+}
+
+.pf-pg-seclabel svg {
+  color: var(--ev-accent);
+  flex-shrink: 0;
+}
+
+.pf-pg-seclabel::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--ev-line);
+}
+
+.pf-pg-scorenote {
+  color: var(--ev-dim);
+  font-size: var(--font-size-xs);
+  margin: 0 0 var(--spacing-lg);
+}
+
+/* --- Retrieved entities --------------------------------------------------- */
+.pf-pg-docs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.pf-pg-doc {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: var(--spacing-lg);
+  background: var(--ev-panel);
+  border: 1px solid var(--ev-line);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: all var(--transition-fast);
+}
+
+/* Only project-backed entities are links (rendered as <a>); markdown/profile
+   entities have no detail page, so they render as static <article> cards: no pointer,
+   no hover-open affordance. */
+a.pf-pg-doc {
+  cursor: pointer;
+}
+
+.pf-pg-doc::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--ev-accent);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform var(--transition-fast);
+}
+
+a.pf-pg-doc:hover {
+  border-color: color-mix(in srgb, var(--ev-accent) 40%, transparent);
+  background: #151c2c;
+}
+
+a.pf-pg-doc:hover::before {
+  transform: scaleY(1);
+}
+
+.pf-pg-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.pf-pg-score-bar {
+  width: 6px;
+  height: 56px;
+  background: rgba(148, 163, 184, 0.12);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.pf-pg-score-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--pf-pg-fill, 0%);
+  background: linear-gradient(to top, var(--ev-accent), var(--ev-accent2));
+  border-radius: 3px;
+}
+
+.pf-pg-score-num {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--ev-accent);
+  font-weight: 700;
+}
+
+.pf-pg-doc-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pf-pg-doc-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.pf-pg-doc-id {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--ev-dim);
+}
+
+.pf-pg-doc-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--slate-50);
+}
+
+.pf-pg-doc-kind {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(167, 139, 250, 0.12);
+  color: #c4b5fd;
+  border: 1px solid rgba(167, 139, 250, 0.25);
+}
+
+.pf-pg-doc-snippet {
+  color: var(--ev-text);
+  font-size: var(--font-size-sm);
+  line-height: 1.65;
+  margin-bottom: var(--spacing-sm);
+}
+
+.pf-pg-doc-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.pf-pg-doc-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--ev-dim);
+  padding: 3px 8px;
+  border: 1px solid var(--ev-line);
+  border-radius: 4px;
+}
+
+.pf-pg-niche-tag {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ev-accent);
+  border: 1px solid color-mix(in srgb, var(--ev-accent) 32%, transparent);
+  border-radius: var(--radius-full);
+  padding: 3px 11px;
+  white-space: nowrap;
+}
+
+.pf-pg-doc-src {
+  margin-top: var(--spacing-sm);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ev-dim);
+  word-break: break-all;
+}
+
+/* "open entity ->" affordance, revealed on hover/focus. */
+.pf-pg-doc-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: var(--spacing-sm);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--ev-accent);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+a.pf-pg-doc:hover .pf-pg-doc-open,
+a.pf-pg-doc:focus-visible .pf-pg-doc-open {
+  opacity: 1;
+}
+
+/* --- Loading skeleton ----------------------------------------------------- */
+.pf-pg-skel {
+  margin: var(--spacing-md) 0 var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pf-pg-skel-bar {
+  height: 14px;
+  width: 160px;
+  border-radius: 6px;
+}
+
+.pf-pg-skel-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  margin-top: 6px;
+}
+
+.pf-pg-skel-card {
+  height: 120px;
+  border-radius: 12px;
+}
+
+.pf-pg-skel-bar,
+.pf-pg-skel-card {
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--ev-panel) 90%, transparent) 25%,
+    color-mix(in oklch, var(--ev-accent) 14%, var(--ev-panel)) 50%,
+    color-mix(in oklch, var(--ev-panel) 90%, transparent) 75%
+  );
+  background-size: 200% 100%;
+  animation: pfPgShimmer 1.3s ease-in-out infinite;
+  border: 1px solid var(--ev-line);
+}
+
+@keyframes pfPgShimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-pg-skel-bar,
+  .pf-pg-skel-card {
+    animation: none;
+  }
+}
+
+/* --- Empty / notice states ------------------------------------------------ */
+.pf-pg-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: var(--spacing-3xl) var(--spacing-lg);
+  color: var(--ev-dim);
+  background: var(--ev-panel);
+  border: 1px solid var(--ev-line);
+  border-radius: var(--radius-md);
+}
+
+.pf-pg-empty svg {
+  color: var(--ev-accent);
+}
+
+.pf-pg-empty p {
+  max-width: 48ch;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+}
+
+.pf-pg-q {
+  color: var(--slate-200);
+  font-weight: 600;
+}
+
+.pf-pg-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: var(--spacing-lg);
+  background: var(--ev-panel);
+  border: 1px solid var(--ev-line);
+  border-radius: var(--radius-md);
+  color: var(--ev-text);
+}
+
+.pf-pg-notice svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--ev-amber, #fbbf24);
+}
+
+.pf-pg-notice.is-offline svg {
+  color: var(--secondary-accent);
+}
+
+.pf-pg-notice-title {
+  font-weight: 600;
+  color: var(--slate-100);
+  margin-bottom: 3px;
+}
+
+.pf-pg-notice-body {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+  color: var(--ev-dim);
+}
+
+.pf-pg-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 7px 14px;
+  border-radius: 7px;
+  border: 1px solid color-mix(in srgb, var(--ev-accent) 40%, var(--ev-line));
+  background: rgba(100, 255, 218, 0.08);
+  color: var(--ev-accent);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.pf-pg-retry:hover {
+  background: rgba(100, 255, 218, 0.18);
+}
+
+.pf-pg-footer {
+  margin-top: var(--spacing-3xl);
+  padding: var(--spacing-2xl) 0;
+  background: transparent;
+  border-top: 1px solid var(--ev-line);
+}
+
+.pf-pg-footer p {
+  color: var(--ev-dim);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+/* --- Responsive ----------------------------------------------------------- */
+@media (max-width: 680px) {
+  .pf-pg-doc {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+
+  /* Score flips to a horizontal bar above the body. */
+  .pf-pg-score {
+    flex-direction: row;
+  }
+
+  .pf-pg-score-bar {
+    width: 100%;
+    max-width: 180px;
+    height: 6px;
+  }
+
+  .pf-pg-score-fill {
+    top: 0;
+    bottom: auto;
+    left: 0;
+    right: auto;
+    height: 100%;
+    width: var(--pf-pg-fill, 0%);
+  }
+
+  .pf-pg-query {
+    flex-wrap: wrap;
+  }
+
+  .pf-pg-skel-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .pf-pg-chrome {
+    padding-inline: 14px;
+  }
+
+  .pf-pg-about {
+    position: fixed;
+    top: 48px;
+    right: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-pg-hero-mark,
+  .pf-pg-hero-sub,
+  .pf-pg-chips,
+  .pf-pg-chrome {
+    animation: none;
+  }
+}

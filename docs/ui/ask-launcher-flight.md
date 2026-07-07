@@ -7,9 +7,12 @@ the previous two-element (inline pill + separate `.pf-fab`) crossfade. Locked de
 combination: **variant E** (Ask is the row's sole primary action) · path **Triggered** ·
 style **Solid teal**. High-fidelity: the colours, timings, easings, and sizes below are final.
 
-> This is presentation polish only. The assistant is still a **shell** - no backend, LLM,
-> retrieval, or keys. The launcher animation does **not** mean the grounded assistant is
-> production-ready; that remains future backend work (see `docs/ui/profile-ui-refresh.md`).
+> This doc covers **launcher motion only**. The pill itself is a visual affordance: it
+> dispatches `pf:open-assistant` and does not call the backend. The **assistant modal**
+> (`AssistantShell.jsx`) is live against `POST /api/retrieve/` and renders a ranked entity
+> ledger inline - see [`docs/agent/layer1-playground.md`](../agent/layer1-playground.md).
+> Grounded answers, reranking, and refusal remain future backend work; no browser-side keys
+> or model config.
 
 ## Source prototype (reference, not shipped)
 Design handoff, extracted locally (gitignored, never committed):
@@ -61,5 +64,5 @@ Design handoff, extracted locally (gitignored, never committed):
 - No bundled prototype HTML, `<x-dc>` / `support.js` runtime, or the Row/Path/Style switcher.
 - No Google Fonts / unpkg `lucide` CDN tags - icons come from the app's `lucide-react`.
 - No exploration-only style variants (gradientTeal, sky, tint, outline, emerald) - Solid teal only.
-- No backend, LLM, retrieval, keys, or fake answer generation. No content changes beyond the
-  approved variant-E row copy ("View selected work" -> "View work", arrow-down dropped).
+- No launcher-side backend calls, keys, or fake answer generation. No content changes beyond
+  the approved variant-E row copy ("View selected work" -> "View work", arrow-down dropped).

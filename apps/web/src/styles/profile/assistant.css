@@ -1,9 +1,10 @@
 /*
  * Profile - assistant shell (Cmd/Ctrl+K).
- * Single flying "Ask about Pius" launcher (AskLauncher.jsx) + placeholder modal.
+ * Flying "Ask about Pius" launcher plus the interactive retrieval modal.
  * The launcher's position, size, and colour are driven inline per-frame by
  * useDockFlight - the rules below are the at-rest base only. Surface values are
- * tokens in index.css. Shell only: no backend, LLM, retrieval, or key storage.
+ * tokens in index.css. Retrieval calls the backend; model logic and key storage
+ * remain server-side concerns.
  * Imported by AssistantShell.jsx. See docs/ui/ask-launcher-flight.md.
  */
 
@@ -84,9 +85,10 @@
   align-items: flex-start;
   justify-content: center;
   padding: 10vh 20px 20px;
-  background: rgba(3, 7, 18, 0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(4, 7, 13, 0.66);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  font-family: "Inter", system-ui, sans-serif;
   animation: pfAskFade 0.2s ease;
 }
 
@@ -103,7 +105,7 @@
   display: flex;
   flex-direction: column;
   background: var(--pf-ask-panel);
-  border: 1px solid var(--pf-card-line);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 18px;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
   overflow: hidden;
@@ -113,6 +115,19 @@
 @keyframes pfAskSettle {
   from { transform: translateY(-12px) scale(0.98); }
   to { transform: translateY(0) scale(1); }
+}
+
+/* Visually hidden but available to assistive tech (the input's label). */
+.pf-ask-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* --- Input row ----------------------------------------------------------- */
@@ -141,15 +156,15 @@
 }
 
 .pf-assistant-input::placeholder {
-  color: var(--slate-500);
+  color: #5b687a;
 }
 
-/* Cyan submit affordance (visual only in the shell). */
+/* Cyan submit affordance. */
 .pf-ask-submit {
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   border: none;
   background: var(--primary-accent);
   color: var(--slate-900);
@@ -169,7 +184,7 @@
   flex-shrink: 0;
   width: 32px;
   height: 32px;
-  border-radius: var(--radius-md);
+  border-radius: 8px;
   border: none;
   background: transparent;
   color: var(--slate-500);
@@ -192,34 +207,37 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  /* Scrollbar styled to the teal system (ported from the handoff). */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 255, 218, 0.28) transparent;
+  overscroll-behavior: contain;
 }
 
-/* Coming-soon note, styled like the prototype's refusal/info card. */
-.pf-ask-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  color: var(--slate-300);
-  background: var(--pf-card-faint);
-  border: 1px solid var(--pf-card-line);
-  border-radius: 10px;
-  padding: 12px 14px;
-  font-size: 0.9rem;
-  line-height: 1.55;
+.pf-ask-body::-webkit-scrollbar {
+  width: 9px;
 }
 
-.pf-ask-note svg {
-  color: #7dd3fc;
-  flex-shrink: 0;
-  margin-top: 2px;
+.pf-ask-body::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.pf-ask-suggestlabel {
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.pf-ask-body::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.pf-ask-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 255, 218, 0.4);
+  background-clip: padding-box;
+}
+
+/* Intro (before any query): label + suggestion buttons. */
+.pf-ask-intro-label {
+  font-size: 0.78rem;
   color: var(--slate-500);
-  font-weight: 600;
+  margin-bottom: 10px;
 }
 
 .pf-ask-suggestions {
@@ -255,18 +273,268 @@
   flex-shrink: 0;
 }
 
+/* --- Inline evidence results (the modal's own compact cards, from handoff) - */
+.pf-ask-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  color: var(--slate-400);
+  font-size: 0.86rem;
+}
+
+.pf-ask-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary-accent);
+  opacity: 0.4;
+  animation: pfAskDot 1.2s infinite ease-in-out;
+}
+
+.pf-ask-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.pf-ask-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.pf-ask-loading-text {
+  margin-left: 4px;
+}
+
+@keyframes pfAskDot {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-ask-dot {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+.pf-ask-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+}
+
+.pf-ask-error svg {
+  flex-shrink: 0;
+}
+
+.pf-ask-empty {
+  color: var(--slate-400);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  padding: 4px 0;
+}
+
+.pf-ask-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Compact entity card - distinct from the page's ev-doc (handoff pf-ask-evdoc).
+   Only project-backed entities are links; the rest are static cards. */
+.pf-ask-evdoc {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  transition: all 0.16s ease;
+}
+
+a.pf-ask-evdoc:hover {
+  border-color: rgba(100, 255, 218, 0.35);
+  background: rgba(100, 255, 218, 0.04);
+  transform: translateY(-2px);
+}
+
+.pf-ask-evdoc-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--slate-500);
+}
+
+.pf-ask-evdoc-head svg {
+  flex-shrink: 0;
+}
+
+.pf-ask-evdoc-id {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.pf-ask-evdoc-score {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--primary-accent);
+  background: rgba(100, 255, 218, 0.1);
+  border-radius: 5px;
+  padding: 2px 8px;
+}
+
+.pf-ask-evdoc h4 {
+  font-size: 1.02rem;
+  color: #f1f5f9;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.pf-ask-evdoc p {
+  font-size: 0.84rem;
+  color: var(--slate-400);
+  line-height: 1.55;
+  /* Compact: clamp the summary in the modal (the page shows it in full). */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* --- Footer --------------------------------------------------------------- */
 .pf-ask-foot {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 12px 16px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px 10px 16px;
   border-top: 1px solid var(--pf-hairline);
-  color: var(--slate-500);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
+  color: #5b687a;
 }
 
 .pf-ask-foot svg {
+  flex-shrink: 0;
+  color: #5b687a;
+}
+
+.pf-ask-foot-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.pf-ask-foot-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(100, 255, 218, 0.28);
+  background: rgba(100, 255, 218, 0.08);
+  color: var(--primary-accent);
+  font-size: 0.74rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.14s, border-color 0.14s;
+}
+
+.pf-ask-foot-btn:hover {
+  background: rgba(100, 255, 218, 0.16);
+  border-color: rgba(100, 255, 218, 0.5);
+}
+
+.pf-ask-foot-btn svg {
+  color: var(--primary-accent);
+}
+
+/* Rich "Open in Playground" CTA shown when there are results (pf-ask-footcta). */
+.pf-ask-footwrap {
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--pf-hairline);
+}
+
+.pf-ask-footcta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 15px;
+  border-radius: 11px;
+  border: 1px solid rgba(100, 255, 218, 0.26);
+  background: linear-gradient(
+    180deg,
+    rgba(100, 255, 218, 0.08),
+    rgba(100, 255, 218, 0.03)
+  );
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.pf-ask-footcta:hover {
+  border-color: rgba(100, 255, 218, 0.5);
+  background: linear-gradient(
+    180deg,
+    rgba(100, 255, 218, 0.13),
+    rgba(100, 255, 218, 0.05)
+  );
+}
+
+.pf-ask-footcta-l {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.pf-ask-footcta-l > svg {
+  color: var(--primary-accent);
+  flex-shrink: 0;
+}
+
+.pf-ask-footcta-tx {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pf-ask-footcta-tx strong {
+  font-size: 0.9rem;
+  color: #e8edf2;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.pf-ask-footcta-tx span {
+  font-size: 0.72rem;
+  color: #8b97a8;
+  line-height: 1.3;
+}
+
+.pf-ask-footcta-ar {
+  color: var(--primary-accent);
   flex-shrink: 0;
 }
 

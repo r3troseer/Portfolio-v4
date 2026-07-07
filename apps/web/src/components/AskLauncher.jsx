@@ -2,11 +2,9 @@ import { useRef } from "react";
 import { Sparkles, Command } from "lucide-react";
 import { useDockFlight } from "../hooks/useDockFlight";
 
-// The single "Ask about Pius" launcher. It flies between the hero action-row
-// slot (.pf-ask-slot placeholder) and the persistent bottom-left dock, driven by
-// useDockFlight. Clicking it - inline, in flight, or docked - signals intent via
-// the pf:open-assistant event; the AssistantShell opens the modal. Shell only:
-// no backend, LLM, retrieval, or keys. See docs/ui/ask-launcher-flight.md.
+// Motion-only: this component does not call the backend. Clicking - inline, in flight,
+// or docked - dispatches pf:open-assistant; AssistantShell opens the modal and runs
+// retrieval. See docs/ui/ask-launcher-flight.md.
 export const AskLauncher = () => {
   const ref = useRef(null);
   const { onHoverIn, onHoverOut, onPressIn, onPressOut } = useDockFlight(ref);

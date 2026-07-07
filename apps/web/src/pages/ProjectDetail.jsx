@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, useLocation } from "react-router";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { Icon } from "../components/Icon";
 import { getProjectById } from "../content/adapters/projectsAdapter";
@@ -7,6 +7,7 @@ import { Badge } from "../components/Badge";
 import { ContentCard } from "../components/ContentCard";
 import { ProblemSolutionCard } from "../components/ProblemSolutionCard";
 import { Timeline } from "../components/Timeline";
+import { EVIDENCE_ORIGIN, safeReturnPath } from "../lib/evidenceNavigation";
 import "../styles/profile/detail.css";
 
 // Presentation-only mapping from a link icon key to a lucide icon name.
@@ -20,6 +21,7 @@ const linkIconMap = {
 export const ProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const project = getProjectById(id);
 
   if (!project) {
@@ -28,12 +30,48 @@ export const ProjectDetail = () => {
 
   const { header, focus, technologies, metrics } = project;
   const links = header.links.filter((link) => link.href);
-  const backToWork = () => navigate("/", { state: { scrollTo: "projects" } });
+
+  const evidenceOrigin = location.state?.from;
+  const fromPlayground = evidenceOrigin === EVIDENCE_ORIGIN.PLAYGROUND;
+  const fromAssistant = evidenceOrigin === EVIDENCE_ORIGIN.ASSISTANT;
+
+  let backLabel = "Back to work";
+  let goBack = () => navigate("/", { state: { scrollTo: "projects" } });
+
+  if (fromPlayground) {
+    const query = typeof location.state?.q === "string" ? location.state.q.trim() : "";
+    const roleLens =
+      typeof location.state?.roleLens === "string"
+        ? location.state.roleLens
+        : undefined;
+
+    backLabel = "Back to playground";
+    goBack = () =>
+      navigate("/playground", {
+        state: query ? { q: query, roleLens } : undefined,
+      });
+  } else if (fromAssistant) {
+    const returnTo = safeReturnPath(location.state?.returnTo);
+    const query = typeof location.state?.q === "string" ? location.state.q.trim() : "";
+    const roleLens =
+      typeof location.state?.roleLens === "string"
+        ? location.state.roleLens
+        : undefined;
+
+    backLabel = "Back to assistant";
+    goBack = () =>
+      navigate(returnTo, {
+        replace: true,
+        state: query
+          ? { resumeAssistant: { query, roleLens } }
+          : undefined,
+      });
+  }
 
   return (
     <div className="pf-pd-wrap">
-      <button type="button" className="pf-pd-back" onClick={backToWork}>
-        <ArrowLeft size={16} /> Back to work
+      <button type="button" className="pf-pd-back" onClick={goBack}>
+        <ArrowLeft size={16} /> {backLabel}
       </button>
 
       {/* Hero */}
@@ -148,8 +186,8 @@ export const ProjectDetail = () => {
               {links[0].text} <ArrowUpRight size={15} />
             </a>
           )}
-          <button type="button" className="pf-pd-cta-btn" onClick={backToWork}>
-            <ArrowLeft size={15} /> Back to work
+          <button type="button" className="pf-pd-cta-btn" onClick={goBack}>
+            <ArrowLeft size={15} /> {backLabel}
           </button>
         </div>
       </div>

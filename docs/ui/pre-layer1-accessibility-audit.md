@@ -6,8 +6,9 @@ lightbox), keyboard + screen-reader + reduced-motion + responsive.
 
 > Audit only - this document records findings and recommendations. Code fixes land in a
 > separate slice (`fix(web): improve pre-layer1 accessibility`) after checkpoint-3 approval.
-> The assistant shell is inert (no backend/LLM); its dialog a11y is required before it goes
-> live and cheap to fix now.
+> At audit time the assistant shell was inert; it now calls `POST /api/retrieve/` for a
+> ranked entity ledger (see `docs/agent/layer1-playground.md`). Dialog a11y fixes in that
+> slice remain relevant before any grounded-answer UI lands.
 
 ## Method
 - Read every component/page and its CSS; traced keyboard operability and focus.

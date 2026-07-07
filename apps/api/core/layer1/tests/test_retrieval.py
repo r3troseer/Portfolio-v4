@@ -12,7 +12,7 @@ from pathlib import Path
 from django.test import SimpleTestCase
 
 from core.layer1.builder import DEFAULT_CONTENT_ROOT, build_index, records_as_dicts
-from core.layer1.records import INDEXABLE
+from core.layer1.records import INDEXABLE, EvidenceRecord
 from core.layer1.retrieval import (
     TOP_K_MAX,
     Corpus,
@@ -25,6 +25,7 @@ from core.layer1.retrieval import (
     parse_retrieval_request,
     retrieve,
 )
+from core.views import _match_dict
 
 FIXTURE_ROOT = Path(__file__).resolve().parent / "fixtures" / "content"
 MISSING_ROOT = Path(__file__).resolve().parent / "does-not-exist"
@@ -181,6 +182,27 @@ class LoadCorpusTests(unittest.TestCase):
             _load_corpus(content_root=MISSING_ROOT, artifact_path=MISSING_ROOT)
 
 
+class RetrieveResponseContractTests(unittest.TestCase):
+    def test_match_dict_adds_entity_display_fields(self) -> None:
+        record = EvidenceRecord(
+            id="markdown:role-lenses/backend",
+            source_type="markdown",
+            source_id="role-lenses/backend",
+            title="Backend Lens",
+            text="# Backend Lens\n\n**Reliable** APIs [with tests](https://example.com).",
+            visibility="public",
+            sensitivity="safe",
+            source_path="markdown/role-lenses/backend.md",
+        )
+
+        match = _match_dict(record, score=7)
+
+        self.assertEqual(match["entity_id"], "role-lenses/backend")
+        self.assertEqual(match["entity_type"], "role_lens")
+        self.assertEqual(match["snippet"], "Backend Lens Reliable APIs with tests.")
+        self.assertEqual(match["text"], record.text)
+
+
 class RetrieveEndpointTests(SimpleTestCase):
     """POST /api/retrieve/ against the real content corpus."""
 
@@ -200,6 +222,10 @@ class RetrieveEndpointTests(SimpleTestCase):
         self.assertEqual(body["meta"]["index_source"], "built")
         for match in body["matches"]:
             self.assertIn(match["visibility"], INDEXABLE)
+            self.assertIn("entity_id", match)
+            self.assertIn("entity_type", match)
+            self.assertIn("snippet", match)
+            self.assertLessEqual(len(match["snippet"]), 180)
             self.assertNotIn("esg-greenwashing", match["id"])
             self.assertNotIn("esg-greenwashing", match["source_path"])
             self.assertNotIn("greenwashing", match["text"].lower())

@@ -1,14 +1,16 @@
 # Agent Architecture Plan
 
-> **Status: living document - target architecture, not yet implemented.**
-> This describes where the portfolio agent is going and the order we get there. It does not
-> change the current app. Safety, visibility, and content rules live in
+> **Status: living document - target architecture with partial implementation.**
+> Layer 0, the monorepo layout (`apps/web`, `apps/api`), the public evidence index, lexical
+> retrieval, and the web retrieval-ledger UI are live. Grounded answers, tools, and
+> `packages/contracts` remain future work. Safety, visibility, and content rules live in
 > [`layer-s-policy.md`](./layer-s-policy.md); this document references that policy rather than
 > repeating it.
 
 The portfolio is phase one of a layered, recruiter-facing assistant (Layers S, 0, 1, 2, 2.5...).
-Layer 0 (the canonical public content foundation) is merged and the SPA now builds on Vite. The
-next phases add a separate backend, shared contracts, and a grounded RAG assistant. This plan
+Layer 0 (the canonical public content foundation) is merged and the SPA now builds on Vite.
+Later phases add shared contracts and a grounded generated-answer assistant; the monorepo backend
+(`apps/api`) and retrieval-ledger UI are partially live today. This plan sets the target shape
 sets the target shape and the migration sequence so each step stays small and reversible.
 
 ---
@@ -16,7 +18,10 @@ sets the target shape and the migration sequence so each step stays small and re
 ## 1. Current baseline
 
 - **Frontend:** Vite + React SPA, deployed directly on **Vercel** (`vercel.json` handles the
-  Cloudinary `/images/*` rewrite and the SPA fallback).
+  Cloudinary `/images/*` rewrite and the SPA fallback). A live Layer 1 **retrieval-ledger UI**
+  (Cmd+K inline retrieval + `/playground`) consumes `POST /api/retrieve/`. The future
+  **generated-answer/chat surface** (grounded answers, citations, refusal cards) is not
+  implemented yet.
 - **Content (Layer 0):** canonical, file-backed **portfolio content safe to commit publicly**
   under `apps/web/src/content/public/` (per-project JSON + `index.json` registry, profile silos,
   and AI-facing markdown), consumed only through `apps/web/src/content/adapters/`. Everything here is already
@@ -24,8 +29,11 @@ sets the target shape and the migration sequence so each step stays small and re
   indexing**, not whether the file may exist in the repo. Single source of truth; UI and the
   future AI layer share canonical IDs but use **separate adapters**.
 - **Policy (Layer S seed):** [`layer-s-policy.md`](./layer-s-policy.md) documents the
-  visibility / sensitivity taxonomy and content boundaries. It is **documentation-only** today.
-- **Backend:** none yet. There is no server, database, vector store, LLM, or agent tooling.
+  visibility / sensitivity taxonomy and content boundaries. Index gating and content validation
+  are enforced in CI; full runtime Layer S controls remain future work.
+- **Backend (`apps/api`):** Django 6 + DRF, deployed separately (Railway). Health check and
+  Layer 1 lexical retrieval (`POST /api/retrieve/`) are live. No database, vector store, LLM,
+  grounded-answer pipeline, or agent tooling yet.
 
 ---
 
@@ -45,9 +53,10 @@ repo-root/
 
 - **`apps/web`** - the existing SPA, moved in as-is. Still Vite + React, still on Vercel, same
   routes, content, adapters, and analytics. Migration must be a relocation, not a rewrite.
-- **`apps/api`** - a **Django / DRF** service added later, **deployed separately** from Vercel
-  (Railway / Render / Fly / VPS). Owns the AI/RAG runtime, content indexing, and (eventually)
-  tools. The web app calls it over HTTP; they are never co-deployed.
+- **`apps/api`** - Django / DRF, **deployed separately** from Vercel (Railway). Owns the
+  evidence index and lexical retrieval (`POST /api/retrieve/`) today; the grounded-answer
+  runtime, reranking, and tools land in later slices. The web app calls it over HTTP; they are
+  never co-deployed.
 - **`packages/contracts`** - shared, language-agnostic schemas so web and api never drift:
   the **content shape** (already de-facto defined by Layer 0), **agent response schemas**
   (grounded answers + evidence), and the **typed UI-spec schema** (Layer 2.5). Added only when
@@ -60,23 +69,31 @@ edge; the agent runtime lives where it can hold secrets, state, and model access
 
 ## 3. Layer S enforcement roadmap
 
-Layer S today is **intent captured as documentation**. The job of later phases is to turn the
-parts that protect real data into **validation and enforcement** in `apps/api` and the build.
+Layer S policy intent lives in [`layer-s-policy.md`](./layer-s-policy.md). Enforcement is
+**partial today** - content and index rules run in CI/build; full runtime controls (grounded-
+answer egress, refusal, answer-pipeline budgets) remain future work.
 
-**Documentation-only today**
-- The `status` / `visibility` / `sensitivity` taxonomy and the content boundaries are written
-  down in [`layer-s-policy.md`](./layer-s-policy.md) and followed by single-author discipline.
-- Nothing mechanically checks that content respects the rules; nothing strips disallowed
-  fields before they could reach an index.
+**Enforced now (CI, build, retrieval slice)**
+- Content validation: `npm run validate:content` in the web CI job (controlled vocab for
+  `status`, `visibility`, `sensitivity`, `roleLenses`; registry consistency).
+- Index gating (fail-closed): `build_evidence_index --check` in API CI; only `public` /
+  `public_summary_only` enters the index at runtime.
+- **`public_summary_only` redaction** in the indexer (summary in, deep detail out) - proven by
+  test fixtures; no live content uses it yet.
+- **`private` / `blocked` exclusion** from the index (and from the UI via adapter/registry
+  discipline); unregistered project files never surface.
+- Retrieval input limits and fail-closed corpus loading on `POST /api/retrieve/`.
+- Runtime foundations: CORS allowlist, anon rate limiting, request-size cap, server-side secrets
+  only (see `apps/api/README.md`).
 
-**Should become validation / enforcement later**
-- **Schema validation** of canonical content against `packages/contracts` (controlled vocab for
-  `status`, `visibility`, `sensitivity`, `roleLenses`) - fail the build on violations.
-- **Index gating** in the AI/content adapter: only `public` and `public_summary_only` items may
-  enter the agent index, enforced in code, not by convention.
-- **Field-level redaction** for `public_summary_only` (summary in, deep detail out) before
-  anything is embedded or returned.
-- **Egress checks** on agent answers so responses can only cite indexed, approved evidence.
+**Still documentation-only or incomplete**
+- **`packages/contracts` schema validation** - content checks exist in `validate-content.mjs`;
+  shared cross-language contracts are not extracted yet.
+- **Grounded-answer egress** - no answer pipeline; retrieval returns ranked entities only.
+- **Refusal as a first-class response** - out-of-scope queries return empty matches, not a
+  governance refusal object.
+- **Answer-pipeline budgets** - token/output limits, concurrent caps, prompt/log minimisation
+  beyond retrieval; tool allowlist and UI-spec validation (Layers 2 / 2.5).
 
 **Visibility / status / sensitivity rules (unchanged, see policy doc)**
 - `status` = display label only, **never** a privacy signal.
@@ -131,7 +148,7 @@ Practical view of each rule: where it is enforced, what happens on violation, an
 
 | Rule | Enforcement location | Failure behaviour | Phase |
 |---|---|---|---|
-| Content schema validation | Build / CI (against `packages/contracts`) | Fail the build; content can't ship | Contracts |
+| Content schema validation | Build / CI (`validate-content.mjs` today; `packages/contracts` later) | Fail the build; content can't ship | Layer 0 / Contracts |
 | Visibility-based index gating | `apps/api` indexer (AI/content adapter) | Item excluded from index; not retrievable | Layer 1 |
 | `public_summary_only` redaction | `apps/api` indexer (pre-embed) | Deep detail dropped; summary-only indexed | Layer 1 |
 | `private` / `blocked` content exclusion | Build + `apps/api` indexer | Excluded from application rendering and indexing; never returned by the API | Layer 1 |
@@ -154,23 +171,55 @@ Practical view of each rule: where it is enforced, what happens on violation, an
 
 > **Progress:** the backend-owned public evidence index (fail-closed gating) and the
 > deterministic lexical retrieval endpoint (`POST /api/retrieve/`) are implemented; see
-> [`layer1-evidence-index.md`](./layer1-evidence-index.md). Grounded answers and the web
-> chat surface remain future slices.
+> [`layer1-evidence-index.md`](./layer1-evidence-index.md). The web **retrieval-ledger UI**
+> (Cmd+K + `/playground`) and `POST /api/retrieve/` are live. **Grounded answers**, citations,
+> refusal cards, reranking, and the future **generated-answer/chat surface** remain deferred.
 
 Layer 1 is a **public portfolio assistant only**. Deliberately small:
 
 - **Indexes only approved public content** - `public` and `public_summary_only` items from
   Layer 0 (and the AI-facing markdown), and nothing else.
-- **Answers with grounded evidence** - every answer is backed by retrieved, citable content;
-  no ungrounded generation.
+- **Answers with grounded evidence** (future target) - every answer backed by retrieved,
+  citable content; no ungrounded generation. Not live today; retrieval returns ranked entities
+  only.
 - **No tools** - retrieval + answer only; no actions, no web access.
 - **No private data** - enforced by the index gate (Section 3), not by prompt wording.
 - **No recruiter identification** - never infer or assert who the visitor is.
 - **No user tracking beyond explicit consent** - no silent profiling or analytics on
   conversation content.
 
-This runs in `apps/api`; `apps/web` gets a chat surface that calls it. The answer/evidence
-shape is defined in `packages/contracts`.
+Retrieval runs in `apps/api` today (`POST /api/retrieve/`). A future **generated-answer/chat
+surface** in `apps/web` will call a grounded-answer endpoint once it exists. Until
+`packages/contracts` is extracted, the retrieval response shape stays **API-local** (see
+`apps/api/README.md` and `core/layer1/records.py`).
+
+### Backend behaviours the evidence playground needs (handoff-derived)
+
+The evidence playground ([`layer1-playground.md`](./layer1-playground.md)) ports the profile
+handoff's "Evidence" view. Its retrieval surface is live against `POST /api/retrieve/`. The
+affordances below are intentional in the handoff but depend on backend behaviours that do not
+exist yet - they are **deferred, not cut**, and must be built server-side (never faked in the
+browser):
+
+1. **Grounded answers** - a cited, grounded answer for a query (retrieval + server-side model).
+   Drives the modal/page answer, citations, and the `composing -> answered` phases. Retrieval-
+   only today.
+2. **Reranking + retrieval ledger** - a rerank step over the lexical candidates that exposes
+   pre- and post-rerank candidate sets, so the UI can show the expanded Retrieval Ledger
+   (`rag-reveal` / `rag-insp`) and the "scores, reranking" the handoff promises. Retrieval is
+   single-pass lexical over source entities today.
+3. **Refusal as a response state** - a first-class Layer S refusal object for out-of-scope /
+   sensitive queries (Section 3), rendered as the assistant's refusal card, not an error.
+4. **Passage / claim detail** - per-entity passages, claims, and signals behind a result,
+   backing a passage-detail view (the evidence cards currently link to the existing project-
+   detail page where a `project_id` exists; records without one are intentionally static). The
+   index carries summary-level `text` plus a short display `snippet` today.
+5. **Slash commands** - the generative/canned slash commands (`/answer`, `/quote`, `/recruiter`
+   ...) depend on the grounded-answer behaviour above; the menu itself is a frontend affordance.
+
+Explicitly **backend-only, never client-side** (the handoff hardcodes these in the browser as a
+prototype shortcut): model selection and API keys (`ev-keypanel`, model selects). Keys and model
+choice live in `apps/api` only.
 
 ---
 
@@ -197,11 +246,12 @@ Small, ordered, reversible steps. Each step lands before the next begins.
 2. **Monorepo setup** - introduce `apps/web` by relocating the current SPA unchanged; keep the
    Vercel deploy working. No backend yet.
 3. **Backend skeleton** - stand up `apps/api` (Django / DRF) deployed separately; health check
-   only, no AI.
+   (done). Lexical retrieval (`POST /api/retrieve/`) and the evidence index are live.
 4. **Contracts** - extract shared schemas into `packages/contracts` once web + api both consume
-   them (content shape first, then agent response shape).
+   them (content shape first, then agent response shape). Deferred; retrieval shape is API-local.
 5. **Layer 1 RAG prototype** - index approved public content, return grounded answers, wire the
-   web chat surface to the api. No tools, no private data. Lands in slices; the first (the
-   evidence index, [`layer1-evidence-index.md`](./layer1-evidence-index.md)) is done.
+   future generated-answer/chat surface to the api. Lands in slices: the evidence index,
+   retrieval endpoint, and retrieval-ledger UI ([`layer1-evidence-index.md`](./layer1-evidence-index.md),
+   [`layer1-playground.md`](./layer1-playground.md)) are done; grounded answers remain.
 
 Layers 2 / 2.5 follow only after Layer 1 is solid.
