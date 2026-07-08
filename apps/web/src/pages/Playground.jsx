@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { Search, ChevronLeft, ChevronRight, CornerDownLeft } from "lucide-react";
-import { useEvidenceRetrieval, retrievalLiveMessage } from "../lib/useEvidenceRetrieval";
+import { useGroundedAnswer, answerLiveMessage } from "../lib/useGroundedAnswer";
 import { EvidenceResults } from "../components/EvidenceResults";
+import { GroundedAnswer } from "../components/GroundedAnswer";
 import { PRESETS, PRESET_BY_ID } from "../lib/playgroundPresets";
 import { getProfile } from "../content/adapters/profileAdapter";
 import "../styles/profile/playground.css";
 
-// The Layer 1 evidence-retrieval workspace, ported from the profile handoff's
-// "Evidence" view (.notes/prototypes/profile-handoff). It calls POST /api/retrieve/
-// and renders a ranked ledger of public entities - no generated answers.
+// The Layer 1 evidence workspace, ported from the profile handoff's "Evidence"
+// view (.notes/prototypes/profile-handoff). It calls POST /api/answer/ for a
+// grounded, cited answer and renders the evidence ledger underneath. The raw
+// ledger endpoint (POST /api/retrieve/) is unchanged; there is no reranking yet.
 //
 // Query source (privacy): free text arrives via navigation state (never the URL);
 // only whitelisted preset ids use ?p=. It resolves in three states, matching the
@@ -68,8 +70,10 @@ function PlaygroundAbout() {
         <aside className="pf-pg-about" id="pf-pg-about">
           <strong>About this playground</strong>
           <p>
-            Search Pius&apos;s public portfolio entities. Results are ranked by lexical
-            retrieval only - there are no generated answers or reranking yet.
+            Ask about Pius&apos;s public portfolio. Answers are composed by a
+            server-side model, grounded only in the retrieved public evidence
+            shown below. Evidence is ranked by lexical retrieval - there is no
+            reranking yet.
           </p>
           <p>Score bars show relative rank in this result set, not confidence.</p>
         </aside>
@@ -90,7 +94,7 @@ export function Playground() {
   );
 
   const [inputValue, setInputValue] = useState(requestedQuery || stage);
-  const { result, retry } = useEvidenceRetrieval(requestedQuery, requestedLens);
+  const { result } = useGroundedAnswer(requestedQuery, requestedLens);
 
   // Mirror the resolved/staged query into the box when navigation changes it.
   useEffect(() => {
@@ -110,9 +114,12 @@ export function Playground() {
   const newQuery = () => navigate("/playground");
 
   const isHero = !requestedQuery.trim();
-  const showChips =
-    result.status === "done" &&
-    (result.kind !== "ok" || result.matches.length === 0);
+  const evidence = result.kind === "ok" ? result.evidence ?? [] : [];
+  const hasEvidence = evidence.length > 0;
+  // Show starting-point chips when there is nothing else to act on.
+  const showChips = result.status === "done" && !hasEvidence;
+  // Feed the existing ledger renderer with the evidence from the answer response.
+  const ledgerResult = { status: "done", kind: "ok", matches: evidence, meta: result.meta };
 
   const queryBox = (
     <form className="pf-pg-query" role="search" onSubmit={runQuery}>
@@ -155,7 +162,7 @@ export function Playground() {
   return (
     <section className="pf-pg">
       <p className="pf-pg-sr" role="status" aria-live="polite">
-        {retrievalLiveMessage(result)}
+        {answerLiveMessage(result)}
       </p>
 
       {isHero ? (
@@ -168,7 +175,7 @@ export function Playground() {
             <span className="pf-pg-hero-name">pius</span>
             <span className="pf-pg-hero-slash">/ rag playground</span>
           </div>
-          <p className="pf-pg-hero-sub">query the work &middot; retrieve entities</p>
+          <p className="pf-pg-hero-sub">query the work &middot; retrieve &middot; compose</p>
           <div className="pf-pg-query-wrap">{queryBox}</div>
           {chips}
         </div>
@@ -192,16 +199,23 @@ export function Playground() {
           </div>
           <div className="pf-pg-strip">
             <div className="pf-pg-query-wrap is-sticky">{queryBox}</div>
-            <EvidenceResults
+            <GroundedAnswer
               result={result}
+              variant="page"
               query={requestedQuery}
               roleLens={requestedLens}
-              onRetry={retry}
             />
+            {hasEvidence && (
+              <EvidenceResults
+                result={ledgerResult}
+                query={requestedQuery}
+                roleLens={requestedLens}
+              />
+            )}
             {showChips && chips}
             <footer className="pf-pg-footer">
               <p>
-                entities retrieved for your query &middot; &copy; {new Date().getFullYear()} {name}
+                composed for your query &middot; &copy; {new Date().getFullYear()} {name}
               </p>
             </footer>
           </div>

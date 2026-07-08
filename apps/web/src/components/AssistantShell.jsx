@@ -9,21 +9,18 @@ import {
   Layers,
   ArrowRight,
   FileText,
-  AlertTriangle,
 } from "lucide-react";
 import { AskLauncher } from "./AskLauncher";
+import { GroundedAnswer } from "./GroundedAnswer";
 import { useDialogA11y } from "../hooks/useDialogA11y";
-import { useEvidenceRetrieval, retrievalLiveMessage } from "../lib/useEvidenceRetrieval";
+import { useGroundedAnswer, answerLiveMessage } from "../lib/useGroundedAnswer";
 import { EVIDENCE_ORIGIN } from "../lib/evidenceNavigation";
 import { PRESETS } from "../lib/playgroundPresets";
 import "../styles/profile/assistant.css";
 
-// Assistant shell: the flying "Ask about Pius" launcher + the Cmd/Ctrl+K modal.
-// The modal is an interactive evidence surface (not just a launcher): submitting a
-// query - or a preset - runs POST /api/retrieve/ and renders the ranked entities
-// INLINE. Moving to the full /playground page is the user's explicit choice via
-// "Open in Playground", which seeds the page with the query/results (the handoff's
-// STATE 1/2/3). No generated answers. See docs/agent/layer1-playground.md.
+// Assistant shell: Cmd/Ctrl+K modal with POST /api/answer/.
+// Body order matches handoff: answer -> evidence ledger -> Sources row.
+// See docs/agent/layer1-playground.md.
 export const AssistantShell = () => {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -33,18 +30,22 @@ export const AssistantShell = () => {
   const location = useLocation();
   const returnTo = `${location.pathname}${location.search}${location.hash}`;
 
-  const { result } = useEvidenceRetrieval(ran.query, ran.lens);
+  const { result } = useGroundedAnswer(ran.query, ran.lens);
   const hasQueried = ran.query !== "";
-  const hasResults =
-    hasQueried &&
-    result.status === "done" &&
+  const isDone = hasQueried && result.status === "done";
+  const hasAnswer =
+    isDone && result.kind === "ok" && result.answerStatus === "answered";
+  const evidence = isDone && result.kind === "ok" ? result.evidence ?? [] : [];
+  const citations = isDone && result.kind === "ok" ? result.citations ?? [] : [];
+  const showFootCTA =
+    isDone &&
     result.kind === "ok" &&
-    result.matches.length > 0;
+    (result.answerStatus === "answered" || evidence.length > 0);
+  const showLedger =
+    isDone && result.kind === "ok" && result.answerStatus !== "refused";
 
   useDialogA11y(open, () => setOpen(false), panelRef);
 
-  // Route changes normally close the modal. A project opened from modal evidence
-  // can explicitly restore the same query on its originating route.
   useEffect(() => {
     const resume = location.state?.resumeAssistant;
     if (typeof resume?.query === "string" && resume.query.trim()) {
@@ -57,7 +58,6 @@ export const AssistantShell = () => {
     setOpen(false);
   }, [location.key]);
 
-  // Cmd/Ctrl+K toggles the panel; Escape closes it.
   useEffect(() => {
     const onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -71,14 +71,12 @@ export const AssistantShell = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // The launcher (and any other trigger) opens the panel via this event.
   useEffect(() => {
     const onOpen = () => setOpen(true);
     window.addEventListener("pf:open-assistant", onOpen);
     return () => window.removeEventListener("pf:open-assistant", onOpen);
   }, []);
 
-  // Lock body scroll while the panel is open.
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -88,7 +86,6 @@ export const AssistantShell = () => {
     };
   }, [open]);
 
-  // Submit / presets run retrieval INLINE (no navigation).
   const submit = (e) => {
     e.preventDefault();
     const q = inputValue.trim();
@@ -101,10 +98,6 @@ export const AssistantShell = () => {
     setRan({ query: p.query, lens: p.roleLens });
   };
 
-  // The only path to the full page - the user's choice. Seeds per the handoff:
-  //  STATE 3: already answered here -> open the results strip for that query.
-  //  STATE 2: something typed but not run -> pre-fill the hero (no run).
-  //  STATE 1: nothing -> empty hero.
   const openInPlayground = () => {
     const typed = inputValue.trim();
     const answered = hasQueried && result.status === "done";
@@ -169,7 +162,7 @@ export const AssistantShell = () => {
             </form>
 
             <p className="pf-ask-sr" role="status" aria-live="polite">
-              {retrievalLiveMessage(result)}
+              {answerLiveMessage(result)}
             </p>
 
             <div className="pf-ask-body">
@@ -192,16 +185,35 @@ export const AssistantShell = () => {
                   </div>
                 </div>
               ) : (
-                <ModalEvidence
-                  result={result}
-                  query={ran.query}
-                  roleLens={ran.lens}
-                  returnTo={returnTo}
-                />
+                <>
+                  <GroundedAnswer
+                    result={result}
+                    variant="modal"
+                    query={ran.query}
+                    roleLens={ran.lens}
+                    returnTo={returnTo}
+                  />
+                  {showLedger && (
+                    <ModalEvidence
+                      matches={evidence}
+                      query={ran.query}
+                      roleLens={ran.lens}
+                      returnTo={returnTo}
+                    />
+                  )}
+                  {isDone && hasAnswer && citations.length > 0 && (
+                    <ModalSources
+                      citations={citations}
+                      query={ran.query}
+                      roleLens={ran.lens}
+                      returnTo={returnTo}
+                    />
+                  )}
+                </>
               )}
             </div>
 
-            {hasResults ? (
+            {showFootCTA ? (
               <div className="pf-ask-footwrap">
                 <button
                   type="button"
@@ -212,7 +224,10 @@ export const AssistantShell = () => {
                     <Layers size={16} aria-hidden="true" />
                     <span className="pf-ask-footcta-tx">
                       <strong>Open in Playground</strong>
-                      <span>See the ranked entities behind this</span>
+                      <span>
+                        See scores, reranking &amp; the evidence behind this &middot;
+                        grounded data
+                      </span>
                     </span>
                   </span>
                   <ArrowRight className="pf-ask-footcta-ar" size={15} aria-hidden="true" />
@@ -221,8 +236,8 @@ export const AssistantShell = () => {
             ) : (
               <div className="pf-ask-foot">
                 <span className="pf-ask-foot-note">
-                  <ShieldCheck size={12} aria-hidden="true" /> Sources grounded in
-                  Pius&apos;s portfolio
+                  <ShieldCheck size={12} aria-hidden="true" /> Answers are grounded in
+                  Pius&apos;s portfolio data
                 </span>
                 <button
                   type="button"
@@ -240,34 +255,45 @@ export const AssistantShell = () => {
   );
 };
 
-// The modal's own compact evidence rendering (handoff pf-ask-*), distinct from the
-// page's ev-doc surface: a dot loader, a red error, and compact entity cards
-// (entity id + relative-rank score pill + title + clamped display snippet).
-function ModalEvidence({ result, query, roleLens, returnTo }) {
-  if (result.status === "loading") {
+function ModalSources({ citations, query, roleLens, returnTo }) {
+  return (
+    <div className="pf-ask-cites">
+      <span className="pf-ask-cites-label">Sources</span>
+      {citations.map((citation) => (
+        <ModalCiteChip
+          key={citation.evidence_id}
+          citation={citation}
+          query={query}
+          roleLens={roleLens}
+          returnTo={returnTo}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ModalCiteChip({ citation, query, roleLens, returnTo }) {
+  const label = citation.title || citation.evidence_id;
+  if (citation.project_id) {
     return (
-      <div className="pf-ask-loading">
-        <span className="pf-ask-dot" />
-        <span className="pf-ask-dot" />
-        <span className="pf-ask-dot" />
-        <span className="pf-ask-loading-text">Retrieving entities...</span>
-      </div>
+      <Link
+        to={`/projects/${citation.project_id}`}
+        state={{
+          from: EVIDENCE_ORIGIN.ASSISTANT,
+          q: query || "",
+          roleLens,
+          returnTo,
+        }}
+        className="pf-ask-cite"
+      >
+        {label}
+      </Link>
     );
   }
+  return <span className="pf-ask-cite is-static">{label}</span>;
+}
 
-  if (
-    result.kind === "invalid" ||
-    result.kind === "unavailable" ||
-    result.kind === "error"
-  ) {
-    return (
-      <div className="pf-ask-error">
-        <AlertTriangle size={16} aria-hidden="true" /> {result.message}
-      </div>
-    );
-  }
-
-  const matches = result.matches || [];
+function ModalEvidence({ matches, query, roleLens, returnTo }) {
   if (matches.length === 0) {
     return (
       <p className="pf-ask-empty">
@@ -302,7 +328,7 @@ function ModalDoc({ match, maxScore, query, roleLens, returnTo }) {
     <>
       <div className="pf-ask-evdoc-head">
         <FileText size={14} aria-hidden="true" />
-        <span className="pf-ask-evdoc-id">entity &middot; {entityId}</span>
+        <span className="pf-ask-evdoc-id">doc &middot; {entityId}</span>
         <span
           className="pf-ask-evdoc-score"
           aria-label={`Relative rank ${pct} percent`}
@@ -315,8 +341,6 @@ function ModalDoc({ match, maxScore, query, roleLens, returnTo }) {
     </>
   );
 
-  // Only project-backed entities link out (to the existing project-detail page);
-  // markdown/profile entities are static cards, not dead links.
   if (match.project_id) {
     return (
       <Link
