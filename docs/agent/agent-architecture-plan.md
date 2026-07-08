@@ -2,10 +2,11 @@
 
 > **Status: living document - target architecture with partial implementation.**
 > Layer 0, the monorepo layout (`apps/web`, `apps/api`), the public evidence index, lexical
-> retrieval, and the web retrieval-ledger UI are live. Grounded answers, tools, and
-> `packages/contracts` remain future work. Safety, visibility, and content rules live in
-> [`layer-s-policy.md`](./layer-s-policy.md); this document references that policy rather than
-> repeating it.
+> retrieval, the web evidence UI, and the first **grounded-answer slice** (`POST /api/answer/`:
+> retrieve -> server-side Gemini -> validated, cited answer) are live. Reranking, tools, chat
+> memory, generated UI, and `packages/contracts` remain future work. Safety, visibility, and
+> content rules live in [`layer-s-policy.md`](./layer-s-policy.md); this document references that
+> policy rather than repeating it.
 
 The portfolio is phase one of a layered, recruiter-facing assistant (Layers S, 0, 1, 2, 2.5...).
 Layer 0 (the canonical public content foundation) is merged and the SPA now builds on Vite.
@@ -18,10 +19,10 @@ sets the target shape and the migration sequence so each step stays small and re
 ## 1. Current baseline
 
 - **Frontend:** Vite + React SPA, deployed directly on **Vercel** (`vercel.json` handles the
-  Cloudinary `/images/*` rewrite and the SPA fallback). A live Layer 1 **retrieval-ledger UI**
-  (Cmd+K inline retrieval + `/playground`) consumes `POST /api/retrieve/`. The future
-  **generated-answer/chat surface** (grounded answers, citations, refusal cards) is not
-  implemented yet.
+  Cloudinary `/images/*` rewrite and the SPA fallback). A live Layer 1 **evidence UI** (Cmd+K +
+  `/playground`) now composes **grounded answers** via `POST /api/answer/` (answer card,
+  citations, refusal/insufficient states) and shows the raw evidence ledger underneath. A full
+  chat surface (memory, streaming, tools) is not implemented yet.
 - **Content (Layer 0):** canonical, file-backed **portfolio content safe to commit publicly**
   under `apps/web/src/content/public/` (per-project JSON + `index.json` registry, profile silos,
   and AI-facing markdown), consumed only through `apps/web/src/content/adapters/`. Everything here is already
@@ -31,9 +32,10 @@ sets the target shape and the migration sequence so each step stays small and re
 - **Policy (Layer S seed):** [`layer-s-policy.md`](./layer-s-policy.md) documents the
   visibility / sensitivity taxonomy and content boundaries. Index gating and content validation
   are enforced in CI; full runtime Layer S controls remain future work.
-- **Backend (`apps/api`):** Django 6 + DRF, deployed separately (Railway). Health check and
-  Layer 1 lexical retrieval (`POST /api/retrieve/`) are live. No database, vector store, LLM,
-  grounded-answer pipeline, or agent tooling yet.
+- **Backend (`apps/api`):** Django 6 + DRF, deployed separately (Railway). Health check, Layer 1
+  lexical retrieval (`POST /api/retrieve/`), and the grounded-answer endpoint (`POST /api/answer/`,
+  server-side Gemini with output validation) are live. No database, vector store, reranking, or
+  agent tooling yet.
 
 ---
 
@@ -83,17 +85,19 @@ answer egress, refusal, answer-pipeline budgets) remain future work.
 - **`private` / `blocked` exclusion** from the index (and from the UI via adapter/registry
   discipline); unregistered project files never surface.
 - Retrieval input limits and fail-closed corpus loading on `POST /api/retrieve/`.
+- **Grounded-answer egress** on `POST /api/answer/`: every `answered` claim must cite retrieved
+  evidence; unknown citations, malformed model output, or unsupported statuses fail closed (502).
+- **Refusal / insufficient-evidence as first-class responses** with server-authored messages
+  (the model's prose is discarded for those states) and an answer length cap.
 - Runtime foundations: CORS allowlist, anon rate limiting, request-size cap, server-side secrets
-  only (see `apps/api/README.md`).
+  only, model keys/config server-side only (see `apps/api/README.md`).
 
 **Still documentation-only or incomplete**
 - **`packages/contracts` schema validation** - content checks exist in `validate-content.mjs`;
   shared cross-language contracts are not extracted yet.
-- **Grounded-answer egress** - no answer pipeline; retrieval returns ranked entities only.
-- **Refusal as a first-class response** - out-of-scope queries return empty matches, not a
-  governance refusal object.
-- **Answer-pipeline budgets** - token/output limits, concurrent caps, prompt/log minimisation
-  beyond retrieval; tool allowlist and UI-spec validation (Layers 2 / 2.5).
+- **Answer-pipeline budgets** - full token/input budgets, concurrent caps, and prompt/log
+  minimisation beyond the current output cap; reranking; tool allowlist and UI-spec validation
+  (Layers 2 / 2.5).
 
 **Visibility / status / sensitivity rules (unchanged, see policy doc)**
 - `status` = display label only, **never** a privacy signal.
@@ -169,53 +173,57 @@ Practical view of each rule: where it is enforced, what happens on violation, an
 
 ## 4. Layer 1 - RAG scope
 
-> **Progress:** the backend-owned public evidence index (fail-closed gating) and the
-> deterministic lexical retrieval endpoint (`POST /api/retrieve/`) are implemented; see
-> [`layer1-evidence-index.md`](./layer1-evidence-index.md). The web **retrieval-ledger UI**
-> (Cmd+K + `/playground`) and `POST /api/retrieve/` are live. **Grounded answers**, citations,
-> refusal cards, reranking, and the future **generated-answer/chat surface** remain deferred.
+> **Progress:** the backend-owned public evidence index (fail-closed gating), the deterministic
+> lexical retrieval endpoint (`POST /api/retrieve/`), and the **grounded-answer endpoint**
+> (`POST /api/answer/`: retrieve -> server-side Gemini -> validated, cited answer) are
+> implemented; see [`layer1-evidence-index.md`](./layer1-evidence-index.md) and
+> [`layer1-playground.md`](./layer1-playground.md). The web UI (Cmd+K + `/playground`) composes
+> answers with citations and refusal/insufficient states. **Reranking**, a full chat surface
+> (memory, streaming), tools, and generated UI remain deferred.
 
 Layer 1 is a **public portfolio assistant only**. Deliberately small:
 
 - **Indexes only approved public content** - `public` and `public_summary_only` items from
   Layer 0 (and the AI-facing markdown), and nothing else.
-- **Answers with grounded evidence** (future target) - every answer backed by retrieved,
-  citable content; no ungrounded generation. Not live today; retrieval returns ranked entities
-  only.
+- **Answers with grounded evidence** (live) - `POST /api/answer/` returns an answer backed by
+  retrieved, citable content; every `answered` claim must cite retrieved evidence or it fails
+  closed. No ungrounded generation.
 - **No tools** - retrieval + answer only; no actions, no web access.
 - **No private data** - enforced by the index gate (Section 3), not by prompt wording.
 - **No recruiter identification** - never infer or assert who the visitor is.
 - **No user tracking beyond explicit consent** - no silent profiling or analytics on
   conversation content.
 
-Retrieval runs in `apps/api` today (`POST /api/retrieve/`). A future **generated-answer/chat
-surface** in `apps/web` will call a grounded-answer endpoint once it exists. Until
-`packages/contracts` is extracted, the retrieval response shape stays **API-local** (see
-`apps/api/README.md` and `core/layer1/records.py`).
+Retrieval and grounded answers run in `apps/api` today (`POST /api/retrieve/`,
+`POST /api/answer/`); `apps/web` calls the answer endpoint from the Cmd+K modal and
+`/playground`. Until `packages/contracts` is extracted, the retrieval/answer response shapes
+stay **API-local** (see `apps/api/README.md`, `core/layer1/records.py`, and
+`core/layer1/answering/schemas.py`).
 
 ### Backend behaviours the evidence playground needs (handoff-derived)
 
 The evidence playground ([`layer1-playground.md`](./layer1-playground.md)) ports the profile
-handoff's "Evidence" view. Its retrieval surface is live against `POST /api/retrieve/`. The
-affordances below are intentional in the handoff but depend on backend behaviours that do not
-exist yet - they are **deferred, not cut**, and must be built server-side (never faked in the
-browser):
+handoff's "Evidence" view. Its retrieval and grounded-answer surfaces are live against
+`POST /api/retrieve/` and `POST /api/answer/`. The affordances below are intentional in the
+handoff; those still marked *deferred* depend on backend behaviours that do not exist yet - they
+are **deferred, not cut**, and must be built server-side (never faked in the browser):
 
-1. **Grounded answers** - a cited, grounded answer for a query (retrieval + server-side model).
-   Drives the modal/page answer, citations, and the `composing -> answered` phases. Retrieval-
-   only today.
-2. **Reranking + retrieval ledger** - a rerank step over the lexical candidates that exposes
-   pre- and post-rerank candidate sets, so the UI can show the expanded Retrieval Ledger
+1. **Grounded answers** - LIVE. A cited, grounded answer for a query (retrieval + server-side
+   model) drives the modal/page answer, citations, and the `composing -> answered` phases via
+   `POST /api/answer/`. No streaming or `blocks` yet.
+2. **Reranking + retrieval ledger** - deferred. A rerank step over the lexical candidates that
+   exposes pre- and post-rerank candidate sets, so the UI can show the expanded Retrieval Ledger
    (`rag-reveal` / `rag-insp`) and the "scores, reranking" the handoff promises. Retrieval is
    single-pass lexical over source entities today.
-3. **Refusal as a response state** - a first-class Layer S refusal object for out-of-scope /
-   sensitive queries (Section 3), rendered as the assistant's refusal card, not an error.
-4. **Passage / claim detail** - per-entity passages, claims, and signals behind a result,
+3. **Refusal as a response state** - LIVE. `refused` is a first-class answer status with a
+   server-authored message, rendered as the assistant's refusal card, not an error.
+4. **Passage / claim detail** - deferred. Per-entity passages, claims, and signals behind a result,
    backing a passage-detail view (the evidence cards currently link to the existing project-
    detail page where a `project_id` exists; records without one are intentionally static). The
    index carries summary-level `text` plus a short display `snippet` today.
-5. **Slash commands** - the generative/canned slash commands (`/answer`, `/quote`, `/recruiter`
-   ...) depend on the grounded-answer behaviour above; the menu itself is a frontend affordance.
+5. **Slash commands** - deferred. The generative/canned slash commands (`/answer`, `/quote`,
+   `/recruiter` ...) build on the grounded-answer behaviour; the menu itself is a frontend
+   affordance not yet ported.
 
 Explicitly **backend-only, never client-side** (the handoff hardcodes these in the browser as a
 prototype shortcut): model selection and API keys (`ev-keypanel`, model selects). Keys and model
@@ -250,8 +258,9 @@ Small, ordered, reversible steps. Each step lands before the next begins.
 4. **Contracts** - extract shared schemas into `packages/contracts` once web + api both consume
    them (content shape first, then agent response shape). Deferred; retrieval shape is API-local.
 5. **Layer 1 RAG prototype** - index approved public content, return grounded answers, wire the
-   future generated-answer/chat surface to the api. Lands in slices: the evidence index,
-   retrieval endpoint, and retrieval-ledger UI ([`layer1-evidence-index.md`](./layer1-evidence-index.md),
-   [`layer1-playground.md`](./layer1-playground.md)) are done; grounded answers remain.
+   answer surface to the api. Lands in slices: the evidence index, retrieval endpoint,
+   retrieval-ledger UI, and the **grounded-answer slice** (`POST /api/answer/` + answer UI) are
+   done ([`layer1-evidence-index.md`](./layer1-evidence-index.md),
+   [`layer1-playground.md`](./layer1-playground.md)); reranking and a full chat surface remain.
 
 Layers 2 / 2.5 follow only after Layer 1 is solid.

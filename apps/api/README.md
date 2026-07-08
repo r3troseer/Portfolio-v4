@@ -4,14 +4,15 @@ Django 6 + Django REST Framework backend - migration step 3 of
 [`docs/agent/agent-architecture-plan.md`](../../docs/agent/agent-architecture-plan.md), plus the
 first Layer 1 slice (the public evidence index, see below). This is the backend seam the future
 RAG runtime (Layer 1) and Layer S runtime controls grow into. It remains deliberately minimal:
-no database, no admin/auth/sessions, no models, no AI/LLM calls.
+no database, no admin/auth/sessions, no models. Layer 1 adds **server-side** Gemini calls
+via `POST /api/answer/` only (keys never in the browser or repo).
 
 ## Prerequisites
 
 - [uv](https://docs.astral.sh/uv/) (dependency + environment manager)
 - Python 3.13 (pinned via `.python-version` / `requires-python = ">=3.13,<3.14"`; Django 6.0)
 
-Dependencies are managed with **uv + `pyproject.toml`** (`uv add …`). There is **no
+Dependencies are managed with **uv + `pyproject.toml`** (`uv add ...`). There is **no
 `requirements.txt`** and we do not use `pip freeze`.
 
 ## Run locally
@@ -25,6 +26,10 @@ DJANGO_DEBUG=true uv run python manage.py runserver   # dev server on :8000
 uv run python manage.py build_evidence_index --check  # Layer 1 index gating check
 uv run python manage.py test core         # unit tests (stdlib unittest, no DB)
 ```
+
+For local secrets/config, copy `.env.example` to `.env` in this directory. Configuration
+is read via `python-decouple` (`config/env.py` -> `AutoConfig(search_path=BASE_DIR)`).
+Process environment values override `.env`.
 
 To add a dependency later: `uv add <package>` (updates `pyproject.toml` + `uv.lock`).
 
@@ -43,26 +48,28 @@ error, never silently indexed). `manage.py build_evidence_index` writes the giti
 governance errors. No LLM, embeddings, or vector store - see
 [`docs/agent/layer1-evidence-index.md`](../../docs/agent/layer1-evidence-index.md) for the
 full rationale and the record/contract shape (kept API-local until a second consumer exists).
-Runtime retrieval is live: `POST /api/retrieve/` (see **Endpoints** below). The web
-retrieval-ledger UI (Cmd+K modal + `/playground`) consumes this endpoint. No generated-answer
-endpoint, chat surface, reranking, or model calls exist yet.
+Runtime retrieval is live: `POST /api/retrieve/` (raw evidence ledger). Grounded generation is
+also live: `POST /api/answer/` retrieves public evidence, calls a server-side model (Gemini),
+validates the output, and returns a grounded answer with citations (see **Endpoints** below).
+The web UI (Cmd+K modal + `/playground`) now composes answers via `/api/answer/` and shows the
+evidence ledger underneath. No chat surface, memory, reranking, tools, or generated UI exist yet.
 
 > Note: the production WSGI server **gunicorn** is a dependency (used on Railway). It is
-> Unix-only and does not run on Windows — locally, use `manage.py runserver` as above.
+> Unix-only and does not run on Windows - locally, use `manage.py runserver` as above.
 
 ## Deployment (Railway)
 
 The service deploys to Railway (separately from the Vercel frontend, per the architecture plan).
 
-- **Start command** — set this as the custom start command in the Railway dashboard
-  (Settings → Deploy):
+- **Start command** - set this as the custom start command in the Railway dashboard
+  (Settings -> Deploy):
   ```bash
   gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application
   ```
   Railway injects `$PORT`; the `:-8000` fallback lets the same command run locally on Unix.
-- **No `migrate` step — and do not let the autodetected command add one.** Railpack's default
-  deploy command is `python manage.py migrate && gunicorn …`; on this DB-less skeleton `migrate`
-  exits 1 (`DATABASES = {}` → dummy backend → `ImproperlyConfigured`), which would block gunicorn
+- **No `migrate` step - and do not let the autodetected command add one.** Railpack's default
+  deploy command is `python manage.py migrate && gunicorn ...`; on this DB-less skeleton `migrate`
+  exits 1 (`DATABASES = {}` -> dummy backend -> `ImproperlyConfigured`), which would block gunicorn
   from starting. The custom start command above replaces it. A `migrate` step returns only when
   the backend gains a real database and models.
 - **Production environment variables** (set in Railway): `DJANGO_SECRET_KEY` (required),
@@ -75,7 +82,8 @@ The service deploys to Railway (separately from the Vercel frontend, per the arc
 |--------|------------------|---------------------------------------------------|
 | GET    | `/health/`       | `{"status": "ok", "service": "portfolio-api"}`    |
 | GET    | `/api/health/`   | `{"status": "ok", "service": "portfolio-api"}`    |
-| POST   | `/api/retrieve/` | Ranked evidence matches + meta (see below)        |
+| POST   | `/api/retrieve/` | Ranked evidence matches + meta (raw ledger, see below) |
+| POST   | `/api/answer/`   | Grounded answer + citations + evidence (see below) |
 
 Both health paths reuse the same view (`core/views.py`); health is exempt from throttling.
 
@@ -112,10 +120,46 @@ returns `503` and serves nothing if neither source works, if the build reports a
 governance error, or if the artifact contains a non-indexable record. The corpus is cached
 for the process lifetime, so local content edits need a server restart to appear.
 
+### `POST /api/answer/` - Layer 1 grounded answer
+
+Retrieves public evidence (via the same unchanged lexical retrieval), calls a **server-side
+model** (Gemini), validates the model's strict-JSON output against the retrieved evidence, and
+returns a grounded, cited answer. `/api/retrieve/` stays the raw evidence ledger; this endpoint
+grounds an answer on top of it. **The model is never trusted directly** - a citation that was
+not retrieved, malformed JSON, or an unsupported status fails closed. Model keys and model
+choice are **server-side only**; they are never exposed to the frontend. Code lives in
+`core/layer1/answering/` (the prompt text is isolated in `prompts.py` for easy tuning).
+
+Request (JSON body): same shape as retrieval - `{ "query": "...", "role_lens": "backend",
+"top_k": 5 }` (validated by the shared `parse_retrieval_request`; same limits).
+
+Statuses (all HTTP `200`):
+
+- `answered` - a grounded answer plus `citations` (hydrated from retrieved evidence), the
+  `evidence` ledger, and `meta` (`model`, `provider`, `retrieval_count`, `index_source`).
+  The `answer` string uses handoff prose mini-markup for page rendering:
+  `[[evidence_id]]` entity refs (exact ids from retrieval) and optional `==highlight==`
+  spans (max 3). `citation_ids` must match every `[[...]]` marker. Each citation includes
+  `ref` (handoff display label from `core/layer1/presentation.py`: `exp` for experience,
+  zero-padded project `displayOrder` from `projects/index.json`, `01` for narrative
+  profile/about, role-lens slug e.g. `fintech`, else zero-padded retrieval rank) plus
+  `score` from lexical retrieval for optional UI relevance display.
+- `insufficient_evidence` - not enough public evidence; a fixed server message and any
+  retrieved `evidence`. Returned **without calling the model** when retrieval finds nothing,
+  or when the model selects this status (model prose is discarded either way).
+- `refused` - out of scope; a fixed server message, no citations, no evidence. For `refused`
+  and `insufficient_evidence` the model's prose is **discarded** and a server-authored message
+  is used instead.
+
+HTTP status codes: `200` for the three answer statuses; `400` invalid request; `503` if the
+corpus or the answer provider is unavailable (e.g. `GEMINI_API_KEY` unset); `502` if the model
+output is malformed/unsupported or cites evidence that was not retrieved.
+
 ## Configuration (environment variables)
 
-All config is read from the environment via the standard library (no `.env` loader). Defaults
-are dev-friendly and **fail-closed** (`DEBUG` off by default).
+All config is read via `python-decouple` (`config/env.py`). `apps/api/.env` is loaded for
+local development; process environment values take precedence. Defaults are dev-friendly
+and **fail-closed** (`DEBUG` off by default).
 
 | Variable | Default | Purpose |
 |---|---|---|
@@ -125,19 +169,25 @@ are dev-friendly and **fail-closed** (`DEBUG` off by default).
 | `DJANGO_CORS_ALLOWED_ORIGINS` | `https://piusagboola.com,http://localhost:5173,http://localhost:3000` | Comma-separated CORS allowlist. |
 | `DJANGO_ANON_THROTTLE_RATE` | `60/min` | DRF anonymous throttle rate. |
 | `DJANGO_DATA_UPLOAD_MAX_MEMORY_SIZE` | `1048576` (1 MiB) | Max non-file request body size. |
+| `GEMINI_API_KEY` | _(unset)_ | **Required for `/api/answer/`.** Server-side only; never commit. Unset -> `503`. |
+| `GEMINI_MODEL` | `gemini-3.1-flash-lite` | Gemini model id for grounded answers. |
+| `ANSWER_PROVIDER` | `gemini` | Answer provider (`gemini` or `fake` for local UI verify). |
 
 ## Layer S foundations (not full controls yet)
 
 Per [`docs/agent/layer-s-policy.md`](../../docs/agent/layer-s-policy.md), this skeleton lays the
-*foundations* for runtime abuse controls — it does **not** implement the full system:
+*foundations* for runtime abuse controls - it does **not** implement the full system:
 
-- **CORS allowlist** — env-driven (`CORS_ALLOWED_ORIGINS`).
-- **Rate limiting** — DRF `AnonRateThrottle` placeholder (`DJANGO_ANON_THROTTLE_RATE`).
-- **Request-size limit** — `DATA_UPLOAD_MAX_MEMORY_SIZE`.
-- **Server-side secrets only** — `SECRET_KEY` from the environment; no secrets committed.
-- **Fail-closed defaults** — `DEBUG` off unless explicitly enabled.
+- **CORS allowlist** - env-driven (`CORS_ALLOWED_ORIGINS`).
+- **Rate limiting** - DRF `AnonRateThrottle` placeholder (`DJANGO_ANON_THROTTLE_RATE`).
+- **Request-size limit** - `DATA_UPLOAD_MAX_MEMORY_SIZE`.
+- **Server-side secrets only** - `SECRET_KEY` from the environment; no secrets committed.
+- **Fail-closed defaults** - `DEBUG` off unless explicitly enabled.
 
 Landed with the retrieval endpoint: message-length limits for `/api/retrieve/` (query and
-role_lens caps, bounded top_k) and fail-closed index sourcing. Still to come (Layer 1):
-concurrency limits, token/output budgets, grounded-answer enforcement, and prompt/log
-minimisation.
+role_lens caps, bounded top_k) and fail-closed index sourcing. Landed with `/api/answer/`:
+grounded-answer enforcement (every answered claim must cite retrieved evidence; unknown
+citations, malformed output, or unsupported statuses fail closed), a first-class refusal
+status, a server-authored refusal/insufficient message (model prose discarded), and an answer
+length cap. Still to come (Layer 1): concurrency limits, full token/input budgets, and
+prompt/log minimisation.
