@@ -1,0 +1,25 @@
+# Railway config-as-code for the portfolio API.
+#
+# Dashboard wiring (not encoded here - see docs/deployment/layer1-runtime.md):
+# - Root Directory: / (monorepo root so Layer 0 content is present for the index build)
+# - Config file path: /apps/api/railway.toml
+# - Wait for CI: enabled (gates on .github/workflows/ci.yml)
+# - Branch -> environment: dev -> staging/dev, main -> production
+#
+# No migrate / preDeployCommand: this backend is DB-less.
+
+[build]
+builder = "RAILPACK"
+# Run from monorepo root (Root Directory /). Sync API deps, then write the
+# gitignored evidence index artifact under apps/api/var/.
+buildCommand = "cd apps/api && uv sync --locked && uv run python manage.py build_evidence_index"
+watchPatterns = [
+  "/apps/api/**",
+  "/apps/web/src/content/public/**",
+]
+
+[deploy]
+# Custom start replaces Railpack's Django default (migrate && gunicorn).
+startCommand = "cd apps/api && gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"
+healthcheckPath = "/health/"
+restartPolicyType = "ON_FAILURE"
