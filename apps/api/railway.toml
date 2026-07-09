@@ -6,27 +6,23 @@
 # - Wait for CI: enabled (gates on .github/workflows/ci.yml)
 # - Branch -> environment: dev -> staging/dev, main -> production
 #
-# Companions at repo root:
-# - mise.toml / railpack.json install python + uv for Railpack (root has no
-#   pyproject.toml, so the Python provider would not autodetect otherwise).
+# Build is a Dockerfile (apps/api/Dockerfile), not Railpack: Railpack/Mise
+# installed Python only on the build image, so the deps venv's shebangs broke
+# on the runtime image. The Dockerfile owns build and runtime in one image.
 #
 # No migrate / preDeployCommand: this backend is DB-less.
 
 [build]
-builder = "RAILPACK"
-# Run from monorepo root (Root Directory /). Sync API deps, then write the
-# gitignored evidence index artifact under apps/api/var/.
-# Use absolute path /app/apps/api to ensure .venv is created in the right place.
-buildCommand = "cd /app/apps/api && uv sync --locked && uv run python manage.py build_evidence_index"
+builder = "DOCKERFILE"
+dockerfilePath = "apps/api/Dockerfile"
 watchPatterns = [
   "/apps/api/**",
   "/apps/web/src/content/public/**",
 ]
 
 [deploy]
-# Use the venv's Python directly to run gunicorn as a module.
-# The .venv is created by uv sync --locked in buildCommand and persists
-# in the image at /app/apps/api/.venv.
-startCommand = "cd /app/apps/api && .venv/bin/python -m gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"
+# Mirrors the Dockerfile CMD (runs in its WORKDIR /app/apps/api); kept here so
+# config-as-code overrides any stale dashboard start command.
+startCommand = ".venv/bin/gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"
 healthcheckPath = "/health/"
 restartPolicyType = "ON_FAILURE"

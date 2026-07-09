@@ -19,36 +19,56 @@ gate: web validate/build + API check / evidence-index `--check` / `test core`.
 
 ### Config as code
 
-Committed at [`apps/api/railway.toml`](../../apps/api/railway.toml), with repo-root
-[`mise.toml`](../../mise.toml) and [`railpack.json`](../../railpack.json) so
-Railpack installs Python + uv when the service root is `/` (there is no root
-`pyproject.toml`, so the Python provider would not autodetect otherwise).
-`railpack.json` `packages` is what gets those tools into the **runtime** image;
-`mise.toml` alone was enough for the build step but not deploy.
+Committed at [`apps/api/railway.toml`](../../apps/api/railway.toml), which points
+the build at [`apps/api/Dockerfile`](../../apps/api/Dockerfile)
+(`builder = "DOCKERFILE"`). The earlier Railpack/Mise approach (root `mise.toml`
++ `railpack.json`) is gone: Mise installed Python only on the *build* image, so
+the venv's shebangs / `uv` were missing on the runtime image no matter how the
+start command was phrased. The Dockerfile owns build and runtime in one image.
 
-- **buildCommand** - `cd apps/api && uv sync --locked && uv run python manage.py build_evidence_index`
-  (writes the gitignored `var/evidence_index.json` artifact into the image)
-- **startCommand** - `cd apps/api && uv run gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application`
-  (needs `uv` on the runtime image via `railpack.json`; do not call `.venv/bin/gunicorn`
-  directly - its shebang breaks when Mise Python is build-only)
+Dockerfile shape (context = repo root):
+
+- `python:3.13-slim` base; `uv` copied as a static binary from
+  `ghcr.io/astral-sh/uv:latest`; `UV_PYTHON_DOWNLOADS=never` so the venv links
+  against the image's own interpreter.
+- `uv sync --locked --no-dev` (deps layer cached), then copy `apps/api` +
+  `apps/web/src/content/public`, then `manage.py build_evidence_index` bakes
+  the gitignored `var/evidence_index.json` artifact into the image.
+- `WORKDIR /app/apps/api`; `CMD` runs `.venv/bin/gunicorn`.
+
+`railway.toml` on top of that:
+
+- **startCommand** - `.venv/bin/gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application`
+  (mirrors the Dockerfile `CMD`; kept in config-as-code so it overrides any
+  stale dashboard start command)
 - **healthcheckPath** - `/health/`
 - **watchPatterns** - `/apps/api/**` and `/apps/web/src/content/public/**`
 - **No migrate / preDeployCommand** - DB-less backend
 
+Verify locally from the repo root (a root `.dockerignore` keeps `.env`, venvs,
+and local-only folders out of the context):
+
+```bash
+docker build -f apps/api/Dockerfile -t portfolio-api .
+docker run --rm -e PORT=8080 -p 8080:8080 portfolio-api
+curl http://localhost:8080/health/
+```
+
 ### Dashboard settings (required)
 
-- **Root Directory:** `/` (monorepo root). The index builder reads
-  `apps/web/src/content/public/` via repo-root-relative paths. A root of
-  `/apps/api` alone would omit Layer 0 content and break the build.
+- **Root Directory:** `/` (monorepo root). It is the Docker build context; the
+  index builder reads `apps/web/src/content/public/` via repo-root-relative
+  paths. A root of `/apps/api` alone would omit Layer 0 content and break the
+  build.
 - **Config file path:** `/apps/api/railway.toml` (absolute; Railway config does
   not follow Root Directory).
+- **Clear any custom Build / Start Command in the dashboard** left over from
+  the Railpack attempts - the Dockerfile and `railway.toml` are the source of
+  truth now.
 - **Wait for CI:** enabled. Deploys wait for `.github/workflows/ci.yml` on push
   to `dev` / `main`. Failed CI -> deploy skipped.
 - **Branch -> environment:** staging/dev tracks `dev`; production tracks `main`.
   Feature branches do not deploy.
-- If a build still reports `uv: not found`, set service env
-  `RAILPACK_PACKAGES=python@3.13 uv` as a backup (see
-  [Railpack packages](https://railpack.com/guides/installing-packages/)).
 - CORS origins must include the scheme, e.g.
   `https://agboola-pius-git-dev-r3troseers-projects.vercel.app` (not bare host).
 

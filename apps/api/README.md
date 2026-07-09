@@ -63,23 +63,23 @@ The service deploys to Railway via **GitHub autodeploy** (separately from the Ve
 There is no Railway CLI CD workflow and no GitHub `RAILWAY_*` deploy secrets. Full wiring:
 [`docs/deployment/layer1-runtime.md`](../../docs/deployment/layer1-runtime.md).
 
-- **Config as code** - [`railway.toml`](./railway.toml) sets the Railpack build (sync deps +
-  `build_evidence_index`) and the gunicorn start command. Point the Railway service config-file
-  path at `/apps/api/railway.toml`.
-- **Root Directory** - `/` (monorepo root). The evidence index build needs Layer 0 content under
-  `apps/web/src/content/public/`; a root of `/apps/api` alone would omit it.
+- **Config as code** - [`railway.toml`](./railway.toml) points the build at
+  [`Dockerfile`](./Dockerfile) and sets the gunicorn start command. Point the Railway service
+  config-file path at `/apps/api/railway.toml`.
+- **Dockerfile build** - `python:3.13-slim` + the official `uv` binary; `uv sync --locked`,
+  then `build_evidence_index` bakes `var/evidence_index.json` into the image. Not Railpack:
+  Railpack/Mise installed Python only on the build image, which broke the venv shebangs at
+  runtime. Build locally with `docker build -f apps/api/Dockerfile .` from the repo root.
+- **Root Directory** - `/` (monorepo root). The Docker build context must include Layer 0
+  content under `apps/web/src/content/public/`; a root of `/apps/api` alone would omit it.
 - **Wait for CI** - enable on the API service so deploys wait for `.github/workflows/ci.yml`
   (`dev` / `main` pushes). Failed CI skips the deploy. Feature branches do not deploy.
 - **Branch -> environment** - Railway staging/dev tracks `dev`; production tracks `main`.
-- **Root `mise.toml` + `railpack.json`** - install Python 3.13 + uv for Railpack when
-  Root Directory is `/` (no root `pyproject.toml` for autodetection). `railpack.json`
-  packages ensure those tools exist on the runtime image, not only during build.
-- **Start command** (from `railway.toml`; replaces Railpack's Django default):
+- **Start command** (from `railway.toml`, mirroring the Dockerfile `CMD`; runs in
+  `/app/apps/api`):
   ```bash
-  cd apps/api && uv run gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application
+  .venv/bin/gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application
   ```
-  Prefer `uv run` over `.venv/bin/gunicorn` (venv shebang breaks if Mise Python is
-  build-only).
 - **No `migrate` step.** Railpack's default is `migrate && gunicorn`; on this DB-less backend
   `migrate` fails. Do not add a `preDeployCommand` migrate until a real database exists.
 - **Runtime env vars** (Railway dashboard, per environment): `DJANGO_SECRET_KEY`,

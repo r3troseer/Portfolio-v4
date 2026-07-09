@@ -1,8 +1,0 @@
-# Tool versions for Railway Railpack when the service Root Directory is the
-# monorepo root (/). Without this, Railpack does not see apps/api/pyproject.toml
-# and never installs Python/uv, so buildCommand fails with "uv: not found".
-# Local Windows/macOS/Linux can ignore this file if uv/python are already installed.
-
-[tools]
-python = "3.13"
-uv = "latest"
