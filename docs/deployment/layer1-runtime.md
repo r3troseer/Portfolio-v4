@@ -26,7 +26,8 @@ autodetect otherwise):
 
 - **buildCommand** - `cd apps/api && uv sync --locked && uv run python manage.py build_evidence_index`
   (writes the gitignored `var/evidence_index.json` artifact into the image)
-- **startCommand** - `cd apps/api && uv run gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application`
+- **startCommand** - `cd apps/api && .venv/bin/gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application`
+  (uses the venv from build; avoids needing `uv` on the runtime image)
 - **healthcheckPath** - `/health/`
 - **watchPatterns** - `/apps/api/**` and `/apps/web/src/content/public/**`
 - **No migrate / preDeployCommand** - DB-less backend
