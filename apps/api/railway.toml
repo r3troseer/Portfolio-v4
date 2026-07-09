@@ -9,8 +9,6 @@
 # Companions at repo root:
 # - mise.toml / railpack.json install python + uv for Railpack (root has no
 #   pyproject.toml, so the Python provider would not autodetect otherwise).
-#   railpack.json packages are required so Mise tools are also present on the
-#   *runtime* image (mise.toml alone was enough for build, not deploy).
 #
 # No migrate / preDeployCommand: this backend is DB-less.
 
@@ -25,10 +23,9 @@ watchPatterns = [
 ]
 
 [deploy]
-# Do not call .venv/bin/gunicorn directly: its shebang points at the build-time
-# Mise Python path, which is missing on the runtime image unless packages are
-# included (see root railpack.json). uv run resolves the venv correctly when
-# /mise/shims are on PATH at runtime.
-startCommand = "cd apps/api && uv run gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"
+# Use .venv/bin/python -m gunicorn instead of .venv/bin/gunicorn (shebang
+# points at build-time Mise Python) or uv run (uv not on runtime PATH).
+# The venv Python binary is standalone and works without Mise at runtime.
+startCommand = "cd apps/api && .venv/bin/python -m gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"
 healthcheckPath = "/health/"
 restartPolicyType = "ON_FAILURE"
