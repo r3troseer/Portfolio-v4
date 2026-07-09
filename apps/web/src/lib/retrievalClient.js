@@ -3,25 +3,9 @@
 // generated answers, no model config, nothing but the query in the request body.
 // See docs/agent/layer1-playground.md and apps/api/README.md for the contract.
 
-// Base-URL resolution: an explicit build-time env wins; local dev falls back to
-// the Django dev server; a prod build with no env set falls back to a same-origin
-// relative "/api" (which degrades cleanly to the "unavailable" state if the API
-// isn't proxied there). No infrastructure URLs are baked into the bundle.
-const API_BASE = (
-  import.meta.env.VITE_API_BASE_URL ||
-  (import.meta.env.DEV ? "http://localhost:8000" : "")
-).replace(/\/$/, "");
+import { readErrorMessage, resolveApiBase, safeReadJson } from "./apiClient.js";
 
-const RETRIEVE_URL = `${API_BASE}/api/retrieve/`;
-
-async function readErrorMessage(res, fallback) {
-  try {
-    const data = await res.json();
-    return typeof data?.error === "string" && data.error ? data.error : fallback;
-  } catch {
-    return fallback;
-  }
-}
+const RETRIEVE_URL = `${resolveApiBase()}/api/retrieve/`;
 
 /**
  * Retrieve ranked source entities for a query.
@@ -62,7 +46,14 @@ export async function retrieveEvidence({ query, topK = 5, roleLens, signal }) {
   }
 
   if (res.ok) {
-    const data = await res.json();
+    const parsed = await safeReadJson(res);
+    if (!parsed.ok) {
+      return {
+        kind: "unavailable",
+        message: "The evidence index is unavailable.",
+      };
+    }
+    const data = parsed.data;
     return {
       kind: "ok",
       matches: Array.isArray(data?.matches) ? data.matches : [],

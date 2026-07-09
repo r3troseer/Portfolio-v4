@@ -12,6 +12,20 @@ from google.genai import types
 from .base import AnswerProvider, ProviderError, ProviderUnavailableError
 
 DEFAULT_MODEL = "gemini-3.1-flash-lite"
+DEFAULT_TIMEOUT_SECONDS = 20
+
+
+def resolve_timeout_seconds(raw: str | None = None) -> int:
+    """Parse ``GEMINI_TIMEOUT_SECONDS``; invalid / non-positive -> default."""
+    if raw is None:
+        raw = config("GEMINI_TIMEOUT_SECONDS", default=str(DEFAULT_TIMEOUT_SECONDS))
+    try:
+        value = int(str(raw).strip())
+    except (TypeError, ValueError):
+        return DEFAULT_TIMEOUT_SECONDS
+    if value <= 0:
+        return DEFAULT_TIMEOUT_SECONDS
+    return value
 
 
 class GeminiProvider(AnswerProvider):
@@ -22,7 +36,11 @@ class GeminiProvider(AnswerProvider):
         if not api_key:
             raise ProviderUnavailableError("GEMINI_API_KEY is not configured")
         self.model_name = config("GEMINI_MODEL", default=DEFAULT_MODEL)
-        self._client = genai.Client(api_key=api_key)
+        timeout_ms = resolve_timeout_seconds() * 1000
+        self._client = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(timeout=timeout_ms),
+        )
 
     def generate(self, *, system: str, user: str) -> str:
         try:
