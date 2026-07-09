@@ -59,22 +59,29 @@ evidence ledger underneath. No chat surface, memory, reranking, tools, or genera
 
 ## Deployment (Railway)
 
-The service deploys to Railway (separately from the Vercel frontend, per the architecture plan).
+The service deploys to Railway via **GitHub autodeploy** (separately from the Vercel frontend).
+There is no Railway CLI CD workflow and no GitHub `RAILWAY_*` deploy secrets. Full wiring:
+[`docs/deployment/layer1-runtime.md`](../../docs/deployment/layer1-runtime.md).
 
-- **Start command** - set this as the custom start command in the Railway dashboard
-  (Settings -> Deploy):
+- **Config as code** - [`railway.toml`](./railway.toml) sets the Railpack build (sync deps +
+  `build_evidence_index`) and the gunicorn start command. Point the Railway service config-file
+  path at `/apps/api/railway.toml`.
+- **Root Directory** - `/` (monorepo root). The evidence index build needs Layer 0 content under
+  `apps/web/src/content/public/`; a root of `/apps/api` alone would omit it.
+- **Wait for CI** - enable on the API service so deploys wait for `.github/workflows/ci.yml`
+  (`dev` / `main` pushes). Failed CI skips the deploy. Feature branches do not deploy.
+- **Branch -> environment** - Railway staging/dev tracks `dev`; production tracks `main`.
+- **Start command** (from `railway.toml`; replaces Railpack's Django default):
   ```bash
-  gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application
+  cd apps/api && gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application
   ```
-  Railway injects `$PORT`; the `:-8000` fallback lets the same command run locally on Unix.
-- **No `migrate` step - and do not let the autodetected command add one.** Railpack's default
-  deploy command is `python manage.py migrate && gunicorn ...`; on this DB-less skeleton `migrate`
-  exits 1 (`DATABASES = {}` -> dummy backend -> `ImproperlyConfigured`), which would block gunicorn
-  from starting. The custom start command above replaces it. A `migrate` step returns only when
-  the backend gains a real database and models.
-- **Production environment variables** (set in Railway): `DJANGO_SECRET_KEY` (required),
-  `DJANGO_DEBUG` left unset/`false`, and `DJANGO_ALLOWED_HOSTS` including the Railway domain.
-  Tune `DJANGO_CORS_ALLOWED_ORIGINS` to the real frontend origin(s). See the table below.
+- **No `migrate` step.** Railpack's default is `migrate && gunicorn`; on this DB-less backend
+  `migrate` fails. Do not add a `preDeployCommand` migrate until a real database exists.
+- **Runtime env vars** (Railway dashboard, per environment): `DJANGO_SECRET_KEY`,
+  `DJANGO_ALLOWED_HOSTS`, `DJANGO_CORS_ALLOWED_ORIGINS`, `GEMINI_API_KEY`,
+  `GEMINI_MODEL=gemini-3.1-flash-lite`, `ANSWER_PROVIDER=gemini`. Leave `DJANGO_DEBUG` unset/
+  `false`. Optional: `GEMINI_TIMEOUT_SECONDS` (default 20). See the table below.
+- **Vercel** must set `VITE_API_BASE_URL` to the Railway API origin.
 
 ## Endpoints
 
@@ -171,7 +178,8 @@ and **fail-closed** (`DEBUG` off by default).
 | `DJANGO_DATA_UPLOAD_MAX_MEMORY_SIZE` | `1048576` (1 MiB) | Max non-file request body size. |
 | `GEMINI_API_KEY` | _(unset)_ | **Required for `/api/answer/`.** Server-side only; never commit. Unset -> `503`. |
 | `GEMINI_MODEL` | `gemini-3.1-flash-lite` | Gemini model id for grounded answers. |
-| `ANSWER_PROVIDER` | `gemini` | Answer provider (`gemini` or `fake` for local UI verify). |
+| `GEMINI_TIMEOUT_SECONDS` | `20` | Gemini HTTP request timeout (seconds). Invalid / non-positive -> 20. Timeout -> `503`. |
+| `ANSWER_PROVIDER` | `gemini` | Answer provider. `fake` is **DEBUG-only** (`DJANGO_DEBUG=true`) for local UI verify; rejected in production. |
 
 ## Layer S foundations (not full controls yet)
 

@@ -32,7 +32,9 @@ sets the target shape and the migration sequence so each step stays small and re
 - **Policy (Layer S seed):** [`layer-s-policy.md`](./layer-s-policy.md) documents the
   visibility / sensitivity taxonomy and content boundaries. Index gating and content validation
   are enforced in CI; full runtime Layer S controls remain future work.
-- **Backend (`apps/api`):** Django 6 + DRF, deployed separately (Railway). Health check, Layer 1
+- **Backend (`apps/api`):** Django 6 + DRF, deployed separately on **Railway** via GitHub
+  autodeploy gated by existing CI (Wait for CI; `railway.toml` config-as-code - see
+  [`docs/deployment/layer1-runtime.md`](../deployment/layer1-runtime.md)). Health check, Layer 1
   lexical retrieval (`POST /api/retrieve/`), and the grounded-answer endpoint (`POST /api/answer/`,
   server-side Gemini with output validation) are live. No database, vector store, reranking, or
   agent tooling yet.
@@ -55,10 +57,10 @@ repo-root/
 
 - **`apps/web`** - the existing SPA, moved in as-is. Still Vite + React, still on Vercel, same
   routes, content, adapters, and analytics. Migration must be a relocation, not a rewrite.
-- **`apps/api`** - Django / DRF, **deployed separately** from Vercel (Railway). Owns the
-  evidence index and lexical retrieval (`POST /api/retrieve/`) today; the grounded-answer
-  runtime, reranking, and tools land in later slices. The web app calls it over HTTP; they are
-  never co-deployed.
+- **`apps/api`** - Django / DRF, **deployed separately** from Vercel on Railway (GitHub
+  autodeploy after CI; no Railway CLI CD). Owns the evidence index and lexical retrieval
+  (`POST /api/retrieve/`) today; the grounded-answer runtime is live; reranking and tools land
+  in later slices. The web app calls it over HTTP; they are never co-deployed.
 - **`packages/contracts`** - shared, language-agnostic schemas so web and api never drift:
   the **content shape** (already de-facto defined by Layer 0), **agent response schemas**
   (grounded answers + evidence), and the **typed UI-spec schema** (Layer 2.5). Added only when
