@@ -19,11 +19,14 @@ gate: web validate/build + API check / evidence-index `--check` / `test core`.
 
 ### Config as code
 
-Committed at [`apps/api/railway.toml`](../../apps/api/railway.toml):
+Committed at [`apps/api/railway.toml`](../../apps/api/railway.toml), with repo-root
+[`mise.toml`](../../mise.toml) so Railpack installs Python + uv when the service
+root is `/` (there is no root `pyproject.toml`, so the Python provider would not
+autodetect otherwise):
 
 - **buildCommand** - `cd apps/api && uv sync --locked && uv run python manage.py build_evidence_index`
   (writes the gitignored `var/evidence_index.json` artifact into the image)
-- **startCommand** - `cd apps/api && gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application`
+- **startCommand** - `cd apps/api && uv run gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application`
 - **healthcheckPath** - `/health/`
 - **watchPatterns** - `/apps/api/**` and `/apps/web/src/content/public/**`
 - **No migrate / preDeployCommand** - DB-less backend
@@ -39,6 +42,9 @@ Committed at [`apps/api/railway.toml`](../../apps/api/railway.toml):
   to `dev` / `main`. Failed CI -> deploy skipped.
 - **Branch -> environment:** staging/dev tracks `dev`; production tracks `main`.
   Feature branches do not deploy.
+- If a build still reports `uv: not found`, set service env
+  `RAILPACK_PACKAGES=python@3.13 uv` as a backup (see
+  [Railpack packages](https://railpack.com/guides/installing-packages/)).
 
 ### Runtime environment variables (per Railway environment)
 

@@ -6,6 +6,9 @@
 # - Wait for CI: enabled (gates on .github/workflows/ci.yml)
 # - Branch -> environment: dev -> staging/dev, main -> production
 #
+# Companion: repo-root mise.toml installs python + uv for Railpack (root has no
+# pyproject.toml, so the Python provider would not autodetect otherwise).
+#
 # No migrate / preDeployCommand: this backend is DB-less.
 
 [build]
@@ -19,7 +22,8 @@ watchPatterns = [
 ]
 
 [deploy]
-# Custom start replaces Railpack's Django default (migrate && gunicorn).
-startCommand = "cd apps/api && gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"
+# uv run uses the apps/api/.venv created by buildCommand. Custom start replaces
+# Railpack's Django default (migrate && gunicorn).
+startCommand = "cd apps/api && uv run gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"
 healthcheckPath = "/health/"
 restartPolicyType = "ON_FAILURE"
