@@ -5,24 +5,9 @@
 // separate call. No model config or keys ever touch the browser.
 // See docs/agent/layer1-playground.md and apps/api/README.md for the contract.
 
-// Base-URL resolution mirrors retrievalClient.js: explicit build-time env wins;
-// local dev falls back to the Django dev server; a prod build with no env set
-// falls back to same-origin "/api".
-const API_BASE = (
-  import.meta.env.VITE_API_BASE_URL ||
-  (import.meta.env.DEV ? "http://localhost:8000" : "")
-).replace(/\/$/, "");
+import { readErrorMessage, resolveApiBase, safeReadJson } from "./apiClient.js";
 
-const ANSWER_URL = `${API_BASE}/api/answer/`;
-
-async function readErrorMessage(res, fallback) {
-  try {
-    const data = await res.json();
-    return typeof data?.error === "string" && data.error ? data.error : fallback;
-  } catch {
-    return fallback;
-  }
-}
+const ANSWER_URL = `${resolveApiBase()}/api/answer/`;
 
 /**
  * Request a grounded answer for a query.
@@ -64,7 +49,14 @@ export async function getGroundedAnswer({ query, topK = 5, roleLens, signal }) {
   }
 
   if (res.ok) {
-    const data = await res.json();
+    const parsed = await safeReadJson(res);
+    if (!parsed.ok) {
+      return {
+        kind: "unavailable",
+        message: "The answer service is currently unavailable.",
+      };
+    }
+    const data = parsed.data;
     return {
       kind: "ok",
       answerStatus:
