@@ -23,12 +23,9 @@ watchPatterns = [
 ]
 
 [deploy]
-# Use uv run gunicorn with preDeployCommand to install venv at runtime.
-# The preDeployCommand runs uv sync --locked in the runtime container,
-# creating .venv with all dependencies. Then startCommand uses uv run to
-# launch gunicorn, which is available because uv is in railpack.json packages.
-preDeployCommand = "cd apps/api && uv sync --locked"
-startCommand = "cd apps/api && uv run gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"
+# Activate venv and run gunicorn. The .venv is created by uv sync --locked
+# in buildCommand and persists in the image. We source the activate script
+# to put .venv/bin on PATH, then run gunicorn.
+startCommand = "cd apps/api && source .venv/bin/activate && gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"
 healthcheckPath = "/health/"
 restartPolicyType = "ON_FAILURE"
-
