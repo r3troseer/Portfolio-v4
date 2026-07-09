@@ -34,13 +34,17 @@ Dockerfile shape (context = repo root):
 - `uv sync --locked --no-dev` (deps layer cached), then copy `apps/api` +
   `apps/web/src/content/public`, then `manage.py build_evidence_index` bakes
   the gitignored `var/evidence_index.json` artifact into the image.
-- `WORKDIR /app/apps/api`; `CMD` runs `.venv/bin/gunicorn`.
+- `WORKDIR /app/apps/api`; `CMD ["sh", "-c", ".venv/bin/gunicorn --bind
+  0.0.0.0:${PORT:-8000} config.wsgi:application"]`. The `sh -c` matters: it is
+  what expands `${PORT}`.
 
 `railway.toml` on top of that:
 
-- **startCommand** - `.venv/bin/gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application`
-  (mirrors the Dockerfile `CMD`; kept in config-as-code so it overrides any
-  stale dashboard start command)
+- **No startCommand.** Railway runs a custom start command on Docker images
+  *without* a shell, so `${PORT:-8000}` reaches gunicorn unexpanded and the
+  container dies with `'${PORT' is not a valid port number`. The Dockerfile
+  `CMD` is the start command; the dashboard Start Command field must also stay
+  empty.
 - **healthcheckPath** - `/health/`
 - **watchPatterns** - `/apps/api/**` and `/apps/web/src/content/public/**`
 - **No migrate / preDeployCommand** - DB-less backend

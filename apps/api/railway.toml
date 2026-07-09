@@ -21,8 +21,10 @@ watchPatterns = [
 ]
 
 [deploy]
-# Mirrors the Dockerfile CMD (runs in its WORKDIR /app/apps/api); kept here so
-# config-as-code overrides any stale dashboard start command.
-startCommand = ".venv/bin/gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"
+# No startCommand: the Dockerfile CMD (sh -c gunicorn) is the start command.
+# Railway runs a custom start command on Docker images *without* a shell, so
+# ${PORT:-8000} would reach gunicorn unexpanded ("'${PORT' is not a valid port
+# number"). The dashboard Start Command field must stay empty for the same
+# reason - CMD is the only shell-wrapped option.
 healthcheckPath = "/health/"
 restartPolicyType = "ON_FAILURE"

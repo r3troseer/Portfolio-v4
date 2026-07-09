@@ -75,11 +75,10 @@ There is no Railway CLI CD workflow and no GitHub `RAILWAY_*` deploy secrets. Fu
 - **Wait for CI** - enable on the API service so deploys wait for `.github/workflows/ci.yml`
   (`dev` / `main` pushes). Failed CI skips the deploy. Feature branches do not deploy.
 - **Branch -> environment** - Railway staging/dev tracks `dev`; production tracks `main`.
-- **Start command** (from `railway.toml`, mirroring the Dockerfile `CMD`; runs in
-  `/app/apps/api`):
-  ```bash
-  .venv/bin/gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application
-  ```
+- **Start command** - the Dockerfile `CMD` only (`sh -c ".venv/bin/gunicorn --bind
+  0.0.0.0:${PORT:-8000} config.wsgi:application"`). Do not set a start command in
+  `railway.toml` or the dashboard: Railway runs custom start commands on Docker images
+  without a shell, so `${PORT}` reaches gunicorn unexpanded and the deploy fails.
 - **No `migrate` step.** Railpack's default is `migrate && gunicorn`; on this DB-less backend
   `migrate` fails. Do not add a `preDeployCommand` migrate until a real database exists.
 - **Runtime env vars** (Railway dashboard, per environment): `DJANGO_SECRET_KEY`,
