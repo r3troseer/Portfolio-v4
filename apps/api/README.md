@@ -71,13 +71,15 @@ There is no Railway CLI CD workflow and no GitHub `RAILWAY_*` deploy secrets. Fu
 - **Wait for CI** - enable on the API service so deploys wait for `.github/workflows/ci.yml`
   (`dev` / `main` pushes). Failed CI skips the deploy. Feature branches do not deploy.
 - **Branch -> environment** - Railway staging/dev tracks `dev`; production tracks `main`.
-- **Root `mise.toml`** - installs Python 3.13 + uv for Railpack when Root Directory
-  is `/` (no root `pyproject.toml` for autodetection).
+- **Root `mise.toml` + `railpack.json`** - install Python 3.13 + uv for Railpack when
+  Root Directory is `/` (no root `pyproject.toml` for autodetection). `railpack.json`
+  packages ensure those tools exist on the runtime image, not only during build.
 - **Start command** (from `railway.toml`; replaces Railpack's Django default):
   ```bash
-  cd apps/api && .venv/bin/gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application
+  cd apps/api && uv run gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application
   ```
-  Uses the `.venv` created at build time so runtime does not need `uv` on PATH.
+  Prefer `uv run` over `.venv/bin/gunicorn` (venv shebang breaks if Mise Python is
+  build-only).
 - **No `migrate` step.** Railpack's default is `migrate && gunicorn`; on this DB-less backend
   `migrate` fails. Do not add a `preDeployCommand` migrate until a real database exists.
 - **Runtime env vars** (Railway dashboard, per environment): `DJANGO_SECRET_KEY`,

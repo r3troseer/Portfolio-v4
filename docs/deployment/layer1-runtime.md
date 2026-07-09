@@ -20,14 +20,17 @@ gate: web validate/build + API check / evidence-index `--check` / `test core`.
 ### Config as code
 
 Committed at [`apps/api/railway.toml`](../../apps/api/railway.toml), with repo-root
-[`mise.toml`](../../mise.toml) so Railpack installs Python + uv when the service
-root is `/` (there is no root `pyproject.toml`, so the Python provider would not
-autodetect otherwise):
+[`mise.toml`](../../mise.toml) and [`railpack.json`](../../railpack.json) so
+Railpack installs Python + uv when the service root is `/` (there is no root
+`pyproject.toml`, so the Python provider would not autodetect otherwise).
+`railpack.json` `packages` is what gets those tools into the **runtime** image;
+`mise.toml` alone was enough for the build step but not deploy.
 
 - **buildCommand** - `cd apps/api && uv sync --locked && uv run python manage.py build_evidence_index`
   (writes the gitignored `var/evidence_index.json` artifact into the image)
-- **startCommand** - `cd apps/api && .venv/bin/gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application`
-  (uses the venv from build; avoids needing `uv` on the runtime image)
+- **startCommand** - `cd apps/api && uv run gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application`
+  (needs `uv` on the runtime image via `railpack.json`; do not call `.venv/bin/gunicorn`
+  directly - its shebang breaks when Mise Python is build-only)
 - **healthcheckPath** - `/health/`
 - **watchPatterns** - `/apps/api/**` and `/apps/web/src/content/public/**`
 - **No migrate / preDeployCommand** - DB-less backend
@@ -46,6 +49,8 @@ autodetect otherwise):
 - If a build still reports `uv: not found`, set service env
   `RAILPACK_PACKAGES=python@3.13 uv` as a backup (see
   [Railpack packages](https://railpack.com/guides/installing-packages/)).
+- CORS origins must include the scheme, e.g.
+  `https://agboola-pius-git-dev-r3troseers-projects.vercel.app` (not bare host).
 
 ### Runtime environment variables (per Railway environment)
 

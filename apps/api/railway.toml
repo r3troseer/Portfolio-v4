@@ -6,8 +6,11 @@
 # - Wait for CI: enabled (gates on .github/workflows/ci.yml)
 # - Branch -> environment: dev -> staging/dev, main -> production
 #
-# Companion: repo-root mise.toml installs python + uv for Railpack (root has no
-# pyproject.toml, so the Python provider would not autodetect otherwise).
+# Companions at repo root:
+# - mise.toml / railpack.json install python + uv for Railpack (root has no
+#   pyproject.toml, so the Python provider would not autodetect otherwise).
+#   railpack.json packages are required so Mise tools are also present on the
+#   *runtime* image (mise.toml alone was enough for build, not deploy).
 #
 # No migrate / preDeployCommand: this backend is DB-less.
 
@@ -22,9 +25,10 @@ watchPatterns = [
 ]
 
 [deploy]
-# Call the venv binary directly. `uv` is installed for the build via mise.toml,
-# but is not always present on the runtime image (known Railpack gap).
-# Custom start replaces Railpack's Django default (migrate && gunicorn).
-startCommand = "cd apps/api && .venv/bin/gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"
+# Do not call .venv/bin/gunicorn directly: its shebang points at the build-time
+# Mise Python path, which is missing on the runtime image unless packages are
+# included (see root railpack.json). uv run resolves the venv correctly when
+# /mise/shims are on PATH at runtime.
+startCommand = "cd apps/api && uv run gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"
 healthcheckPath = "/health/"
 restartPolicyType = "ON_FAILURE"
