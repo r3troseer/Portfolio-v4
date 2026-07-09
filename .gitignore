@@ -12,12 +12,12 @@ node_modules
 dist
 build
 
-# python / backend (apps/api) — uv.lock and .python-version ARE committed
+# python / backend (apps/api) - uv.lock and .python-version ARE committed
 .venv/
 __pycache__/
 *.py[cod]
 
-# generated backend artifacts (e.g. the Layer 1 evidence index) — never committed
+# generated backend artifacts (e.g. the Layer 1 evidence index) - never committed
 /apps/api/var/
 
 # local notes / planning (not part of the codebase)
@@ -28,10 +28,11 @@ __pycache__/
 
 # misc
 .DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# env: never commit real secrets. Only *.example templates are committed.
+.env
+.env.*
+!.env.example
+!*.env.example
 
 npm-debug.log*
 yarn-debug.log*

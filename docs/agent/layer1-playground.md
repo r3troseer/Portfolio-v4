@@ -1,20 +1,25 @@
-# Layer 1: evidence playground (retrieval UI)
+# Layer 1: evidence playground (answer + retrieval UI)
 
-The production UI over the Layer 1 retrieval slice, ported from the profile handoff's
-**Evidence** view (`.notes/prototypes/profile-handoff` - the `ev-`/`rag-` surface). It surfaces
-the **retrieval ledger** for a query: ranked public source entities, shown with readable display
-snippets. Grounded answers, reranking, and model calls are backend behaviours that do not exist
-yet - see the fidelity map below.
+The production UI over the Layer 1 slice, ported from the profile handoff's **Evidence** view
+(`.notes/prototypes/profile-handoff` - the `ev-`/`rag-` surface). Two backend endpoints back it:
 
-This is the **retrieval-ledger UI** only - not the future **generated-answer/chat surface**
-(grounded answers, citations, refusal cards, reranking inspector, model calls). Those depend on
-backend behaviours documented below as CONFLICT/deferred.
+- **`POST /api/answer/`** = grounded answer. Retrieves public evidence, calls a server-side
+  model (Gemini), validates the output, and returns a cited answer (`answered` /
+  `insufficient_evidence` / `refused`). This is what the query flow calls by default.
+- **`POST /api/retrieve/`** = the raw evidence ledger (unchanged): deterministic, model-free
+  lexical retrieval over source entities.
+
+The playground and Cmd+K modal now **compose an answer** and show the **evidence ledger**
+underneath. Reranking, the expanded retrieval-ledger inspector, passage/claim detail, model/API
+-key configuration, and slash commands are still backend behaviours that do not exist yet - see
+the fidelity map below (they remain CONFLICT/deferred).
 
 ## Flow (as designed in the handoff)
 
-- **Cmd/Ctrl+K opens the assistant modal - an interactive evidence surface, not a launcher.**
-  Submitting a query (or a preset) runs `POST /api/retrieve/` and renders the ranked entities
-  **inline in the modal**. `apps/web/src/components/AssistantShell.jsx`.
+- **Cmd/Ctrl+K opens the assistant modal - an interactive answer surface, not a launcher.**
+  Submitting a query (or a preset) runs `POST /api/answer/` and renders the grounded answer
+  in the modal (`pf-ask-answer` plain text), the evidence ledger (`pf-ask-evdoc`), then a
+  Sources row (`pf-ask-cites` title chips). `apps/web/src/components/AssistantShell.jsx`.
 - **"Open in Playground" is the only path to the full page - the user's choice.** It seeds the
   page per the handoff's `_launchPlayground` states:
   - **STATE 3** - already answered in the modal -> jump straight to the results strip for that
@@ -23,9 +28,11 @@ backend behaviours documented below as CONFLICT/deferred.
     (`state: { stage }`).
   - **STATE 1** - nothing typed -> empty hero (`navigate("/playground")`).
 - **`/playground`** (`apps/web/src/pages/Playground.jsx`) is the full workspace: hero <-> results
-  strip, driven by the same retrieval hook as the modal. The current slice shows the retrieval
-  ledger only. The page uses full `ev-doc` cards while the modal uses its distinct compact
-  `pf-ask-evdoc` cards.
+  strip, driven by the same grounded-answer hook (`useGroundedAnswer`) as the modal. It shows
+  `ev-gen-status` loading, then `gen-prose` with inline `gen-cite` chips (`[[evidence_id]]`
+  markup parsed client-side), then the evidence ledger. The page uses full `ev-doc` cards while
+  the modal uses compact `pf-ask-evdoc` cards. Modal keeps handoff `pf-ask-*` class names
+  verbatim; the page re-authors `ev-gen-status` / `gen-prose` / `gen-cite` as `pf-pg-gen-*`.
 - **Evidence mode is chromeless.** Like the handoff (`.v-evidence nav { display:none }`), the
   `/playground` route drops the shared site nav/footer, particle field, and the "Ask" launcher
   (via a route-aware `Layout` in `App.jsx`). It provides its own chrome: a `< portfolio` hero
@@ -55,40 +62,54 @@ in the browser that belongs to the backend is documented here as a **backend beh
 reproduced client-side. Elements whose full fidelity needs a backend behaviour that does not exist
 yet are flagged **CONFLICT** - they are deferred (not cut) until that behaviour lands.
 
-### Ported now (frontend, driven by `/api/retrieve/`)
+### Ported now (frontend, driven by `/api/answer/`)
 
-Production re-authors the handoff's page surface under the **`pf-pg-*`** class namespace
-(`playground.css`, `EvidenceResults.jsx`, `Playground.jsx`). Layout values match the handoff
-`ev-*` / `rag-*` rules; only the modal keeps handoff `pf-ask-*` class names verbatim.
+Production re-authors the handoff page answer surface under **`pf-pg-gen-*`** (`playground.css`,
+`GroundedAnswer.jsx`, `renderProse.jsx`). Layout values match handoff `ev-gen-status` /
+`gen-prose` / `gen-cite`; only the modal keeps handoff `pf-ask-*` class names verbatim.
 
 - Hero + query box + preset chips (`ev-main-hero`, `ev-query*`, `rag-hero-chips` -> `pf-pg-*`).
-- Results strip + section label + sticky query (`ev-main-strip`, `ev-seclabel`).
-- Results-only footer (the hero intentionally has none) and a retrieval-honest About popover.
+- Results strip + sticky query (`ev-main-strip`).
+- Page loading: `ev-gen-status` with static `retrieving evidence · composing interface` copy
+  (single loader until the full answer payload arrives - **no fake streaming**).
+- Page answer: `gen-prose` with `[[evidence_id]]` -> `pf-pg-gen-cite` chips (handoff display
+  labels from API `citations[].ref`: `exp`, project `displayOrder`, narrative `01`, role-lens
+  slug, else retrieval rank) and `==highlight==` -> `pf-pg-ev-mark` spans.
+- Results-only footer and retrieval-honest About popover.
 - Source entity cards (`ev-doc*`): mono entity id, title, purple entity-type chip, display
-  snippet. The `ev-doc` / `pf-ask-evdoc` class names are inherited from the handoff; they are
-  not product language.
+  snippet.
 - Score bars (`ev-score*`) - normalized to the top hit, labelled visual ranking (not confidence).
 - Role-lens chips (`niche-tag`), mono tags (`ev-doc-tag`), provenance path.
-- Loading skeleton (`ev-skel*`).
-- Cmd+K modal inline results + "Open in Playground" (STATE 1/2/3). The modal renders its
-  **own** compact entity cards (handoff `pf-ask-evdoc` cards: `entity · id` + a relative-rank score
-  **percentage** pill + title + a 3-line-clamped snippet), with a `pf-ask-loading` dot loader,
-  a `pf-ask-error` card, and the rich `pf-ask-footcta` when results exist - deliberately distinct
-  from the page's `ev-doc` surface (the handoff has two representations; they are not shared).
+- Cmd+K modal: `pf-ask-loading` ("Retrieving evidence..."), plain `pf-ask-answer` for
+  `answered`, compact `pf-ask-evdoc` ledger, then `pf-ask-cites` title chips (Sources after
+  ledger). `refused` uses boxed `pf-ask-refusal` (info icon); `insufficient_evidence` uses
+  plain `pf-ask-answer` (no callout box). Rich `pf-ask-footcta` when an answer or evidence
+  exists. Playground `insufficient_evidence` uses `pf-pg-ev-meta` (mono meta line); playground
+  `refused` uses `pf-pg-ev-meta is-refusal`.
 
 ### Backend behaviours (NOT faked client-side)
 
-- **Grounded answer generation** - `assistant.answer/blocks/citations`, `ev-answer*`, `ev-gen*`,
-  `evStream`, the `composing -> answered` phases. **CONFLICT:** the backend is retrieval-only; it
-  returns ranked evidence, no generated/cited answer. Needs a Layer 1 answer service (grounded,
-  cited, server-side model).
+- **Grounded answer generation** - `assistant.answer/blocks/citations`, the
+  `composing -> answered` phases. **LIVE:** `POST /api/answer/` retrieves public evidence, calls
+  a server-side model (Gemini), validates strict JSON plus handoff prose markup (`[[evidence_id]]`
+  markers must match `citation_ids`), and returns a grounded answer with hydrated citations
+  (`ref` handoff display labels via `presentation.citation_display_ref`, `score`). Page
+  renders inline `gen-cite` chips; modal strips markup for plain `pf-ask-answer` and shows
+  title chips in `pf-ask-cites`. Refusal and insufficient-evidence are first-class statuses
+  with **server-authored messages** (model prose discarded for both). **No fake streaming**
+  (single atomic response; no token-by-token UI, no trailing "composing..." loader). No chat memory or `blocks`
+  yet. Prompt text: `apps/api/core/layer1/answering/prompts.py`.
 - **Reranking + expanded Retrieval Ledger** - `rag-reveal*` / `rag-insp*` (the pre->post rerank
   inspector; the "Open in Playground" handoff copy promises "scores, reranking"). **CONFLICT:**
   the current ledger is single-pass lexical retrieval over source entities. Needs a backend rerank
   step that exposes pre- and post-rerank candidate sets.
 - **Refusal / scope-guard as a response state** - `pf-ask-refusal`, `assistant.refusal`.
-  **CONFLICT:** the backend returns evidence or an empty list; there is no refusal object. Needs
-  Layer S governance refusal as a first-class response (see `layer-s-policy.md`).
+  **LIVE (via `/api/answer/`):** `refused` is a first-class answer status with a server-authored
+  message and no citations/evidence, rendered as the boxed modal refusal row (`pf-ask-refusal`)
+  or playground meta row (`pf-pg-ev-meta is-refusal`). `insufficient_evidence` uses plain answer
+  typography (`pf-ask-answer` / `pf-pg-ev-meta`) - not the refusal callout. Governance still
+  leans on the index gate (private content never reaches retrieval); the model refusal is a
+  scope guard on top, not the privacy boundary.
 - **Passage / claim detail** - `ev-pd*` (per-entity claims, passages, signals). **CONFLICT:**
   the backend returns summary-level `text` plus a short display `snippet`; `detail.*` never enters
   the index. Needs a passage/claim breakdown behaviour.
@@ -106,14 +127,13 @@ Each keeps the exact handoff string recorded so it can be restored when the back
 lands (never over-promise now).
 
 - **"Open in Playground" subcopy.** Handoff (exact): `See scores, reranking & the evidence
-  behind this - grounded data`. Shown now: `See the ranked entities behind this`.
-  **Restore the exact string once grounded answers (#1) and reranking (#2) land.**
-- **Hero tagline.** Handoff (exact): `query the work - retrieve - compose`. Shown now:
-  `query the work - retrieve entities` (dropped "compose": no answer composition yet).
-  **Restore "compose"
-  when grounded answers (#1) land.**
-- **Modal foot note.** Handoff (exact): `Answers are grounded in Pius's portfolio data`. Shown
-  now: `Sources grounded in Pius's portfolio` (no generated answers). **Restore when #1 lands.**
+  behind this · grounded data`. **Restored** verbatim in production `pf-ask-footcta`.
+  **Still not fully honest:** it promises *reranking*, which is not live. Soften or restore
+  rerank wording only once reranking (#2) lands.
+- **Hero tagline.** Handoff (exact): `query the work - retrieve - compose`. **Restored** (as
+  `query the work &middot; retrieve &middot; compose`) now that grounded answers (#1) are live.
+- **Modal foot note.** Handoff (exact): `Answers are grounded in Pius's portfolio data`.
+  **Restored** now that grounded answers (#1) are live.
 - **Entity card linking (not every card is a link).** The handoff's `ev-doc`/`pf-ask-evdoc`
   open a source entity. In retrieval-only reality only **project-backed** entities (`project_id`) have
   a destination: it links to the existing project-detail page (`/projects/:id`). Markdown/profile
@@ -126,15 +146,17 @@ lands (never over-promise now).
 - **Preset chips.** Merge: the task's safe preset *set* with the handoff's terse lowercase chip
   *style* (`AI work`, `backend depth`, `fintech experience`, `strongest evidence`,
   `project proof`).
+- **gen-cite relevance row (`gen-cite-pop-r`).** Handoff shows a rerank-style relevance %.
+  **Omitted** until a rerank score exists server-side; popover shows title + snippet only.
 - **Modal score.** Shown as a relative-rank **percentage** (score / top score), per the handoff's
   `pf-ask-evdoc-score` pill - labelled as rank, not confidence.
 - **Results footer.** Handoff (exact, with the copyright glyph encoded for ASCII source):
   `composed for your query · &#169; 2025 Pius Agboola`. Shown now:
-  `entities retrieved for your query · &copy; [current year] Pius Agboola`. **Restore "composed"
-  when grounded answers (#1) land.**
+  `composed for your query · &copy; [current year] Pius Agboola`. **"composed" restored** now
+  that grounded answers (#1) are live.
 - **About control.** The handoff's results-strip `?` was wired to browser-side model/API-key
-  configuration. The production control keeps the visual location but explains the live
-  retrieval-only behavior; it never accepts keys or exposes model configuration.
+  configuration. The production control keeps the visual location but explains grounded answers
+  plus lexical retrieval (no reranking yet); it never accepts keys or exposes model configuration.
 - **Origin-aware project back nav.** A project opened from page evidence says `Back to
   playground` and restores the query and role lens. A project opened from modal evidence says
   `Back to assistant` and restores the modal results on the originating portfolio route. This
@@ -143,6 +165,9 @@ lands (never over-promise now).
 
 ## Configuration
 
-The retrieval client (`apps/web/src/lib/retrievalClient.js`) resolves the API base URL as:
+The answer client (`apps/web/src/lib/answerClient.js`) and retrieval client
+(`apps/web/src/lib/retrievalClient.js`) share the same API base URL resolution:
 `VITE_API_BASE_URL` -> `http://localhost:8000` in local dev -> same-origin `/api` in production.
 Set `VITE_API_BASE_URL` (the Railway API origin) in the Vercel project for the deployed site.
+The playground and Cmd+K modal call `/api/answer/` by default; `/api/retrieve/` remains available
+as the raw ledger endpoint.

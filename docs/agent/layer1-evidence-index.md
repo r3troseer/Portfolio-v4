@@ -59,18 +59,24 @@ content root exists, else read from the shipped `var/evidence_index.json` artifa
 (or on any governance error / non-indexable record) refuse with 503 and serve nothing. See
 `apps/api/README.md` for the request/response contract. The response keeps `text` as retrieval
 context and adds `entity_id`, `entity_type`, and `snippet` for the user-facing source ledger.
-Still no generated answer.
+
+## Grounded-answer endpoint (third slice)
+
+`POST /api/answer/` retrieves public evidence via the same unchanged lexical retrieval, calls
+a server-side model (Gemini), validates strict JSON plus handoff prose markup, and returns a
+grounded answer with hydrated citations. `/api/retrieve/` stays the raw evidence ledger. See
+[`layer1-playground.md`](./layer1-playground.md) for the UI surfaces and
+[`apps/api/README.md`](../../apps/api/README.md) for the answer contract.
 
 ## What is deliberately NOT here yet
 
 Each of these is a later, separate slice - kept out so each branch stays small and reviewable:
 
-- **No LLM / model calls** - nothing to generate answers with; retrieval must be provably
-  safe and deterministic first.
 - **No embeddings / vector DB** - lexical retrieval establishes the safety shape without
   dependencies; embeddings can replace the scorer behind the same endpoint later.
-- **No grounded answer UI** - the current web playground can show the retrieved entity ledger,
-  but a chat/answer surface waits for the grounded answer pipeline.
+- **No reranking** - the ledger is single-pass lexical retrieval; pre/post rerank inspector
+  behaviour is deferred.
+- **No chat memory, tools, or generated UI/spec nodes** - answer + evidence ledger only.
 
 ## Contracts note
 

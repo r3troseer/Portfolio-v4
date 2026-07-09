@@ -80,9 +80,6 @@ export function EvidenceResults({ result, query, roleLens, onRetry }) {
           {typeof total === "number" ? ` of ${total} indexed` : ""}
         </span>
       </div>
-      <p className="pf-pg-scorenote">
-        Bars show visual ranking from the backend lexical score - not confidence.
-      </p>
       <div className="pf-pg-docs">
         {matches.map((m) => (
           <EvidenceDoc

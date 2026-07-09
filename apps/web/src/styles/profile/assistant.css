@@ -346,6 +346,63 @@
   padding: 4px 0;
 }
 
+/* --- Grounded answer (ported verbatim from the handoff pf-ask-* surfaces) --- */
+.pf-ask-answer {
+  color: #e2e8f0;
+  font-size: 0.98rem;
+  line-height: 1.62;
+  margin: 0;
+}
+
+.pf-ask-refusal {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.pf-ask-refusal svg {
+  color: #7dd3fc;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pf-ask-cites {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-top: 6px;
+}
+
+.pf-ask-cites-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.pf-ask-cite {
+  font-size: 0.78rem;
+  color: #7dd3fc;
+  text-decoration: none;
+  background: rgba(125, 211, 252, 0.08);
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  border-radius: 6px;
+  padding: 3px 9px;
+  transition: all 0.15s ease;
+}
+
+a.pf-ask-cite:hover {
+  background: rgba(125, 211, 252, 0.16);
+}
+
 .pf-ask-blocks {
   display: flex;
   flex-direction: column;
