@@ -22,8 +22,9 @@ watchPatterns = [
 ]
 
 [deploy]
-# uv run uses the apps/api/.venv created by buildCommand. Custom start replaces
-# Railpack's Django default (migrate && gunicorn).
-startCommand = "cd apps/api && uv run gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"
+# Call the venv binary directly. `uv` is installed for the build via mise.toml,
+# but is not always present on the runtime image (known Railpack gap).
+# Custom start replaces Railpack's Django default (migrate && gunicorn).
+startCommand = "cd apps/api && .venv/bin/gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"
 healthcheckPath = "/health/"
 restartPolicyType = "ON_FAILURE"

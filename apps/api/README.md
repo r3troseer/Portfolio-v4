@@ -75,8 +75,9 @@ There is no Railway CLI CD workflow and no GitHub `RAILWAY_*` deploy secrets. Fu
   is `/` (no root `pyproject.toml` for autodetection).
 - **Start command** (from `railway.toml`; replaces Railpack's Django default):
   ```bash
-  cd apps/api && uv run gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application
+  cd apps/api && .venv/bin/gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application
   ```
+  Uses the `.venv` created at build time so runtime does not need `uv` on PATH.
 - **No `migrate` step.** Railpack's default is `migrate && gunicorn`; on this DB-less backend
   `migrate` fails. Do not add a `preDeployCommand` migrate until a real database exists.
 - **Runtime env vars** (Railway dashboard, per environment): `DJANGO_SECRET_KEY`,
