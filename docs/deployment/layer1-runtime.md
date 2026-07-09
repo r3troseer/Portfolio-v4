@@ -73,6 +73,11 @@ curl http://localhost:8080/health/
   to `dev` / `main`. Failed CI -> deploy skipped.
 - **Branch -> environment:** staging/dev tracks `dev`; production tracks `main`.
   Feature branches do not deploy.
+- **Port alignment:** set service variable `PORT=8000` and the public domain's
+  target port to `8000` (matching the Dockerfile `EXPOSE`). If the domain's
+  target port differs from the port gunicorn listens on, the healthcheck can
+  pass (it uses `PORT` directly) while public traffic 502s with "Application
+  failed to respond".
 - CORS origins must include the scheme, e.g.
   `https://agboola-pius-git-dev-r3troseers-projects.vercel.app` (not bare host).
 
@@ -81,13 +86,14 @@ curl http://localhost:8080/health/
 | Variable | Notes |
 |---|---|
 | `DJANGO_SECRET_KEY` | Required |
-| `DJANGO_ALLOWED_HOSTS` | Include the Railway domain |
+| `DJANGO_ALLOWED_HOSTS` | Railway domain **plus `healthcheck.railway.app`** - Railway healthchecks send that Host header; without it Django 400s the probe and the deploy fails as "service unavailable" |
 | `DJANGO_CORS_ALLOWED_ORIGINS` | Frontend origin(s), e.g. production site + local Vite |
 | `GEMINI_API_KEY` | Required for `/api/answer/` |
 | `GEMINI_MODEL` | `gemini-3.1-flash-lite` |
 | `ANSWER_PROVIDER` | `gemini` (`fake` is DEBUG-only; rejected when `DJANGO_DEBUG` is false) |
 | `GEMINI_TIMEOUT_SECONDS` | Optional; default `20` |
 | `DJANGO_DEBUG` | Unset / `false` in deployed environments |
+| `PORT` | `8000` - pins gunicorn, the healthcheck, and the domain target port to the Dockerfile's `EXPOSE`d port |
 
 ## Vercel (web)
 
