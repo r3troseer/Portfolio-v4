@@ -12,7 +12,8 @@ The production UI over the Layer 1 slice, ported from the profile handoff's **Ev
 The playground and Cmd+K modal now **compose an answer** and show the **evidence ledger**
 underneath. Reranking, the expanded retrieval-ledger inspector, passage/claim detail, model/API
 -key configuration, and slash commands are still backend behaviours that do not exist yet - see
-the fidelity map below (they remain CONFLICT/deferred).
+the fidelity map below (they remain CONFLICT/deferred). Placement of those deferred items in the
+layer sequence: [`roadmap-review.md`](./roadmap-review.md).
 
 ## Flow (as designed in the handoff)
 

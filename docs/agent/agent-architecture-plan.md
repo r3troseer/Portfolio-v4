@@ -6,7 +6,8 @@
 > retrieve -> server-side Gemini -> validated, cited answer) are live. Reranking, tools, chat
 > memory, generated UI, and `packages/contracts` remain future work. Safety, visibility, and
 > content rules live in [`layer-s-policy.md`](./layer-s-policy.md); this document references that
-> policy rather than repeating it.
+> policy rather than repeating it. For the pre-release live-vs-deferred register, see
+> [`roadmap-review.md`](./roadmap-review.md).
 
 The portfolio is phase one of a layered, recruiter-facing assistant (Layers S, 0, 1, 2, 2.5...).
 Layer 0 (the canonical public content foundation) is merged and the SPA now builds on Vite.
