@@ -16,16 +16,17 @@
 builder = "RAILPACK"
 # Run from monorepo root (Root Directory /). Sync API deps, then write the
 # gitignored evidence index artifact under apps/api/var/.
-buildCommand = "cd apps/api && uv sync --locked && uv run python manage.py build_evidence_index"
+# Use absolute path /app/apps/api to ensure .venv is created in the right place.
+buildCommand = "cd /app/apps/api && uv sync --locked && uv run python manage.py build_evidence_index"
 watchPatterns = [
   "/apps/api/**",
   "/apps/web/src/content/public/**",
 ]
 
 [deploy]
-# Activate venv and run gunicorn. The .venv is created by uv sync --locked
-# in buildCommand and persists in the image. We source the activate script
-# to put .venv/bin on PATH, then run gunicorn.
-startCommand = "cd apps/api && source .venv/bin/activate && gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"
+# Use the venv's Python directly to run gunicorn as a module.
+# The .venv is created by uv sync --locked in buildCommand and persists
+# in the image at /app/apps/api/.venv.
+startCommand = "cd /app/apps/api && .venv/bin/python -m gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"
 healthcheckPath = "/health/"
 restartPolicyType = "ON_FAILURE"
