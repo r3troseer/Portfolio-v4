@@ -171,10 +171,10 @@ lands (never over-promise now).
 The answer client (`apps/web/src/lib/answerClient.js`) and retrieval client
 (`apps/web/src/lib/retrievalClient.js`) share helpers in `apps/web/src/lib/apiClient.js` for
 API base URL resolution and safe JSON parsing:
-`VITE_API_BASE_URL` -> `http://localhost:8000` in local dev -> same-origin `/api` in production.
-Set `VITE_API_BASE_URL` (the Railway API origin) in the Vercel project for the deployed site -
-without it, same-origin `/api` is not the Railway backend. Non-JSON / HTML / empty ok bodies
-become typed `unavailable` (no React crash from `JSON.parse`). Deploy/runtime wiring:
+`VITE_API_BASE_URL` -> `http://localhost:8000` in local dev. Production builds fail when
+`VITE_API_BASE_URL` is missing; set the Railway API origin in the Vercel project. This is public
+build configuration, not a secret. Non-JSON / HTML / empty ok bodies become typed `unavailable`
+(no React crash from `JSON.parse`). Deploy/runtime wiring:
 [`docs/deployment/layer1-runtime.md`](../deployment/layer1-runtime.md).
 The playground and Cmd+K modal call `/api/answer/` by default; `/api/retrieve/` remains available
 as the raw ledger endpoint.

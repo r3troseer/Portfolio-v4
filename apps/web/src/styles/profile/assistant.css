@@ -339,6 +339,25 @@
   flex-shrink: 0;
 }
 
+.pf-ask-error > span {
+  flex: 1;
+}
+
+.pf-ask-retry {
+  flex-shrink: 0;
+  border: 1px solid rgba(252, 165, 165, 0.4);
+  border-radius: 7px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #fecaca;
+  padding: 5px 9px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pf-ask-retry:hover {
+  background: rgba(239, 68, 68, 0.16);
+}
+
 .pf-ask-empty {
   color: var(--slate-400);
   font-size: 0.88rem;

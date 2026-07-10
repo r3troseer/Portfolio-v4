@@ -30,7 +30,7 @@ export const AssistantShell = () => {
   const location = useLocation();
   const returnTo = `${location.pathname}${location.search}${location.hash}`;
 
-  const { result } = useGroundedAnswer(ran.query, ran.lens);
+  const { result, retry } = useGroundedAnswer(ran.query, ran.lens);
   const hasQueried = ran.query !== "";
   const isDone = hasQueried && result.status === "done";
   const hasAnswer =
@@ -90,11 +90,19 @@ export const AssistantShell = () => {
     e.preventDefault();
     const q = inputValue.trim();
     if (!q) return;
+    if (q === ran.query && ran.lens === undefined) {
+      retry();
+      return;
+    }
     setRan({ query: q, lens: undefined });
   };
 
   const runPreset = (p) => {
     setInputValue(p.query);
+    if (p.query === ran.query && p.roleLens === ran.lens) {
+      retry();
+      return;
+    }
     setRan({ query: p.query, lens: p.roleLens });
   };
 
@@ -192,6 +200,7 @@ export const AssistantShell = () => {
                     query={ran.query}
                     roleLens={ran.lens}
                     returnTo={returnTo}
+                    onRetry={retry}
                   />
                   {showLedger && (
                     <ModalEvidence

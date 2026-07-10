@@ -6,6 +6,7 @@ import { EvidenceResults } from "../components/EvidenceResults";
 import { GroundedAnswer } from "../components/GroundedAnswer";
 import { PRESETS, PRESET_BY_ID } from "../lib/playgroundPresets";
 import { getProfile } from "../content/adapters/profileAdapter";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import "../styles/profile/playground.css";
 
 // The Layer 1 evidence workspace, ported from the profile handoff's "Evidence"
@@ -87,6 +88,7 @@ export function Playground() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { name } = getProfile();
+  useDocumentTitle("Evidence Playground - Pius Agboola");
 
   const { query: requestedQuery, roleLens: requestedLens, stage } = resolveRequest(
     location.state,
@@ -94,7 +96,7 @@ export function Playground() {
   );
 
   const [inputValue, setInputValue] = useState(requestedQuery || stage);
-  const { result } = useGroundedAnswer(requestedQuery, requestedLens);
+  const { result, retry } = useGroundedAnswer(requestedQuery, requestedLens);
 
   // Mirror the resolved/staged query into the box when navigation changes it.
   useEffect(() => {
@@ -105,11 +107,26 @@ export function Playground() {
     e.preventDefault();
     const q = inputValue.trim();
     if (!q) return;
+    if (q === requestedQuery && requestedLens === undefined) {
+      retry();
+      return;
+    }
     // Free text goes via navigation state - never the URL.
     navigate("/playground", { state: { q } });
   };
 
-  const goPreset = (id) => navigate(`/playground?p=${id}`);
+  const goPreset = (id) => {
+    const preset = PRESET_BY_ID[id];
+    if (
+      preset &&
+      preset.query === requestedQuery &&
+      preset.roleLens === requestedLens
+    ) {
+      retry();
+      return;
+    }
+    navigate(`/playground?p=${id}`);
+  };
   const goPortfolio = () => navigate("/");
   const newQuery = () => navigate("/playground");
 
@@ -204,6 +221,7 @@ export function Playground() {
               variant="page"
               query={requestedQuery}
               roleLens={requestedLens}
+              onRetry={retry}
             />
             {hasEvidence && (
               <EvidenceResults

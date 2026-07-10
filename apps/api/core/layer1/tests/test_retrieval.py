@@ -21,6 +21,7 @@ from core.layer1.retrieval import (
     RetrievalValidationError,
     _load_corpus,
     _make_entry,
+    _tokenize,
     get_corpus,
     parse_retrieval_request,
     retrieve,
@@ -90,6 +91,30 @@ class RetrieveScoringTests(unittest.TestCase):
     def test_top_k_caps_result_count(self) -> None:
         query = RetrievalQuery(query="fixture public summary", top_k=1)
         self.assertEqual(len(retrieve(self.corpus, query)), 1)
+
+    def test_stopwords_do_not_change_scores(self) -> None:
+        plain = retrieve(self.corpus, RetrievalQuery(query="curated summary"))
+        with_fillers = retrieve(
+            self.corpus,
+            RetrievalQuery(query="please tell me about the curated summary"),
+        )
+        self.assertEqual(with_fillers, plain)
+
+    def test_all_stopword_query_returns_no_matches(self) -> None:
+        matches = retrieve(
+            self.corpus, RetrievalQuery(query="please tell me about the")
+        )
+        self.assertEqual(matches, ())
+
+    def test_meaningful_technical_terms_remain_tokens(self) -> None:
+        terms = (
+            "backend api django fastapi ai evidence fintech cloud data"
+        )
+        self.assertEqual(_tokenize(terms), tuple(terms.split()))
+
+    def test_stopword_filter_remains_deterministic(self) -> None:
+        query = RetrievalQuery(query="what can you tell me about curated public")
+        self.assertEqual(retrieve(self.corpus, query), retrieve(self.corpus, query))
 
 
 class ParseRetrievalRequestTests(unittest.TestCase):

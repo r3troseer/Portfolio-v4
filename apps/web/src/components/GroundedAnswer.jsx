@@ -9,7 +9,7 @@ import { genLabelFromQuery, renderProse, stripProseMarkup } from "../lib/renderP
 // - Modal: pf-ask-answer plain text only (Sources render in AssistantShell)
 // See docs/agent/layer1-playground.md.
 
-function PageComposeError({ detail }) {
+function PageComposeError({ detail, onRetry }) {
   return (
     <>
       <div className="pf-pg-ev-meta is-error">
@@ -17,6 +17,11 @@ function PageComposeError({ detail }) {
         <strong>/</strong>.
       </div>
       {detail ? <div className="pf-pg-ev-meta-detail">{detail}</div> : null}
+      {onRetry ? (
+        <button type="button" className="pf-pg-retry" onClick={onRetry}>
+          Try again
+        </button>
+      ) : null}
     </>
   );
 }
@@ -26,6 +31,7 @@ export function GroundedAnswer({
   variant = "page",
   query,
   roleLens,
+  onRetry,
 }) {
   const isModal = variant === "modal";
 
@@ -58,10 +64,17 @@ export function GroundedAnswer({
   if (result.status !== "done") return null;
 
   if (result.kind !== "ok") {
+    const retry = ["unavailable", "error"].includes(result.kind) ? onRetry : undefined;
     if (isModal) {
       return (
         <div className="pf-ask-error">
-          <AlertTriangle size={16} aria-hidden="true" /> {HANDOFF_MODAL_UNAVAILABLE}
+          <AlertTriangle size={16} aria-hidden="true" />
+          <span>{HANDOFF_MODAL_UNAVAILABLE}</span>
+          {retry ? (
+            <button type="button" className="pf-ask-retry" onClick={retry}>
+              Try again
+            </button>
+          ) : null}
         </div>
       );
     }
@@ -72,7 +85,7 @@ export function GroundedAnswer({
       result.kind === "error"
         ? result.message
         : undefined;
-    return <PageComposeError detail={detail} />;
+    return <PageComposeError detail={detail} onRetry={retry} />;
   }
 
   const { answerStatus, answer, citations } = result;

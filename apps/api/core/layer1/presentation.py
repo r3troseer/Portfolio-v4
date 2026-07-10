@@ -25,7 +25,13 @@ _REPO_ROOT = Path(__file__).resolve().parents[4]
 _PROJECT_INDEX_PATH = (
     _REPO_ROOT / "apps" / "web" / "src" / "content" / "public" / "projects" / "index.json"
 )
-_NARRATIVE_REF = "01"
+_PROFILE_REFS = {
+    "profile": "profile",
+    "skills": "skills",
+    "experience": "exp",
+    "education": "edu",
+    "links": "links",
+}
 
 
 def plain_text(value: str) -> str:
@@ -82,11 +88,6 @@ def match_dict(record: EvidenceRecord, score: int) -> dict[str, object]:
     }
 
 
-def citation_ref(index: int) -> str:
-    """Fallback zero-padded label when no handoff-style ref applies."""
-    return str(index).zfill(2)
-
-
 @lru_cache(maxsize=1)
 def _project_display_orders() -> dict[str, int]:
     """Map project id to registry displayOrder (handoff portfolioProjects index)."""
@@ -108,29 +109,26 @@ def _project_display_orders() -> dict[str, int]:
     return orders
 
 
-def citation_display_ref(record: EvidenceRecord) -> str | None:
-    """Handoff gen-cite label: ``exp``, project ``01``.., narrative ``01``, role-lens slug."""
-    if record.source_id == "experience":
-        return "exp"
+def citation_display_ref(record: EvidenceRecord) -> str:
+    """Stable semantic label; numeric refs are reserved for project order."""
     if record.source_type == SOURCE_PROJECT and record.project_id:
         order = _project_display_orders().get(record.project_id)
         if order is not None:
             return str(order).zfill(2)
-    if record.id in ("profile:profile", "markdown:about"):
-        return _NARRATIVE_REF
-    if (
-        record.source_type == SOURCE_MARKDOWN
-        and record.source_id.startswith("role-lenses/")
-    ):
-        slug = record.source_id.removeprefix("role-lenses/").strip()
-        if slug:
-            return slug
-    return None
+        return "src"
+    if record.source_type == SOURCE_PROFILE:
+        return _PROFILE_REFS.get(record.source_id, "src")
+    if record.source_type == SOURCE_MARKDOWN:
+        if record.source_id == "about":
+            return "about"
+        slug = record.source_id.rstrip("/").rsplit("/", 1)[-1].removesuffix(".md")
+        return slug or "doc"
+    return "src"
 
 
-def resolve_citation_ref(record: EvidenceRecord, *, fallback_index: int) -> str:
-    """Prefer handoff-style labels; fall back to retrieval rank for other evidence types."""
-    return citation_display_ref(record) or citation_ref(fallback_index)
+def resolve_citation_ref(record: EvidenceRecord) -> str:
+    """Resolve a display ref without using retrieval rank."""
+    return citation_display_ref(record)
 
 
 def citation_dict(

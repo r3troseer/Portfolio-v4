@@ -66,6 +66,10 @@ Policy intent: [`layer-s-policy.md`](./layer-s-policy.md). Enforcement matrix de
 | CORS allowlist | `apps/api` foundation |
 | Request-size cap | `apps/api` foundation |
 | Basic anon rate limiting | Exists as a foundation - **not** sufficient alone for production answer spend |
+| Answer-scoped throttle | `ANSWER_THROTTLE_RATE`; separate from the looser retrieve bucket |
+| Answer kill switch | `ANSWER_ENDPOINT_ENABLED=false` returns controlled 503 before Gemini |
+| Soft daily answer caps | Optional process-local global/per-client UTC-day counters |
+| Proxy-aware identity | DRF trusted-proxy count via `DJANGO_NUM_PROXIES` |
 | Server-side secrets / model config only | Railway env; never in `apps/web` |
 
 ### Pre-prod release gates (answer cost / abuse)
@@ -75,10 +79,10 @@ production. Before main release:
 
 | Gate | Why |
 |---|---|
-| Scoped `/api/answer/` throttle | Bound paid answer calls separately from cheap retrieve |
-| Proxy-aware throttle identity | Correct client identity behind Vercel / Railway / CDN |
-| Worker / cache multiplier decision | Align throttle math with gunicorn workers and cache backend |
-| Coarse daily / budget cap or kill switch | Hard stop when spend or volume is wrong |
+| Scoped `/api/answer/` throttle | Implemented; bound paid answer calls separately from cheap retrieve |
+| Proxy-aware throttle identity | Implemented; configure the trusted proxy count per runtime |
+| Worker / cache multiplier decision | Two workers now; counters are soft/process-local until Redis |
+| Coarse daily / budget cap or kill switch | Implemented; optional daily caps plus env kill switch |
 | External Gemini billing / quota cap | Operational protection outside the app |
 
 ### Deferred (not cut)
@@ -127,6 +131,8 @@ Required before the Layer 1 main release. Do not fake backend behaviours in the 
 
 Cheap wins above are pre-prod polish, not hard blockers on their own; cost controls, safe
 truncation, citation refs, and real rerank + ledger are the substantive pre-prod gates.
+The hardening branch implements every row above except reranking + the expanded retrieval
+ledger, which remains the next separate pre-prod completion branch.
 
 ### B. Post-release deferred Layer 1 / later
 

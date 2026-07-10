@@ -21,7 +21,11 @@ export function useGroundedAnswer(query, roleLens) {
     const controller = new AbortController();
     setResult({ status: "loading" });
     getGroundedAnswer({ query: q, roleLens, signal: controller.signal })
-      .then((r) => setResult({ status: "done", ...r }))
+      .then((r) => {
+        if (!controller.signal.aborted) {
+          setResult({ status: "done", ...r });
+        }
+      })
       .catch((err) => {
         if (err?.name === "AbortError") return;
         setResult({

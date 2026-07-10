@@ -1,15 +1,15 @@
 """
 Django settings for the portfolio-api skeleton (Django 6.0 + DRF).
 
-Health-check-only backend (migration step 3 of docs/agent/agent-architecture-plan.md).
+API-only backend for the Layer 1 retrieval and grounded-answer surfaces.
 Deliberately minimal: no DB, no admin/auth/sessions, no models. Configuration is read
 from the environment via python-decouple (``config.env``). For local development,
 ``apps/api/.env`` is read by AutoConfig; process env still overrides file values.
 
 Layer S note: the CORS allowlist, DRF throttling, request-size limit, and fail-closed defaults
-below are *foundations* for the runtime abuse controls in docs/agent/layer-s-policy.md - not a
-full abuse-control system. Concurrency limits, token/output budgets, and prompt/log
-minimisation arrive with Layer 1.
+below are foundations for the runtime abuse controls in docs/agent/layer-s-policy.md.
+Answer-specific throttling and soft process-local daily limits protect paid calls;
+shared counters and fuller budgets remain later infrastructure.
 """
 
 from config.env import Csv, config
@@ -34,7 +34,7 @@ INSTALLED_APPS = [
     "core",
 ]
 
-# Minimal middleware for an API-only, GET-only skeleton: no sessions/auth/CSRF.
+# Minimal middleware for a JSON API: no sessions/auth/CSRF.
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -81,13 +81,18 @@ REST_FRAMEWORK = {
     # Default is django.contrib.auth.models.AnonymousUser, imported per request -
     # which would pull in contrib.auth/contenttypes. None avoids that import.
     "UNAUTHENTICATED_USER": None,
-    # Layer S rate-limit foundation (placeholder). Tune via DJANGO_ANON_THROTTLE_RATE.
+    # Retrieval and other anonymous requests keep this looser default bucket.
+    # /api/answer/ overrides it with the paid-call-specific "answer" scope.
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
         "anon": config("DJANGO_ANON_THROTTLE_RATE", default="60/min"),
+        "answer": config("ANSWER_THROTTLE_RATE", default="6/min"),
     },
+    # Railway is the one trusted proxy in front of the app. DRF uses this to
+    # resolve the client address from X-Forwarded-For instead of REMOTE_ADDR.
+    "NUM_PROXIES": max(0, config("DJANGO_NUM_PROXIES", default=1, cast=int)),
 }
 
 # Dev only: enable DRF's browsable API for manual endpoint testing. Needs the
@@ -111,6 +116,16 @@ if DEBUG:
 # This bounds payload size now; full message-length / token budgets come with Layer 1.
 DATA_UPLOAD_MAX_MEMORY_SIZE = config(
     "DJANGO_DATA_UPLOAD_MAX_MEMORY_SIZE", default=1024 * 1024, cast=int
+)
+
+# Paid answer controls. Daily counters are intentionally soft and process-local
+# until a shared cache is introduced; zero disables the corresponding cap.
+ANSWER_ENDPOINT_ENABLED = config("ANSWER_ENDPOINT_ENABLED", default=True, cast=bool)
+ANSWER_DAILY_SOFT_LIMIT = max(
+    0, config("ANSWER_DAILY_SOFT_LIMIT", default=0, cast=int)
+)
+ANSWER_PER_CLIENT_DAILY_LIMIT = max(
+    0, config("ANSWER_PER_CLIENT_DAILY_LIMIT", default=0, cast=int)
 )
 
 

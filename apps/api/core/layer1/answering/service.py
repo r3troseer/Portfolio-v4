@@ -13,6 +13,7 @@ injectable so tests never call a real model.
 
 from typing import Any
 
+from core.layer1.answering.limits import reserve_answer_call
 from core.layer1.answering.prompts import SYSTEM_PROMPT, build_user_prompt
 from core.layer1.answering.providers import AnswerProvider, get_provider
 from core.layer1.answering.schemas import (
@@ -47,7 +48,10 @@ def _insufficient(
 
 
 def generate_answer(
-    data: Any, *, provider: AnswerProvider | None = None
+    data: Any,
+    *,
+    provider: AnswerProvider | None = None,
+    client_id: str | None = None,
 ) -> dict[str, object]:
     """Produce a grounded answer payload for a request body.
 
@@ -71,6 +75,9 @@ def generate_answer(
     if not matches:
         return _insufficient(evidence, meta_base)
 
+    if client_id is not None:
+        reserve_answer_call(client_id)
+
     provider = provider or get_provider()
     user_prompt = build_user_prompt(query.query, matches, query.role_lens)
     raw = provider.generate(system=SYSTEM_PROMPT, user=user_prompt)
@@ -82,8 +89,8 @@ def generate_answer(
         records_by_id = {m.record.id: m.record for m in matches}
         scores_by_id = {m.record.id: m.score for m in matches}
         refs_by_id = {
-            m.record.id: resolve_citation_ref(m.record, fallback_index=index)
-            for index, m in enumerate(matches, 1)
+            m.record.id: resolve_citation_ref(m.record)
+            for m in matches
         }
         citations = [
             citation_dict(
