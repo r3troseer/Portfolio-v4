@@ -10,10 +10,11 @@ The production UI over the Layer 1 slice, ported from the profile handoff's **Ev
   lexical retrieval over source entities.
 
 The playground and Cmd+K modal now **compose an answer** and show the **evidence ledger**
-underneath. Reranking, the expanded retrieval-ledger inspector, passage/claim detail, model/API
--key configuration, and slash commands are still backend behaviours that do not exist yet - see
-the fidelity map below (they remain CONFLICT/deferred). Placement of those deferred items in the
-layer sequence: [`roadmap-review.md`](./roadmap-review.md).
+underneath. Dev retrieval is still single-pass lexical. **Reranking + the exact expanded
+retrieval ledger are pre-prod Layer 1 completion** (backend-backed; not frontend-fabricated).
+Passage/claim detail, model/API-key configuration, and slash commands remain CONFLICT/deferred
+post-release - see the fidelity map below. Live / pre-prod / deferred placement:
+[`roadmap-review.md`](./roadmap-review.md).
 
 ## Flow (as designed in the handoff)
 
@@ -101,9 +102,10 @@ Production re-authors the handoff page answer surface under **`pf-pg-gen-*`** (`
   (single atomic response; no token-by-token UI, no trailing "composing..." loader). No chat memory or `blocks`
   yet. Prompt text: `apps/api/core/layer1/answering/prompts.py`.
 - **Reranking + expanded Retrieval Ledger** - `rag-reveal*` / `rag-insp*` (the pre->post rerank
-  inspector; the "Open in Playground" handoff copy promises "scores, reranking"). **CONFLICT:**
-  the current ledger is single-pass lexical retrieval over source entities. Needs a backend rerank
-  step that exposes pre- and post-rerank candidate sets.
+  inspector; the "Open in Playground" handoff copy promises "scores, reranking"). **CONFLICT
+  (pre-prod Layer 1 completion):** the current ledger is single-pass lexical retrieval over
+  source entities. Needs a backend rerank step that exposes pre- and post-rerank candidate sets.
+  Do not fabricate the inspector client-side. Placement: [`roadmap-review.md`](./roadmap-review.md).
 - **Refusal / scope-guard as a response state** - `pf-ask-refusal`, `assistant.refusal`.
   **LIVE (via `/api/answer/`):** `refused` is a first-class answer status with a server-authored
   message and no citations/evidence, rendered as the boxed modal refusal row (`pf-ask-refusal`)

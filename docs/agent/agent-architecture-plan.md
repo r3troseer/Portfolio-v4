@@ -3,10 +3,12 @@
 > **Status: living document - target architecture with partial implementation.**
 > Layer 0, the monorepo layout (`apps/web`, `apps/api`), the public evidence index, lexical
 > retrieval, the web evidence UI, and the first **grounded-answer slice** (`POST /api/answer/`:
-> retrieve -> server-side Gemini -> validated, cited answer) are live. Reranking, tools, chat
-> memory, generated UI, and `packages/contracts` remain future work. Safety, visibility, and
-> content rules live in [`layer-s-policy.md`](./layer-s-policy.md); this document references that
-> policy rather than repeating it. For the pre-release live-vs-deferred register, see
+> retrieve -> server-side Gemini -> validated, cited answer) are live. Dev retrieval is still
+> single-pass lexical; **real reranking + the expanded evidence ledger are pre-prod Layer 1
+> completion**, not post-release deferrals. Tools, chat memory, generated UI, and
+> `packages/contracts` remain later work. Safety, visibility, and content rules live in
+> [`layer-s-policy.md`](./layer-s-policy.md); this document references that policy rather than
+> repeating it. For the live / pre-prod / deferred register, see
 > [`roadmap-review.md`](./roadmap-review.md).
 
 The portfolio is phase one of a layered, recruiter-facing assistant (Layers S, 0, 1, 2, 2.5...).
@@ -37,8 +39,9 @@ sets the target shape and the migration sequence so each step stays small and re
   autodeploy gated by existing CI (Wait for CI; `railway.toml` config-as-code - see
   [`docs/deployment/layer1-runtime.md`](../deployment/layer1-runtime.md)). Health check, Layer 1
   lexical retrieval (`POST /api/retrieve/`), and the grounded-answer endpoint (`POST /api/answer/`,
-  server-side Gemini with output validation) are live. No database, vector store, reranking, or
-  agent tooling yet.
+  server-side Gemini with output validation) are live. No database, vector store, or agent
+  tooling yet. Reranking is not live on dev; it is a pre-prod Layer 1 completion target (see
+  [`roadmap-review.md`](./roadmap-review.md)).
 
 ---
 
@@ -60,8 +63,9 @@ repo-root/
   routes, content, adapters, and analytics. Migration must be a relocation, not a rewrite.
 - **`apps/api`** - Django / DRF, **deployed separately** from Vercel on Railway (GitHub
   autodeploy after CI; no Railway CLI CD). Owns the evidence index and lexical retrieval
-  (`POST /api/retrieve/`) today; the grounded-answer runtime is live; reranking and tools land
-  in later slices. The web app calls it over HTTP; they are never co-deployed.
+  (`POST /api/retrieve/`) today; the grounded-answer runtime is live; reranking is a pre-prod
+  Layer 1 completion target (not live on dev yet); tools land in later slices. The web app
+  calls it over HTTP; they are never co-deployed.
 - **`packages/contracts`** - shared, language-agnostic schemas so web and api never drift:
   the **content shape** (already de-facto defined by Layer 0), **agent response schemas**
   (grounded answers + evidence), and the **typed UI-spec schema** (Layer 2.5). Added only when
@@ -92,8 +96,10 @@ answer egress, refusal, answer-pipeline budgets) remain future work.
   evidence; unknown citations, malformed model output, or unsupported statuses fail closed (502).
 - **Refusal / insufficient-evidence as first-class responses** with server-authored messages
   (the model's prose is discarded for those states) and an answer length cap.
-- Runtime foundations: CORS allowlist, anon rate limiting, request-size cap, server-side secrets
-  only, model keys/config server-side only (see `apps/api/README.md`).
+- Runtime foundations: CORS allowlist, request-size cap, basic anon rate limiting (not yet
+  sufficient for production answer spend - see [`roadmap-review.md`](./roadmap-review.md)
+  pre-prod answer cost gates), server-side secrets only, model keys/config server-side only
+  (see `apps/api/README.md`).
 
 **Still documentation-only or incomplete**
 - **`packages/contracts` schema validation** - content checks exist in `validate-content.mjs`;
@@ -181,8 +187,9 @@ Practical view of each rule: where it is enforced, what happens on violation, an
 > (`POST /api/answer/`: retrieve -> server-side Gemini -> validated, cited answer) are
 > implemented; see [`layer1-evidence-index.md`](./layer1-evidence-index.md) and
 > [`layer1-playground.md`](./layer1-playground.md). The web UI (Cmd+K + `/playground`) composes
-> answers with citations and refusal/insufficient states. **Reranking**, a full chat surface
-> (memory, streaming), tools, and generated UI remain deferred.
+> answers with citations and refusal/insufficient states. **Reranking + the expanded evidence
+> ledger are pre-prod Layer 1 completion** (not live on dev yet). A full chat surface (memory,
+> streaming), tools, and generated UI remain deferred. See [`roadmap-review.md`](./roadmap-review.md).
 
 Layer 1 is a **public portfolio assistant only**. Deliberately small:
 
@@ -208,23 +215,24 @@ stay **API-local** (see `apps/api/README.md`, `core/layer1/records.py`, and
 The evidence playground ([`layer1-playground.md`](./layer1-playground.md)) ports the profile
 handoff's "Evidence" view. Its retrieval and grounded-answer surfaces are live against
 `POST /api/retrieve/` and `POST /api/answer/`. The affordances below are intentional in the
-handoff; those still marked *deferred* depend on backend behaviours that do not exist yet - they
-are **deferred, not cut**, and must be built server-side (never faked in the browser):
+handoff; those still marked *deferred* or *pre-prod* depend on backend behaviours that do not
+exist yet - they are **not cut**, and must be built server-side (never faked in the browser).
+Placement: [`roadmap-review.md`](./roadmap-review.md).
 
 1. **Grounded answers** - LIVE. A cited, grounded answer for a query (retrieval + server-side
    model) drives the modal/page answer, citations, and the `composing -> answered` phases via
    `POST /api/answer/`. No streaming or `blocks` yet.
-2. **Reranking + retrieval ledger** - deferred. A rerank step over the lexical candidates that
-   exposes pre- and post-rerank candidate sets, so the UI can show the expanded Retrieval Ledger
-   (`rag-reveal` / `rag-insp`) and the "scores, reranking" the handoff promises. Retrieval is
-   single-pass lexical over source entities today.
+2. **Reranking + retrieval ledger** - pre-prod Layer 1 completion. A rerank step over the
+   lexical candidates that exposes pre- and post-rerank candidate sets, so the UI can show the
+   expanded Retrieval Ledger (`rag-reveal` / `rag-insp`) and the "scores, reranking" the handoff
+   promises. Retrieval is single-pass lexical over source entities today.
 3. **Refusal as a response state** - LIVE. `refused` is a first-class answer status with a
    server-authored message, rendered as the assistant's refusal card, not an error.
-4. **Passage / claim detail** - deferred. Per-entity passages, claims, and signals behind a result,
+4. **Passage / claim detail** - deferred (post-release). Per-entity passages, claims, and signals behind a result,
    backing a passage-detail view (the evidence cards currently link to the existing project-
    detail page where a `project_id` exists; records without one are intentionally static). The
    index carries summary-level `text` plus a short display `snippet` today.
-5. **Slash commands** - deferred. The generative/canned slash commands (`/answer`, `/quote`,
+5. **Slash commands** - deferred (post-release). The generative/canned slash commands (`/answer`, `/quote`,
    `/recruiter` ...) build on the grounded-answer behaviour; the menu itself is a frontend
    affordance not yet ported.
 
@@ -264,6 +272,7 @@ Small, ordered, reversible steps. Each step lands before the next begins.
    answer surface to the api. Lands in slices: the evidence index, retrieval endpoint,
    retrieval-ledger UI, and the **grounded-answer slice** (`POST /api/answer/` + answer UI) are
    done ([`layer1-evidence-index.md`](./layer1-evidence-index.md),
-   [`layer1-playground.md`](./layer1-playground.md)); reranking and a full chat surface remain.
+   [`layer1-playground.md`](./layer1-playground.md)); reranking + expanded ledger remain
+   pre-prod completion; a full chat surface remains deferred.
 
 Layers 2 / 2.5 follow only after Layer 1 is solid.
