@@ -98,6 +98,11 @@ Production re-authors the handoff page answer surface under **`pf-pg-gen-*`** (`
   ledger there too).
 - Page loading: `ev-gen-status` with static `retrieving evidence · composing interface` copy
   (single loader until the full answer payload arrives - **no fake streaming**).
+- Page-lead headline (`gen-headline` -> `pf-pg-gen-headline`): an h2 lead statement plus one
+  dim supporting line above the prose. **Model-authored, backend-validated** - the answer
+  payload's optional `headline` `{title, sub}` (plain text; markup or malformed shapes are
+  dropped fail-soft server-side without affecting the answer). Rendered only when the model
+  provides one; never fabricated client-side. Modal stays headline-free (handoff parity).
 - Page answer: `gen-prose` with `[[evidence_id]]` -> `pf-pg-gen-cite` chips (handoff display
   labels from API `citations[].ref`: `exp`, project `displayOrder`, narrative `01`, role-lens
   slug, else retrieval rank) and `==highlight==` -> `pf-pg-ev-mark` spans.

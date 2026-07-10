@@ -25,7 +25,7 @@ const ANSWER_URL = `${resolveApiBase()}/api/answer/`;
  * @param {string} [args.roleLens] - optional soft ranking boost (never a filter).
  * @param {AbortSignal} [args.signal] - to cancel a superseded request.
  * @returns {Promise<
- *   | { kind: "ok", answerStatus: string, answer: string, citations: object[], evidence: object[], ledger: object | null, meta: object }
+ *   | { kind: "ok", answerStatus: string, answer: string, citations: object[], evidence: object[], headline: object | null, ledger: object | null, meta: object }
  *   | { kind: "invalid", message: string }
  *   | { kind: "unavailable", message: string }
  *   | { kind: "malformed", message: string }
@@ -65,6 +65,10 @@ export async function getGroundedAnswer({ query, topK = 5, roleLens, signal }) {
       answer: typeof data?.answer === "string" ? data.answer : "",
       citations: Array.isArray(data?.citations) ? data.citations : [],
       evidence: Array.isArray(data?.evidence) ? data.evidence : [],
+      headline:
+        typeof data?.headline?.title === "string" && data.headline.title
+          ? data.headline
+          : null,
       ledger: data?.ledger ?? null,
       meta: data?.meta ?? {},
     };

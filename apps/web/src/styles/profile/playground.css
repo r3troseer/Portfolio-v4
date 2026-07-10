@@ -890,6 +890,24 @@
   }
 }
 
+/* Page-lead headline (handoff gen-headline: h2 lead statement + one sub line). */
+.pf-pg-gen-headline h2 {
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  line-height: 1.14;
+  color: var(--slate-50);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.pf-pg-gen-headline p {
+  margin: 12px 0 0;
+  font-size: var(--font-size-base);
+  color: var(--ev-dim);
+  max-width: 56ch;
+  line-height: 1.55;
+}
+
 .pf-pg-gen-prose p {
   font-size: var(--font-size-lg);
   line-height: 1.65;

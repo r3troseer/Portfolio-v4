@@ -88,7 +88,7 @@ export function GroundedAnswer({
     return <PageComposeError detail={detail} onRetry={retry} />;
   }
 
-  const { answerStatus, answer, citations } = result;
+  const { answerStatus, answer, citations, headline } = result;
 
   if (answerStatus === "refused") {
     if (isModal) {
@@ -118,6 +118,14 @@ export function GroundedAnswer({
 
   return (
     <div className="pf-pg-gen-page">
+      {headline?.title ? (
+        <div className="pf-pg-gen-node pf-pg-gen-node-in">
+          <div className="pf-pg-gen-headline">
+            <h2>{headline.title}</h2>
+            {headline.sub ? <p>{headline.sub}</p> : null}
+          </div>
+        </div>
+      ) : null}
       <div className="pf-pg-gen-node pf-pg-gen-node-in">
         <div className="pf-pg-gen-prose">
           <p>{renderProse(answer, citations, { query, roleLens })}</p>
