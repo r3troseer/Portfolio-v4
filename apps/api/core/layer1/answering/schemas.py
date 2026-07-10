@@ -25,6 +25,11 @@ ANSWER_STATUSES: frozenset[str] = frozenset(
 # Output budget: cap the served answer length (Layer S output-budget foundation).
 ANSWER_MAX_LENGTH = 1200
 
+# Optional page-lead headline (handoff gen-headline: lead statement + one
+# supporting line). Length caps mirror the prototype's plain-text bounds.
+HEADLINE_TITLE_MAX = 140
+HEADLINE_SUB_MAX = 220
+
 # Handoff prose mini-markup (page gen-prose): ==highlight== and [[evidence_id]].
 PROSE_CITE_RE = re.compile(r"\[\[\s*([^\]]+?)\s*\]\]", re.IGNORECASE)
 PROSE_HIGHLIGHT_RE = re.compile(r"==([^=]+)==")
@@ -57,11 +62,15 @@ class AnswerOutputError(ValueError):
 @dataclass(frozen=True)
 class ModelOutput:
     """A validated model result. ``answer`` is meaningful only for ``answered``;
-    ``citation_ids`` is a de-duplicated subset of the retrieved evidence ids."""
+    ``citation_ids`` is a de-duplicated subset of the retrieved evidence ids.
+    ``headline_title``/``headline_sub`` carry the optional page-lead headline
+    (empty strings when absent or dropped by validation)."""
 
     status: str
     answer: str
     citation_ids: tuple[str, ...]
+    headline_title: str = ""
+    headline_sub: str = ""
 
 
 def _normalize_citation_token(raw: str) -> str:
@@ -108,6 +117,37 @@ def _protected_spans(answer: str) -> tuple[tuple[int, int], ...]:
 
 def _is_safe_boundary(index: int, spans: tuple[tuple[int, int], ...]) -> bool:
     return not any(start < index < end for start, end in spans)
+
+
+def _clip_plain(text: str, max_length: int) -> str:
+    """Cap plain headline text at a whitespace boundary (no protected spans)."""
+    if len(text) <= max_length:
+        return text
+    clipped = text[:max_length].rsplit(None, 1)[0].rstrip()
+    return clipped or text[:max_length].rstrip()
+
+
+def parse_headline(data: dict[str, Any]) -> tuple[str, str]:
+    """Extract the optional plain-text headline; drop it rather than fail.
+
+    The headline is decorative page framing, not grounding - so unlike
+    citations it fails soft by contract: a missing/malformed headline, or one
+    carrying prose markup ([[...]] / ==...==), returns ("", "") and never
+    blocks an otherwise valid grounded answer.
+    """
+    headline = data.get("headline")
+    if not isinstance(headline, dict):
+        return "", ""
+    title_raw = headline.get("title")
+    if not isinstance(title_raw, str) or not title_raw.strip():
+        return "", ""
+    sub_raw = headline.get("sub")
+    sub = sub_raw.strip() if isinstance(sub_raw, str) else ""
+    title = title_raw.strip()
+    for value in (title, sub):
+        if PROSE_CITE_RE.search(value) or PROSE_HIGHLIGHT_RE.search(value):
+            return "", ""
+    return _clip_plain(title, HEADLINE_TITLE_MAX), _clip_plain(sub, HEADLINE_SUB_MAX)
 
 
 def truncate_answer_prose(answer: str, max_length: int = ANSWER_MAX_LENGTH) -> str:
@@ -215,8 +255,11 @@ def validate_model_output(
     if not served_citation_ids:
         raise AnswerOutputError("truncation removed every citation marker")
 
+    headline_title, headline_sub = parse_headline(data)
     return ModelOutput(
         status=status,
         answer=served_answer,
         citation_ids=served_citation_ids,
+        headline_title=headline_title,
+        headline_sub=headline_sub,
     )

@@ -28,10 +28,11 @@ Rules:
 - Use one id per [[...]] marker; do not combine multiple ids in a single marker.
 - citation_ids must list every id referenced in [[...]] markers (de-duplicated, id values only).
 - Do not use numeric [1] or [01] markers in the answer - those are display labels computed by the UI.
+- For status "answered", also return "headline": a short plain-text page lead with "title" (a direct lead statement answering the question, under 100 characters) and "sub" (one supporting line). No [[...]], ==...==, or markdown in the headline. Omit "headline" for insufficient_evidence and refused.
 - Return JSON only.
 
 Return strictly this JSON shape and nothing else:
-{"status": "answered" | "insufficient_evidence" | "refused", "answer": "string", "citation_ids": ["id", ...]}
+{"status": "answered" | "insufficient_evidence" | "refused", "answer": "string", "citation_ids": ["id", ...], "headline": {"title": "string", "sub": "string"}}
 
 The citation_ids must be drawn only from the id values supplied below. For insufficient_evidence and refused, return an empty citation_ids list."""
 

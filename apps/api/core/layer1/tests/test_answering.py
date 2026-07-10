@@ -23,10 +23,12 @@ from core.layer1.answering.limits import (
 from core.layer1.answering.providers.fake import FakeProvider
 from core.layer1.answering.schemas import (
     ANSWER_MAX_LENGTH,
+    HEADLINE_TITLE_MAX,
     INSUFFICIENT_MESSAGE,
     REFUSED_MESSAGE,
     AnswerOutputError,
     normalize_answer_prose,
+    parse_headline,
     parse_prose_markup,
     truncate_answer_prose,
     validate_model_output,
@@ -296,6 +298,68 @@ class TruncateAnswerProseTests(unittest.TestCase):
             truncate_answer_prose("x" * (ANSWER_MAX_LENGTH + 1))
 
 
+class ParseHeadlineTests(unittest.TestCase):
+    IDS = ("project:a",)
+
+    def _answered(self, headline: object) -> str:
+        return json.dumps(
+            {
+                "status": "answered",
+                "answer": _marked_answer("project:a"),
+                "citation_ids": ["project:a"],
+                "headline": headline,
+            }
+        )
+
+    def test_valid_headline_is_served(self) -> None:
+        out = validate_model_output(
+            self._answered({"title": "Lead statement", "sub": "Supporting line"}),
+            self.IDS,
+        )
+        self.assertEqual(out.headline_title, "Lead statement")
+        self.assertEqual(out.headline_sub, "Supporting line")
+
+    def test_missing_headline_yields_empty_strings(self) -> None:
+        out = validate_model_output(
+            _fake_json("answered", _marked_answer("project:a"), ["project:a"]),
+            self.IDS,
+        )
+        self.assertEqual(out.headline_title, "")
+        self.assertEqual(out.headline_sub, "")
+
+    def test_malformed_headline_is_dropped_not_fatal(self) -> None:
+        for bad in ("just a string", ["list"], {"sub": "no title"}, {"title": "  "}):
+            out = validate_model_output(self._answered(bad), self.IDS)
+            self.assertEqual(out.headline_title, "", msg=repr(bad))
+
+    def test_headline_with_prose_markup_is_dropped(self) -> None:
+        for bad in (
+            {"title": "Cites [[project:a]] inline", "sub": "ok"},
+            {"title": "ok", "sub": "has ==highlight== span"},
+        ):
+            out = validate_model_output(self._answered(bad), self.IDS)
+            self.assertEqual(out.headline_title, "", msg=repr(bad))
+
+    def test_overlong_title_is_clipped_at_whitespace(self) -> None:
+        long_title = "word " * 60
+        title, _ = parse_headline({"headline": {"title": long_title, "sub": ""}})
+        self.assertLessEqual(len(title), HEADLINE_TITLE_MAX)
+        self.assertFalse(title.endswith(" "))
+        self.assertTrue(title)
+
+    def test_non_answered_status_ignores_headline(self) -> None:
+        raw = json.dumps(
+            {
+                "status": "refused",
+                "answer": "ignored",
+                "citation_ids": [],
+                "headline": {"title": "Should not survive", "sub": ""},
+            }
+        )
+        out = validate_model_output(raw, self.IDS)
+        self.assertEqual(out.headline_title, "")
+
+
 class GenerateAnswerServiceTests(SimpleTestCase):
     """Service-level flow with an injected FakeProvider (no model calls)."""
 
@@ -360,6 +424,29 @@ class GenerateAnswerServiceTests(SimpleTestCase):
         self.assertIn(f"id: {selected_id}", provider.last_user)
         for unselected_id in unselected_ids:
             self.assertNotIn(f"id: {unselected_id}", provider.last_user)
+
+    def test_answered_payload_includes_headline_when_model_provides_one(self) -> None:
+        evidence_id = self._first_matching_id()
+        raw = json.dumps(
+            {
+                "status": "answered",
+                "answer": _marked_answer(evidence_id),
+                "citation_ids": [evidence_id],
+                "headline": {"title": "Lead statement", "sub": "Supporting line"},
+            }
+        )
+        result = generate_answer({"query": MATCHING_QUERY}, provider=FakeProvider(raw))
+        self.assertEqual(
+            result["headline"], {"title": "Lead statement", "sub": "Supporting line"}
+        )
+
+    def test_answered_payload_headline_is_none_when_absent(self) -> None:
+        evidence_id = self._first_matching_id()
+        provider = FakeProvider(
+            _fake_json("answered", _marked_answer(evidence_id), [evidence_id])
+        )
+        result = generate_answer({"query": MATCHING_QUERY}, provider=provider)
+        self.assertIsNone(result["headline"])
 
     def test_answer_payload_includes_ledger_and_meta_counts(self) -> None:
         evidence_id = self._first_matching_id()

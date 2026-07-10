@@ -111,11 +111,17 @@ def generate_answer(
             )
             for cid in output.citation_ids
         ]
+        headline = (
+            {"title": output.headline_title, "sub": output.headline_sub}
+            if output.headline_title
+            else None
+        )
         return {
             "status": STATUS_ANSWERED,
             "answer": output.answer,
             "citations": citations,
             "evidence": evidence,
+            "headline": headline,
             "ledger": ledger,
             "meta": {
                 **meta_base,

@@ -199,8 +199,11 @@ Statuses (all HTTP `200`):
 
 - `answered` - a grounded answer plus `citations` (hydrated from selected evidence), the
   `evidence` list (the selected reranked evidence used for answering), the retrieval
-  `ledger` (same shape as `/api/retrieve/`), and `meta` (`model`, `provider`,
-  `retrieval_count`, `initial_count`, `selected_count`, `reranker`, `index_source`).
+  `ledger` (same shape as `/api/retrieve/`), an optional `headline`
+  (`{"title", "sub"} | null` - a model-authored plain-text page lead rendered above the
+  answer prose; validated fail-soft: markup or malformed shapes drop the headline without
+  affecting the answer), and `meta` (`model`, `provider`, `retrieval_count`,
+  `initial_count`, `selected_count`, `reranker`, `index_source`).
   The `answer` string uses handoff prose mini-markup for page rendering:
   `[[evidence_id]]` entity refs (exact ids from the selected evidence) and optional
   `==highlight==` spans (max 3). `citation_ids` must match every `[[...]]` marker. Each
