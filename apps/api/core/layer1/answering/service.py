@@ -2,13 +2,13 @@
 
 Flow (fail-closed at each step):
 
-  parse request -> load corpus -> retrieve evidence
+  parse request -> load corpus -> retrieve candidates -> deterministic rerank
     -> no evidence: return insufficient_evidence WITHOUT calling a provider
-    -> build prompt -> provider.generate -> validate model JSON vs retrieved ids
-    -> hydrate citations from the matched records -> assemble response
+    -> build prompt from SELECTED evidence only -> provider.generate
+    -> validate model JSON vs selected ids (citing an unselected candidate
+       fails closed) -> hydrate citations -> assemble response with the ledger
 
-Retrieval is consumed exactly as-is (no algorithm change here). The provider is
-injectable so tests never call a real model.
+The provider is injectable so tests never call a real model.
 """
 
 from typing import Any
@@ -26,23 +26,27 @@ from core.layer1.answering.schemas import (
     STATUS_REFUSED,
     validate_model_output,
 )
-from core.layer1.presentation import citation_dict, match_dict, resolve_citation_ref
-from core.layer1.retrieval import (
-    ScoredMatch,
-    get_corpus,
-    parse_retrieval_request,
-    retrieve,
+from core.layer1.presentation import (
+    build_retrieval_ledger,
+    citation_dict,
+    match_dict,
+    resolve_citation_ref,
 )
+from core.layer1.reranking import RERANK_MODE, retrieve_and_rerank
+from core.layer1.retrieval import get_corpus, parse_retrieval_request
 
 
 def _insufficient(
-    evidence: list[dict[str, object]], meta_base: dict[str, object]
+    evidence: list[dict[str, object]],
+    ledger: dict[str, object],
+    meta_base: dict[str, object],
 ) -> dict[str, object]:
     return {
         "status": STATUS_INSUFFICIENT,
         "answer": INSUFFICIENT_MESSAGE,
         "citations": [],
         "evidence": evidence,
+        "ledger": ledger,
         "meta": {**meta_base, "reason": REASON_NO_EVIDENCE},
     }
 
@@ -63,34 +67,41 @@ def generate_answer(
     """
     query = parse_retrieval_request(data)
     corpus = get_corpus()
-    matches: tuple[ScoredMatch, ...] = retrieve(corpus, query)
+    result = retrieve_and_rerank(corpus, query)
+    selected = result.selected
 
-    evidence = [match_dict(m.record, m.score) for m in matches]
+    evidence = [match_dict(c.record, c.rerank_score) for c in selected]
+    ledger = build_retrieval_ledger(result)
     meta_base: dict[str, object] = {
-        "retrieval_count": len(matches),
+        "retrieval_count": len(selected),
+        "initial_count": len(result.candidates),
+        "selected_count": len(selected),
+        "reranker": RERANK_MODE,
         "index_source": corpus.source,
     }
 
     # No evidence: refuse to guess and never spend a provider call.
-    if not matches:
-        return _insufficient(evidence, meta_base)
+    if not selected:
+        return _insufficient(evidence, ledger, meta_base)
 
     if client_id is not None:
         reserve_answer_call(client_id)
 
     provider = provider or get_provider()
-    user_prompt = build_user_prompt(query.query, matches, query.role_lens)
+    # The provider sees only the selected reranked evidence, never the wider
+    # candidate pool - citing an unselected candidate fails closed below.
+    user_prompt = build_user_prompt(query.query, selected, query.role_lens)
     raw = provider.generate(system=SYSTEM_PROMPT, user=user_prompt)
 
-    retrieved_ids = tuple(m.record.id for m in matches)
-    output = validate_model_output(raw, retrieved_ids)
+    selected_ids = tuple(c.record.id for c in selected)
+    output = validate_model_output(raw, selected_ids)
 
     if output.status == STATUS_ANSWERED:
-        records_by_id = {m.record.id: m.record for m in matches}
-        scores_by_id = {m.record.id: m.score for m in matches}
+        records_by_id = {c.record.id: c.record for c in selected}
+        scores_by_id = {c.record.id: c.rerank_score for c in selected}
         refs_by_id = {
-            m.record.id: resolve_citation_ref(m.record)
-            for m in matches
+            c.record.id: resolve_citation_ref(c.record)
+            for c in selected
         }
         citations = [
             citation_dict(
@@ -105,6 +116,7 @@ def generate_answer(
             "answer": output.answer,
             "citations": citations,
             "evidence": evidence,
+            "ledger": ledger,
             "meta": {
                 **meta_base,
                 "model": provider.model_name,
@@ -113,7 +125,8 @@ def generate_answer(
         }
 
     if output.status == STATUS_REFUSED:
-        # Out of scope: drop the retrieved evidence and use the server message.
+        # Out of scope: drop the retrieved evidence AND the ledger, and use
+        # the server message - a refusal serves no retrieval artifacts.
         return {
             "status": STATUS_REFUSED,
             "answer": REFUSED_MESSAGE,
@@ -122,4 +135,4 @@ def generate_answer(
             "meta": {**meta_base, "reason": REASON_OUT_OF_SCOPE},
         }
 
-    return _insufficient(evidence, meta_base)
+    return _insufficient(evidence, ledger, meta_base)

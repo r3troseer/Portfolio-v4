@@ -1,9 +1,11 @@
-"""Layer 1 retrieval service: deterministic lexical retrieval over the evidence index.
+"""Layer 1 retrieval service: deterministic lexical candidate generation.
 
-First runtime consumer of the evidence index. Deliberately model-free: scoring
-is integer token overlap (no embeddings, no LLM), so results are reproducible
-and auditable. Safety is structural - the corpus can only contain what the
-fail-closed builder emitted, and corpus loading itself fails closed:
+First runtime consumer of the evidence index, and the first stage of the
+two-stage pipeline (lexical candidates here, deterministic reranking in
+``reranking.py``). Deliberately model-free: scoring is integer token overlap
+(no embeddings, no LLM), so results are reproducible and auditable. Safety is
+structural - the corpus can only contain what the fail-closed builder emitted,
+and corpus loading itself fails closed:
 
 - content root present (dev/CI/monorepo): build in-process; refuse the whole
   corpus if the build reports any governance error;
@@ -31,6 +33,9 @@ QUERY_MAX_LENGTH = 500
 ROLE_LENS_MAX_LENGTH = 50
 TOP_K_DEFAULT = 5
 TOP_K_MAX = 20
+# The lexical candidate pool feeding the rerank stage is larger than the final
+# selection so reranking has room to move rows; it shares the top_k ceiling.
+CANDIDATE_POOL_MAX = TOP_K_MAX
 
 # Integer score weights per matching unique query token.
 _WEIGHT_TEXT = 1
@@ -171,13 +176,19 @@ class RetrievalQuery:
 
 @dataclass(frozen=True)
 class CorpusEntry:
-    """An evidence record plus its precomputed lowercase token sets."""
+    """An evidence record plus its precomputed lowercase token sets.
+
+    The ordered token sequences exist for the rerank stage's phrase matching
+    (frozensets lose adjacency); the frozensets stay the membership-test path.
+    """
 
     record: EvidenceRecord
     text_tokens: frozenset[str]
     title_tokens: frozenset[str]
     tag_tokens: frozenset[str]
     lenses: frozenset[str]
+    text_token_seq: tuple[str, ...] = ()
+    title_token_seq: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -189,11 +200,25 @@ class Corpus:
 
 
 @dataclass(frozen=True)
-class ScoredMatch:
-    """One retrieval hit: the record and its deterministic lexical score."""
+class Candidate:
+    """One lexical candidate: the corpus entry, its score, and its 1-based rank.
 
-    record: EvidenceRecord
-    score: int
+    Carries the whole ``CorpusEntry`` (not just the record) because the rerank
+    stage reuses the precomputed token sets and sequences.
+    """
+
+    entry: CorpusEntry
+    lexical_score: int
+    initial_rank: int
+
+    @property
+    def record(self) -> EvidenceRecord:
+        return self.entry.record
+
+
+def candidate_pool_size(top_k: int) -> int:
+    """Lexical pool feeding the reranker: 3x the selection, capped, never < top_k."""
+    return min(top_k * 3, CANDIDATE_POOL_MAX)
 
 
 def parse_retrieval_request(data: Any) -> RetrievalQuery:
@@ -239,27 +264,34 @@ def _tokenize(text: str) -> tuple[str, ...]:
 
 
 def _make_entry(record: EvidenceRecord) -> CorpusEntry:
+    text_seq = _tokenize(record.text)
+    title_seq = _tokenize(record.title)
     return CorpusEntry(
         record=record,
-        text_tokens=frozenset(_tokenize(record.text)),
-        title_tokens=frozenset(_tokenize(record.title)),
+        text_tokens=frozenset(text_seq),
+        title_tokens=frozenset(title_seq),
         tag_tokens=frozenset(t for tag in record.tags for t in _tokenize(tag)),
         lenses=frozenset(lens.lower() for lens in record.role_lenses),
+        text_token_seq=text_seq,
+        title_token_seq=title_seq,
     )
 
 
-def retrieve(corpus: Corpus, query: RetrievalQuery) -> tuple[ScoredMatch, ...]:
-    """Score the corpus against a validated query; deterministic, model-free.
+def retrieve_candidates(
+    corpus: Corpus, query: RetrievalQuery
+) -> tuple[Candidate, ...]:
+    """Score the corpus lexically; deterministic, model-free candidate stage.
 
     Per unique query token: +1 for a text match, +3 title, +2 tag. Records
     with a positive score and the requested role lens get a +2 boost (soft -
     lens-less records still rank). Zero-score records never match. Ties break
-    on record id so ordering is stable.
+    on record id so ordering is stable. Returns up to ``candidate_pool_size``
+    candidates (not ``top_k``) - final selection happens after reranking.
     """
     tokens = set(_tokenize(query.query))
     lens = query.role_lens.lower() if query.role_lens else None
 
-    scored: list[ScoredMatch] = []
+    scored: list[tuple[int, CorpusEntry]] = []
     for entry in corpus.entries:
         score = 0
         for token in tokens:
@@ -272,10 +304,14 @@ def retrieve(corpus: Corpus, query: RetrievalQuery) -> tuple[ScoredMatch, ...]:
         if score > 0 and lens is not None and lens in entry.lenses:
             score += _ROLE_LENS_BOOST
         if score > 0:
-            scored.append(ScoredMatch(record=entry.record, score=score))
+            scored.append((score, entry))
 
-    scored.sort(key=lambda m: (-m.score, m.record.id))
-    return tuple(scored[: query.top_k])
+    scored.sort(key=lambda pair: (-pair[0], pair[1].record.id))
+    pool = scored[: candidate_pool_size(query.top_k)]
+    return tuple(
+        Candidate(entry=entry, lexical_score=score, initial_rank=rank)
+        for rank, (score, entry) in enumerate(pool, start=1)
+    )
 
 
 # --- Corpus loading (fail-closed) --------------------------------------------

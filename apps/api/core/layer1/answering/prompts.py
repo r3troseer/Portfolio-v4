@@ -6,7 +6,7 @@ as the model's system instruction and builds the per-request user prompt from th
 query plus the retrieved public evidence via ``build_user_prompt``.
 """
 
-from core.layer1.retrieval import ScoredMatch
+from core.layer1.reranking import RankedCandidate
 
 # The model receives only the supplied public evidence and must ground every
 # substantive claim in it. Private/internal details are excluded structurally by
@@ -36,7 +36,7 @@ Return strictly this JSON shape and nothing else:
 The citation_ids must be drawn only from the id values supplied below. For insufficient_evidence and refused, return an empty citation_ids list."""
 
 
-def _format_evidence(matches: tuple[ScoredMatch, ...]) -> str:
+def _format_evidence(matches: tuple[RankedCandidate, ...]) -> str:
     """Render retrieved evidence as id-labelled blocks the model can cite by id."""
     blocks: list[str] = []
     for match in matches:
@@ -51,10 +51,10 @@ def _format_evidence(matches: tuple[ScoredMatch, ...]) -> str:
 
 def build_user_prompt(
     query: str,
-    matches: tuple[ScoredMatch, ...],
+    matches: tuple[RankedCandidate, ...],
     role_lens: str | None = None,
 ) -> str:
-    """Compose the per-request user prompt from the query and retrieved evidence."""
+    """Compose the per-request user prompt from the query and selected evidence."""
     lens_line = f"\nRole lens (soft hint, not a filter): {role_lens}" if role_lens else ""
     return (
         f"Question: {query}{lens_line}\n\n"
