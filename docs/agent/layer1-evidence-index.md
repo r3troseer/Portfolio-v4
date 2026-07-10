@@ -74,8 +74,9 @@ Each of these is a later, separate slice - kept out so each branch stays small a
 
 - **No embeddings / vector DB** - lexical retrieval establishes the safety shape without
   dependencies; embeddings can replace the scorer behind the same endpoint later.
-- **No reranking** - the ledger is single-pass lexical retrieval; pre/post rerank inspector
-  behaviour is deferred.
+- **No model-based reranking** - retrieval now includes a deterministic, model-free rerank
+  stage (`deterministic_rerank_v1`) whose pre/post ledger backs the playground's retrieval
+  inspector, but embeddings, cross-encoders, and LLM reranking stay out.
 - **No chat memory, tools, or generated UI/spec nodes** - answer + evidence ledger only.
 
 ## Contracts note

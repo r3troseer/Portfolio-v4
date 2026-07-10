@@ -11,7 +11,8 @@ style **Solid teal**. High-fidelity: the colours, timings, easings, and sizes be
 > dispatches `pf:open-assistant` and does not call the backend. The **assistant modal**
 > (`AssistantShell.jsx`) calls `POST /api/answer/` for grounded answers and renders the
 > evidence ledger inline - see [`docs/agent/layer1-playground.md`](../agent/layer1-playground.md).
-> Reranking remains future work; no browser-side keys or model config.
+> Retrieval includes a deterministic backend rerank whose ledger the playground's inspector
+> renders; no browser-side keys or model config.
 
 ## Source prototype (reference, not shipped)
 Design handoff, extracted locally (gitignored, never committed):

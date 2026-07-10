@@ -1,8 +1,10 @@
 # Layer 1 runtime deploy wiring
 
 How the portfolio assistant API and web clients are deployed and connected. No
-streaming, chat memory, tools, or reranking yet - `/api/retrieve/` and
-`/api/answer/` remain separate atomic endpoints.
+streaming, chat memory, or tools yet - `/api/retrieve/` and `/api/answer/`
+remain separate atomic endpoints. Both run the deterministic two-stage
+retrieval (lexical candidates + model-free rerank) and return the
+retrieve-to-rerank ledger.
 
 ## Split deploys
 
@@ -161,14 +163,17 @@ and fair enforcement across workers or instances. Introduce it before:
 - After deploy, `/health/` succeeds and one real `POST /api/answer/` request
   returns a grounded response before release traffic is enabled.
 
-## Endpoints (unchanged)
+## Endpoints
 
-- `POST /api/retrieve/` - raw deterministic lexical evidence ledger
-- `POST /api/answer/` - grounded answer over retrieved public evidence (server-side
-  Gemini; validated citations; atomic response - no token streaming)
+- `POST /api/retrieve/` - deterministic two-stage evidence retrieval (lexical
+  candidates + `deterministic_rerank_v1`) with the expanded retrieve-to-rerank
+  ledger
+- `POST /api/answer/` - grounded answer over the selected reranked public
+  evidence (server-side Gemini; validated citations; same ledger; atomic
+  response - no token streaming)
 
 ## Explicitly not in this runtime
 
 Token/progress streaming, chat memory, tools, CV generation, model selector UI,
 browser API keys, generated UI/spec nodes, BM25, dense retrieval, vector DB,
-cross-encoder reranking.
+cross-encoder / model-based reranking.
