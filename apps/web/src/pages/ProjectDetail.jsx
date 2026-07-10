@@ -8,6 +8,7 @@ import { ContentCard } from "../components/ContentCard";
 import { ProblemSolutionCard } from "../components/ProblemSolutionCard";
 import { Timeline } from "../components/Timeline";
 import { EVIDENCE_ORIGIN, safeReturnPath } from "../lib/evidenceNavigation";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import "../styles/profile/detail.css";
 
 // Presentation-only mapping from a link icon key to a lucide icon name.
@@ -23,6 +24,11 @@ export const ProjectDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const project = getProjectById(id);
+  useDocumentTitle(
+    project
+      ? `${project.header.title} - Pius Agboola`
+      : "Page not found - Pius Agboola"
+  );
 
   if (!project) {
     return <NotFound />;

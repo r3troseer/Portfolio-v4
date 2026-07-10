@@ -28,6 +28,7 @@ ANSWER_MAX_LENGTH = 1200
 # Handoff prose mini-markup (page gen-prose): ==highlight== and [[evidence_id]].
 PROSE_CITE_RE = re.compile(r"\[\[\s*([^\]]+?)\s*\]\]", re.IGNORECASE)
 PROSE_HIGHLIGHT_RE = re.compile(r"==([^=]+)==")
+_SAFE_BOUNDARY_RE = re.compile(r"(?<=[.!?])(?=\s|$)|\s+")
 MAX_HIGHLIGHTS = 3
 _EVIDENCE_ID_PREFIX_RE = re.compile(r"^evidence_id:\s*", re.IGNORECASE)
 
@@ -100,6 +101,35 @@ def parse_prose_markup(answer: str) -> tuple[int, tuple[str, ...]]:
     return highlight_count, tuple(cited_ids)
 
 
+def _protected_spans(answer: str) -> tuple[tuple[int, int], ...]:
+    matches = (*PROSE_CITE_RE.finditer(answer), *PROSE_HIGHLIGHT_RE.finditer(answer))
+    return tuple(sorted((match.start(), match.end()) for match in matches))
+
+
+def _is_safe_boundary(index: int, spans: tuple[tuple[int, int], ...]) -> bool:
+    return not any(start < index < end for start, end in spans)
+
+
+def truncate_answer_prose(answer: str, max_length: int = ANSWER_MAX_LENGTH) -> str:
+    """Truncate at the latest whitespace/sentence boundary outside markup."""
+    if len(answer) <= max_length:
+        return answer
+
+    spans = _protected_spans(answer)
+    candidates = [
+        match.start()
+        for match in _SAFE_BOUNDARY_RE.finditer(answer, 0, max_length + 1)
+        if match.start() > 0 and _is_safe_boundary(match.start(), spans)
+    ]
+    if not candidates:
+        raise AnswerOutputError("answer cannot be truncated at a safe boundary")
+
+    truncated = answer[: max(candidates)].rstrip()
+    if not truncated:
+        raise AnswerOutputError("answer cannot be truncated at a safe boundary")
+    return truncated
+
+
 def validate_model_output(
     raw_text: Any, retrieved_ids: tuple[str, ...]
 ) -> ModelOutput:
@@ -138,9 +168,10 @@ def validate_model_output(
     if not answer:
         raise AnswerOutputError("an answered result requires a non-empty answer")
 
-    answer = normalize_answer_prose(answer)[:ANSWER_MAX_LENGTH]
+    answer = normalize_answer_prose(answer)
     citation_ids_raw = normalize_citation_ids(citation_ids_raw)
 
+    # Validate citation/highlight discipline against the complete model output.
     highlight_count, cited_in_prose = parse_prose_markup(answer)
     if highlight_count > MAX_HIGHLIGHTS:
         raise AnswerOutputError(
@@ -179,4 +210,13 @@ def validate_model_output(
                 "answer prose markers reference ids missing from citation_ids"
             )
 
-    return ModelOutput(status=status, answer=answer, citation_ids=tuple(seen))
+    served_answer = truncate_answer_prose(answer)
+    _, served_citation_ids = parse_prose_markup(served_answer)
+    if not served_citation_ids:
+        raise AnswerOutputError("truncation removed every citation marker")
+
+    return ModelOutput(
+        status=status,
+        answer=served_answer,
+        citation_ids=served_citation_ids,
+    )

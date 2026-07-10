@@ -64,8 +64,9 @@ There is no Railway CLI CD workflow and no GitHub `RAILWAY_*` deploy secrets. Fu
 [`docs/deployment/layer1-runtime.md`](../../docs/deployment/layer1-runtime.md).
 
 - **Config as code** - [`railway.toml`](./railway.toml) points the build at
-  [`Dockerfile`](./Dockerfile) and sets the gunicorn start command. Point the Railway service
-  config-file path at `/apps/api/railway.toml`.
+  [`Dockerfile`](./Dockerfile). The Dockerfile CMD owns the gunicorn start command; keep
+  `startCommand` unset in Railway config and the dashboard. Point the Railway service config-file
+  path at `/apps/api/railway.toml`.
 - **Dockerfile build** - `python:3.13-slim` + the official `uv` binary; `uv sync --locked`,
   then `build_evidence_index` bakes `var/evidence_index.json` into the image. Not Railpack:
   Railpack/Mise installed Python only on the build image, which broke the venv shebangs at
@@ -75,16 +76,17 @@ There is no Railway CLI CD workflow and no GitHub `RAILWAY_*` deploy secrets. Fu
 - **Wait for CI** - enable on the API service so deploys wait for `.github/workflows/ci.yml`
   (`dev` / `main` pushes). Failed CI skips the deploy. Feature branches do not deploy.
 - **Branch -> environment** - Railway staging/dev tracks `dev`; production tracks `main`.
-- **Start command** - the Dockerfile `CMD` only (`sh -c ".venv/bin/gunicorn --bind
-  0.0.0.0:${PORT:-8000} config.wsgi:application"`). Do not set a start command in
+- **Start command** - the Dockerfile `CMD` only (`sh -c ".venv/bin/gunicorn --workers
+  ${WEB_CONCURRENCY:-2} --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"`). Do not set a start command in
   `railway.toml` or the dashboard: Railway runs custom start commands on Docker images
   without a shell, so `${PORT}` reaches gunicorn unexpanded and the deploy fails.
 - **No `migrate` step.** Railpack's default is `migrate && gunicorn`; on this DB-less backend
   `migrate` fails. Do not add a `preDeployCommand` migrate until a real database exists.
 - **Runtime env vars** (Railway dashboard, per environment): `DJANGO_SECRET_KEY`,
   `DJANGO_ALLOWED_HOSTS`, `DJANGO_CORS_ALLOWED_ORIGINS`, `GEMINI_API_KEY`,
-  `GEMINI_MODEL=gemini-3.1-flash-lite`, `ANSWER_PROVIDER=gemini`. Leave `DJANGO_DEBUG` unset/
-  `false`. Optional: `GEMINI_TIMEOUT_SECONDS` (default 20). See the table below.
+  `GEMINI_MODEL=gemini-3.1-flash-lite`, `ANSWER_PROVIDER=gemini`,
+  `ANSWER_ENDPOINT_ENABLED=true`, and `WEB_CONCURRENCY=2`. Leave `DJANGO_DEBUG` unset/`false`.
+  Optional: `GEMINI_TIMEOUT_SECONDS` and the soft daily caps. See the table below.
 - **Vercel** must set `VITE_API_BASE_URL` to the Railway API origin.
 
 ## Endpoints
@@ -151,9 +153,9 @@ Statuses (all HTTP `200`):
   The `answer` string uses handoff prose mini-markup for page rendering:
   `[[evidence_id]]` entity refs (exact ids from retrieval) and optional `==highlight==`
   spans (max 3). `citation_ids` must match every `[[...]]` marker. Each citation includes
-  `ref` (handoff display label from `core/layer1/presentation.py`: `exp` for experience,
-  zero-padded project `displayOrder` from `projects/index.json`, `01` for narrative
-  profile/about, role-lens slug e.g. `fintech`, else zero-padded retrieval rank) plus
+  `ref` (stable display label from `core/layer1/presentation.py`: zero-padded project
+  `displayOrder` from `projects/index.json`; semantic refs for profile silos, about, and
+  role-lens/markdown slugs; never retrieval rank) plus
   `score` from lexical retrieval for optional UI relevance display.
 - `insufficient_evidence` - not enough public evidence; a fixed server message and any
   retrieved `evidence`. Returned **without calling the model** when retrieval finds nothing,
@@ -162,9 +164,10 @@ Statuses (all HTTP `200`):
   and `insufficient_evidence` the model's prose is **discarded** and a server-authored message
   is used instead.
 
-HTTP status codes: `200` for the three answer statuses; `400` invalid request; `503` if the
-corpus or the answer provider is unavailable (e.g. `GEMINI_API_KEY` unset); `502` if the model
-output is malformed/unsupported or cites evidence that was not retrieved.
+HTTP status codes: `200` for the three answer statuses; `400` invalid request; `429` when the
+answer throttle or a soft daily cap is exceeded; `503` if the endpoint is disabled, the corpus
+is unavailable, or the answer provider is unavailable (e.g. `GEMINI_API_KEY` unset); `502` if
+the model output is malformed/unsupported or cites evidence that was not retrieved.
 
 ## Configuration (environment variables)
 
@@ -176,14 +179,21 @@ and **fail-closed** (`DEBUG` off by default).
 |---|---|---|
 | `DJANGO_SECRET_KEY` | insecure dev key | **Set in any non-local environment.** |
 | `DJANGO_DEBUG` | `false` | `true` enables debug (local only). |
-| `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | Comma-separated allowed hosts. |
+| `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | Comma-separated allowed hosts. Railway needs its domain plus `healthcheck.railway.app`. |
 | `DJANGO_CORS_ALLOWED_ORIGINS` | `https://piusagboola.com,http://localhost:5173,http://localhost:3000` | Comma-separated CORS allowlist. |
 | `DJANGO_ANON_THROTTLE_RATE` | `60/min` | DRF anonymous throttle rate. |
+| `DJANGO_NUM_PROXIES` | `1` | Trusted proxy count for DRF client identity behind Railway. |
 | `DJANGO_DATA_UPLOAD_MAX_MEMORY_SIZE` | `1048576` (1 MiB) | Max non-file request body size. |
 | `GEMINI_API_KEY` | _(unset)_ | **Required for `/api/answer/`.** Server-side only; never commit. Unset -> `503`. |
 | `GEMINI_MODEL` | `gemini-3.1-flash-lite` | Gemini model id for grounded answers. |
 | `GEMINI_TIMEOUT_SECONDS` | `20` | Gemini HTTP request timeout (seconds). Invalid / non-positive -> 20. Timeout -> `503`. |
 | `ANSWER_PROVIDER` | `gemini` | Answer provider. `fake` is **DEBUG-only** (`DJANGO_DEBUG=true`) for local UI verify; rejected in production. |
+| `ANSWER_ENDPOINT_ENABLED` | `true` | Manual kill switch. `false` returns a controlled `503` without a model call. |
+| `ANSWER_THROTTLE_RATE` | `6/min` | Paid answer throttle, separate from the looser retrieval rate. |
+| `ANSWER_DAILY_SOFT_LIMIT` | `0` | Optional process-local global UTC-day cap; `0` disables. |
+| `ANSWER_PER_CLIENT_DAILY_LIMIT` | `0` | Optional process-local per-client UTC-day cap; `0` disables. |
+| `PORT` | `8000` in Railway | Must align with Dockerfile `EXPOSE` and the domain target port. |
+| `WEB_CONCURRENCY` | `2` | Initial Gunicorn worker count. |
 
 ## Layer S foundations (not full controls yet)
 
@@ -191,7 +201,8 @@ Per [`docs/agent/layer-s-policy.md`](../../docs/agent/layer-s-policy.md), this s
 *foundations* for runtime abuse controls - it does **not** implement the full system:
 
 - **CORS allowlist** - env-driven (`CORS_ALLOWED_ORIGINS`).
-- **Rate limiting** - DRF `AnonRateThrottle` placeholder (`DJANGO_ANON_THROTTLE_RATE`).
+- **Rate limiting** - looser DRF anonymous retrieval throttle plus an answer-only paid-call
+  throttle (`ANSWER_THROTTLE_RATE`).
 - **Request-size limit** - `DATA_UPLOAD_MAX_MEMORY_SIZE`.
 - **Server-side secrets only** - `SECRET_KEY` from the environment; no secrets committed.
 - **Fail-closed defaults** - `DEBUG` off unless explicitly enabled.
@@ -199,7 +210,10 @@ Per [`docs/agent/layer-s-policy.md`](../../docs/agent/layer-s-policy.md), this s
 Landed with the retrieval endpoint: message-length limits for `/api/retrieve/` (query and
 role_lens caps, bounded top_k) and fail-closed index sourcing. Landed with `/api/answer/`:
 grounded-answer enforcement (every answered claim must cite retrieved evidence; unknown
-citations, malformed output, or unsupported statuses fail closed), a first-class refusal
-status, a server-authored refusal/insufficient message (model prose discarded), and an answer
-length cap. Still to come (Layer 1): concurrency limits, full token/input budgets, and
-prompt/log minimisation.
+citations, malformed output, or unsupported statuses fail closed), safe post-validation
+truncation, a first-class refusal status, server-authored refusal/insufficient messages, the
+answer-only throttle, an env kill switch, and optional soft process-local daily caps.
+Two Gunicorn workers improve availability, but each worker owns its own throttle and daily
+counters until Redis/shared cache is introduced; effective limits can therefore multiply.
+See the runtime guide for the Redis upgrade triggers. Still to come: exact shared counters,
+concurrency limits, full token/input budgets, and prompt/log minimisation.

@@ -36,6 +36,6 @@ WORKDIR /app/apps/api
 
 EXPOSE 8000
 
-# Railway injects PORT; sh -c so the variable expands. railway.toml's
-# startCommand mirrors this and takes precedence on Railway.
-CMD ["sh", "-c", ".venv/bin/gunicorn --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"]
+# Dockerfile CMD owns runtime startup; Railway startCommand stays unset.
+# sh -c expands Railway's PORT and the configurable worker count.
+CMD ["sh", "-c", ".venv/bin/gunicorn --workers ${WEB_CONCURRENCY:-2} --bind 0.0.0.0:${PORT:-8000} config.wsgi:application"]

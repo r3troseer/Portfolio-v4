@@ -10,8 +10,16 @@ import json
 import unittest
 from unittest import mock
 
-from django.test import SimpleTestCase
+from django.conf import settings
+from django.core.cache import cache
+from django.test import SimpleTestCase, override_settings
+from rest_framework.request import Request
+from rest_framework.test import APIRequestFactory
 
+from core.layer1.answering.limits import (
+    AnswerLimitExceeded,
+    reset_answer_usage_for_tests,
+)
 from core.layer1.answering.providers.fake import FakeProvider
 from core.layer1.answering.schemas import (
     ANSWER_MAX_LENGTH,
@@ -20,6 +28,7 @@ from core.layer1.answering.schemas import (
     AnswerOutputError,
     normalize_answer_prose,
     parse_prose_markup,
+    truncate_answer_prose,
     validate_model_output,
 )
 from core.layer1.answering.service import generate_answer
@@ -31,6 +40,7 @@ from core.layer1.retrieval import (
     get_corpus,
     retrieve,
 )
+from core.throttling import AnswerRateThrottle, client_ident
 
 # A query that matches real Layer 0 content (same as the retrieval endpoint test).
 MATCHING_QUERY = "multi-agent fintech loan reallocation"
@@ -197,13 +207,81 @@ class ValidateModelOutputTests(unittest.TestCase):
         self.assertEqual(out.citation_ids, ())
 
     def test_answer_is_length_capped(self) -> None:
-        long = f"[[project:a]] {'x' * (ANSWER_MAX_LENGTH + 500)}"
+        long = f"[[project:a]] {'word ' * 400}"
         out = validate_model_output(
             _fake_json("answered", long, ["project:a"]),
             self.IDS,
         )
-        self.assertEqual(len(out.answer), ANSWER_MAX_LENGTH)
+        self.assertLessEqual(len(out.answer), ANSWER_MAX_LENGTH)
         self.assertIn("[[project:a]]", out.answer)
+
+    def test_plain_text_tail_truncates_at_whitespace(self) -> None:
+        answer = f"Grounded [[project:a]]. {'word ' * 400}"
+        out = validate_model_output(
+            _fake_json("answered", answer, ["project:a"]), self.IDS
+        )
+        self.assertLessEqual(len(out.answer), ANSWER_MAX_LENGTH)
+        self.assertFalse(out.answer.endswith(" "))
+        self.assertEqual(out.citation_ids, ("project:a",))
+
+    def test_boundary_inside_citation_marker_drops_marker_whole(self) -> None:
+        base = "Grounded [[project:a]]. "
+        prefix = base + ("x " * ((ANSWER_MAX_LENGTH - 5 - len(base)) // 2))
+        prefix += "x" * (ANSWER_MAX_LENGTH - 5 - len(prefix))
+        answer = prefix + "[[project:b]] trailing words"
+        marker_start = answer.find("[[project:b]]")
+        self.assertLess(marker_start, ANSWER_MAX_LENGTH)
+        self.assertGreater(
+            marker_start + len("[[project:b]]"), ANSWER_MAX_LENGTH
+        )
+
+        out = validate_model_output(
+            _fake_json("answered", answer, ["project:a", "project:b"]), self.IDS
+        )
+        self.assertIn("[[project:a]]", out.answer)
+        self.assertNotIn("[[project:b", out.answer)
+        self.assertEqual(out.citation_ids, ("project:a",))
+
+    def test_boundary_inside_highlight_drops_highlight_whole(self) -> None:
+        base = "Grounded [[project:a]]. "
+        prefix = base + ("x " * ((ANSWER_MAX_LENGTH - 5 - len(base)) // 2))
+        prefix += "x" * (ANSWER_MAX_LENGTH - 5 - len(prefix))
+        answer = prefix + "==highlighted evidence== trailing words"
+        marker_start = answer.find("==highlighted")
+        self.assertLess(marker_start, ANSWER_MAX_LENGTH)
+        self.assertGreater(
+            marker_start + len("==highlighted evidence=="), ANSWER_MAX_LENGTH
+        )
+
+        out = validate_model_output(
+            _fake_json("answered", answer, ["project:a"]), self.IDS
+        )
+        self.assertNotIn("==highlighted", out.answer)
+        self.assertEqual(out.citation_ids, ("project:a",))
+
+    def test_truncation_that_drops_every_citation_fails_closed(self) -> None:
+        answer = ("word " * 300) + "[[project:a]]"
+        with self.assertRaises(AnswerOutputError):
+            validate_model_output(
+                _fake_json("answered", answer, ["project:a"]), self.IDS
+            )
+
+    def test_citation_ids_are_recomputed_after_truncation(self) -> None:
+        answer = (
+            "Grounded [[project:a]]. "
+            + ("word " * 300)
+            + "Later [[project:b]]."
+        )
+        out = validate_model_output(
+            _fake_json("answered", answer, ["project:a", "project:b"]), self.IDS
+        )
+        self.assertEqual(out.citation_ids, ("project:a",))
+
+
+class TruncateAnswerProseTests(unittest.TestCase):
+    def test_no_safe_boundary_fails_closed(self) -> None:
+        with self.assertRaises(AnswerOutputError):
+            truncate_answer_prose("x" * (ANSWER_MAX_LENGTH + 1))
 
 
 class GenerateAnswerServiceTests(SimpleTestCase):
@@ -211,6 +289,7 @@ class GenerateAnswerServiceTests(SimpleTestCase):
 
     def setUp(self) -> None:
         get_corpus.cache_clear()
+        reset_answer_usage_for_tests()
 
     def _first_matching_id(self) -> str:
         matches = retrieve(get_corpus(), RetrievalQuery(query=MATCHING_QUERY))
@@ -290,12 +369,73 @@ class GenerateAnswerServiceTests(SimpleTestCase):
         with self.assertRaises(RetrievalValidationError):
             generate_answer({"query": "   "}, provider=provider)
 
+    @override_settings(
+        ANSWER_DAILY_SOFT_LIMIT=1,
+        ANSWER_PER_CLIENT_DAILY_LIMIT=0,
+    )
+    def test_global_daily_limit_stops_second_provider_attempt(self) -> None:
+        evidence_id = self._first_matching_id()
+        provider = FakeProvider(
+            _fake_json("answered", _marked_answer(evidence_id), [evidence_id])
+        )
+        generate_answer(
+            {"query": MATCHING_QUERY}, provider=provider, client_id="client-a"
+        )
+        with self.assertRaises(AnswerLimitExceeded):
+            generate_answer(
+                {"query": MATCHING_QUERY}, provider=provider, client_id="client-b"
+            )
+        self.assertEqual(provider.calls, 1)
+
+    @override_settings(
+        ANSWER_DAILY_SOFT_LIMIT=0,
+        ANSWER_PER_CLIENT_DAILY_LIMIT=1,
+    )
+    def test_per_client_daily_limit_isolated_by_identity(self) -> None:
+        evidence_id = self._first_matching_id()
+        provider = FakeProvider(
+            _fake_json("answered", _marked_answer(evidence_id), [evidence_id])
+        )
+        generate_answer(
+            {"query": MATCHING_QUERY}, provider=provider, client_id="client-a"
+        )
+        with self.assertRaises(AnswerLimitExceeded):
+            generate_answer(
+                {"query": MATCHING_QUERY}, provider=provider, client_id="client-a"
+            )
+        generate_answer(
+            {"query": MATCHING_QUERY}, provider=provider, client_id="client-b"
+        )
+        self.assertEqual(provider.calls, 2)
+
+    @override_settings(
+        ANSWER_DAILY_SOFT_LIMIT=1,
+        ANSWER_PER_CLIENT_DAILY_LIMIT=0,
+    )
+    def test_no_evidence_does_not_consume_daily_limit(self) -> None:
+        provider = FakeProvider("not used")
+        result = generate_answer(
+            {"query": NO_MATCH_QUERY}, provider=provider, client_id="client-a"
+        )
+        self.assertEqual(result["status"], "insufficient_evidence")
+
+        evidence_id = self._first_matching_id()
+        provider = FakeProvider(
+            _fake_json("answered", _marked_answer(evidence_id), [evidence_id])
+        )
+        generate_answer(
+            {"query": MATCHING_QUERY}, provider=provider, client_id="client-a"
+        )
+        self.assertEqual(provider.calls, 1)
+
 
 class AnswerEndpointTests(SimpleTestCase):
     """POST /api/answer/ HTTP status mapping."""
 
     def setUp(self) -> None:
         get_corpus.cache_clear()
+        reset_answer_usage_for_tests()
+        cache.clear()
 
     def _post(self, payload: object):
         return self.client.post(
@@ -314,6 +454,35 @@ class AnswerEndpointTests(SimpleTestCase):
         ):
             response = self._post({"query": MATCHING_QUERY})
         self.assertEqual(response.status_code, 503)
+
+    @override_settings(ANSWER_ENDPOINT_ENABLED=False)
+    def test_disabled_endpoint_returns_503_without_provider_call(self) -> None:
+        provider = FakeProvider("not used")
+        with mock.patch(
+            "core.layer1.answering.service.get_provider", return_value=provider
+        ):
+            response = self._post({"query": MATCHING_QUERY})
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json(), {"error": "answer service unavailable"})
+        self.assertEqual(provider.calls, 0)
+
+    @override_settings(
+        ANSWER_DAILY_SOFT_LIMIT=1,
+        ANSWER_PER_CLIENT_DAILY_LIMIT=0,
+    )
+    def test_daily_limit_maps_to_429(self) -> None:
+        matches = retrieve(get_corpus(), RetrievalQuery(query=MATCHING_QUERY))
+        evidence_id = matches[0].record.id
+        provider = FakeProvider(
+            _fake_json("answered", _marked_answer(evidence_id), [evidence_id])
+        )
+        with mock.patch(
+            "core.layer1.answering.service.get_provider", return_value=provider
+        ):
+            self.assertEqual(self._post({"query": MATCHING_QUERY}).status_code, 200)
+            response = self._post({"query": MATCHING_QUERY})
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(provider.calls, 1)
 
     def test_answered_path_returns_200(self) -> None:
         matches = retrieve(get_corpus(), RetrievalQuery(query=MATCHING_QUERY))
@@ -366,6 +535,60 @@ class RetrieveStillUnchangedTests(SimpleTestCase):
         self.assertNotIn("citations", body)
 
 
+class AnswerThrottleTests(SimpleTestCase):
+    def setUp(self) -> None:
+        cache.clear()
+
+    @override_settings(
+        REST_FRAMEWORK={
+            **settings.REST_FRAMEWORK,
+            "DEFAULT_THROTTLE_RATES": {
+                **settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"],
+                "answer": "1/min",
+            },
+        }
+    )
+    def test_answer_throttle_uses_independent_scope(self) -> None:
+        factory = APIRequestFactory()
+        first = Request(factory.post("/api/answer/", REMOTE_ADDR="203.0.113.8"))
+        second = Request(factory.post("/api/answer/", REMOTE_ADDR="203.0.113.8"))
+
+        first_throttle = AnswerRateThrottle()
+        first_throttle.rate = "1/min"
+        first_throttle.num_requests, first_throttle.duration = (
+            first_throttle.parse_rate(first_throttle.rate)
+        )
+        second_throttle = AnswerRateThrottle()
+        second_throttle.rate = "1/min"
+        second_throttle.num_requests, second_throttle.duration = (
+            second_throttle.parse_rate(second_throttle.rate)
+        )
+        self.assertTrue(first_throttle.allow_request(first, object()))
+        self.assertFalse(second_throttle.allow_request(second, object()))
+
+        response = self.client.post(
+            "/api/retrieve/",
+            data=json.dumps({"query": MATCHING_QUERY}),
+            content_type="application/json",
+            REMOTE_ADDR="203.0.113.8",
+        )
+        self.assertEqual(response.status_code, 200)
+
+    @override_settings(
+        REST_FRAMEWORK={
+            **settings.REST_FRAMEWORK,
+            "NUM_PROXIES": 1,
+        }
+    )
+    def test_client_identity_uses_configured_proxy_chain(self) -> None:
+        raw_request = APIRequestFactory().post(
+            "/api/answer/",
+            HTTP_X_FORWARDED_FOR="198.51.100.7",
+            REMOTE_ADDR="10.0.0.5",
+        )
+        self.assertEqual(client_ident(Request(raw_request)), "198.51.100.7")
+
+
 class CitationDisplayRefTests(unittest.TestCase):
     def _record(
         self,
@@ -393,7 +616,7 @@ class CitationDisplayRefTests(unittest.TestCase):
             source_id="role-lenses/ai-nlp",
         )
         self.assertEqual(citation_display_ref(record), "ai-nlp")
-        self.assertEqual(resolve_citation_ref(record, fallback_index=3), "ai-nlp")
+        self.assertEqual(resolve_citation_ref(record), "ai-nlp")
 
     def test_experience_uses_exp_label(self) -> None:
         record = self._record(
@@ -411,6 +634,47 @@ class CitationDisplayRefTests(unittest.TestCase):
             project_id="gfa-exchange",
         )
         self.assertEqual(citation_display_ref(record), "01")
+
+    def test_profile_silos_use_semantic_labels(self) -> None:
+        expected = {
+            "profile": "profile",
+            "skills": "skills",
+            "experience": "exp",
+            "education": "edu",
+            "links": "links",
+        }
+        for source_id, ref in expected.items():
+            record = self._record(
+                record_id=f"profile:{source_id}",
+                source_type="profile",
+                source_id=source_id,
+            )
+            self.assertEqual(resolve_citation_ref(record), ref)
+
+    def test_about_uses_about_label(self) -> None:
+        record = self._record(
+            record_id="markdown:about",
+            source_type=SOURCE_MARKDOWN,
+            source_id="about",
+        )
+        self.assertEqual(resolve_citation_ref(record), "about")
+
+    def test_other_markdown_uses_final_slug(self) -> None:
+        record = self._record(
+            record_id="markdown:notes/backend-depth",
+            source_type=SOURCE_MARKDOWN,
+            source_id="notes/backend-depth",
+        )
+        self.assertEqual(resolve_citation_ref(record), "backend-depth")
+
+    def test_unknown_source_uses_src_not_retrieval_rank(self) -> None:
+        record = self._record(
+            record_id="other:item",
+            source_type="other",
+            source_id="item",
+        )
+        self.assertEqual(resolve_citation_ref(record), "src")
+        self.assertNotEqual(resolve_citation_ref(record), "03")
 
 
 if __name__ == "__main__":

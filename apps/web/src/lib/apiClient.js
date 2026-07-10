@@ -4,16 +4,16 @@
 
 /**
  * Resolve the API origin used by fetch clients.
- * VITE_API_BASE_URL wins; local DEV falls back to Django on :8000; production
- * with no env set falls back to same-origin relative "/api".
+ * VITE_API_BASE_URL wins; local DEV falls back to Django on :8000.
+ * Production builds require an explicit API origin.
  *
- * @returns {string} origin without a trailing slash (may be empty)
+ * @returns {string} origin without a trailing slash
  */
 export function resolveApiBase() {
-  return (
-    import.meta.env.VITE_API_BASE_URL ||
-    (import.meta.env.DEV ? "http://localhost:8000" : "")
-  ).replace(/\/$/, "");
+  const configured = import.meta.env.VITE_API_BASE_URL?.trim();
+  if (configured) return configured.replace(/\/$/, "");
+  if (import.meta.env.DEV) return "http://localhost:8000";
+  throw new Error("VITE_API_BASE_URL is required in production");
 }
 
 /**

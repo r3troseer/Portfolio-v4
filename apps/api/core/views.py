@@ -1,9 +1,11 @@
+from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import api_view, throttle_classes
 from rest_framework.request import Request
 from rest_framework.response import Response
 
 from core.layer1.answering.providers import ProviderError, ProviderUnavailableError
+from core.layer1.answering.limits import AnswerLimitExceeded
 from core.layer1.answering.schemas import AnswerOutputError
 from core.layer1.answering.service import generate_answer
 from core.layer1.presentation import match_dict as _match_dict
@@ -14,6 +16,7 @@ from core.layer1.retrieval import (
     parse_retrieval_request,
     retrieve,
 )
+from core.throttling import AnswerRateThrottle, client_ident
 
 
 @api_view(["GET"])
@@ -23,7 +26,7 @@ def health(request: Request) -> Response:
     return Response({"status": "ok", "service": "portfolio-api"})
 
 
-@api_view(["POST"])  # global AnonRateThrottle applies (deliberately not exempted)
+@api_view(["POST"])  # global AnonRateThrottle remains the looser retrieval bucket
 def retrieve_evidence(request: Request) -> Response:
     """Layer 1 retrieval: deterministic lexical search over the evidence index.
 
@@ -58,17 +61,26 @@ def retrieve_evidence(request: Request) -> Response:
     )
 
 
-@api_view(["POST"])  # global AnonRateThrottle applies (deliberately not exempted)
+@api_view(["POST"])
+@throttle_classes([AnswerRateThrottle])
 def answer(request: Request) -> Response:
     """Layer 1 grounded answer: retrieve public evidence, call a server-side model,
     validate its JSON output against the retrieved evidence, and return a cited
     answer. ``/api/retrieve/`` remains the raw evidence ledger; this endpoint
     grounds an answer on top of it. Model keys/config are server-side only.
     """
+    if not settings.ANSWER_ENDPOINT_ENABLED:
+        return Response(
+            {"error": "answer service unavailable"},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
     try:
-        payload = generate_answer(request.data)
+        payload = generate_answer(request.data, client_id=client_ident(request))
     except RetrievalValidationError as exc:
         return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+    except AnswerLimitExceeded as exc:
+        return Response({"error": str(exc)}, status=status.HTTP_429_TOO_MANY_REQUESTS)
     except (IndexUnavailableError, ProviderUnavailableError, ProviderError):
         # Fail-closed: no trustworthy corpus or no usable answer provider.
         return Response(

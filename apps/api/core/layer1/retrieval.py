@@ -38,6 +38,119 @@ _WEIGHT_TAG = 2
 _WEIGHT_TITLE = 3
 _ROLE_LENS_BOOST = 2
 
+# Static, reviewed low-signal words. This intentionally stays conservative:
+# portfolio/domain terms such as backend, API, AI, evidence, cloud, and data
+# remain searchable even when they are frequent in the public corpus.
+_STOPWORDS = frozenset(
+    {
+        "a",
+        "about",
+        "after",
+        "again",
+        "all",
+        "am",
+        "an",
+        "and",
+        "any",
+        "are",
+        "as",
+        "at",
+        "be",
+        "because",
+        "been",
+        "before",
+        "being",
+        "between",
+        "both",
+        "but",
+        "by",
+        "can",
+        "could",
+        "did",
+        "do",
+        "does",
+        "doing",
+        "for",
+        "from",
+        "had",
+        "has",
+        "have",
+        "he",
+        "her",
+        "here",
+        "hers",
+        "him",
+        "his",
+        "how",
+        "i",
+        "if",
+        "in",
+        "into",
+        "is",
+        "it",
+        "its",
+        "just",
+        "me",
+        "more",
+        "most",
+        "my",
+        "no",
+        "nor",
+        "not",
+        "now",
+        "of",
+        "on",
+        "once",
+        "only",
+        "or",
+        "other",
+        "our",
+        "out",
+        "over",
+        "please",
+        "same",
+        "she",
+        "should",
+        "show",
+        "so",
+        "some",
+        "such",
+        "tell",
+        "than",
+        "that",
+        "the",
+        "their",
+        "them",
+        "then",
+        "there",
+        "these",
+        "they",
+        "this",
+        "those",
+        "through",
+        "to",
+        "too",
+        "under",
+        "up",
+        "us",
+        "very",
+        "was",
+        "we",
+        "were",
+        "what",
+        "when",
+        "where",
+        "which",
+        "who",
+        "why",
+        "will",
+        "with",
+        "would",
+        "you",
+        "your",
+    }
+)
+
 
 class RetrievalValidationError(ValueError):
     """Raised when a retrieval request fails validation."""
@@ -118,7 +231,11 @@ def parse_retrieval_request(data: Any) -> RetrievalQuery:
 
 
 def _tokenize(text: str) -> tuple[str, ...]:
-    return tuple(re.findall(r"[a-z0-9]+", text.lower()))
+    return tuple(
+        token
+        for token in re.findall(r"[a-z0-9]+", text.lower())
+        if token not in _STOPWORDS
+    )
 
 
 def _make_entry(record: EvidenceRecord) -> CorpusEntry:
