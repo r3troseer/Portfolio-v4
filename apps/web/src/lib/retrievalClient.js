@@ -1,5 +1,5 @@
-// The only code in apps/web that talks to the backend. Layer 1 retrieval:
-// POST /api/retrieve/ returns ranked, publicly-indexable source entities - no
+// Layer 1 retrieval client: POST /api/retrieve/ returns reranked,
+// publicly-indexable source entities plus the retrieve-to-rerank ledger - no
 // generated answers, no model config, nothing but the query in the request body.
 // See docs/agent/layer1-playground.md and apps/api/README.md for the contract.
 
@@ -20,7 +20,7 @@ const RETRIEVE_URL = `${resolveApiBase()}/api/retrieve/`;
  * @param {string} [args.roleLens] - optional soft ranking boost (never a filter).
  * @param {AbortSignal} [args.signal] - to cancel a superseded request.
  * @returns {Promise<
- *   | { kind: "ok", matches: object[], meta: object }
+ *   | { kind: "ok", matches: object[], ledger: object | null, meta: object }
  *   | { kind: "invalid", message: string }
  *   | { kind: "unavailable", message: string }
  *   | { kind: "error", message: string }
@@ -57,6 +57,7 @@ export async function retrieveEvidence({ query, topK = 5, roleLens, signal }) {
     return {
       kind: "ok",
       matches: Array.isArray(data?.matches) ? data.matches : [],
+      ledger: data?.ledger ?? null,
       meta: data?.meta ?? {},
     };
   }
