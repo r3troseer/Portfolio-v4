@@ -45,9 +45,17 @@ Design handoff, extracted locally (gitignored, never committed):
 - Docked hover (`p > 0.6` only): border `rgba(100,255,218,0.55)` + glow
   `0 12px 34px rgba(0,0,0,.45), 0 0 0 3px rgba(100,255,218,.12)`; press `brightness(0.94)`.
   No lift.
-- Mobile (`<=600px`): hide sub-descriptor + `CmdK`; in-flight morph `m = eOut` -> 52px circle,
-  h-padding `20 -> (52-17)/2`, gap `11 -> 0`, icon anchored left, label collapse `min(1, m/0.5)`.
-  True rest leaves the pill fully natural (no width lock - prevents label clipping).
+- Mobile (`<=600px`): same flight concept on a **lighter performance path**. Sub-descriptor +
+  `CmdK` are hidden by CSS (not per-frame JS); in-flight morph `m = eOut` -> 52px circle,
+  h-padding `20 -> (52-17)/2`, icon anchored left, label fades via **opacity** `min(1, m/0.5)`
+  (the shrinking overflow-hidden pill does the clipping - no maxWidth/scrollWidth animation).
+  Travel is `transform: translate3d(...)` from a fixed origin set once at flight start;
+  slot/pill geometry is measured only at flight boundaries (rest entry, flight start,
+  resize/orientation - zero layout reads per frame); the hero slot collapses/expands via a
+  one-shot CSS transition; `will-change: transform` applies only while flying; and the paint
+  loop idles entirely once settled at rest or dock (hover/press wake it via a dirty flag).
+  True rest leaves the pill fully natural (no width lock - prevents label clipping). No
+  backdrop blur `<=600px` (see `assistant.css`).
 - `prefers-reduced-motion: reduce` -> no travel; render inline at rest, docked when committed.
 
 ## Implementation boundaries
@@ -56,8 +64,10 @@ Design handoff, extracted locally (gitignored, never committed):
   hook reads its live rect as the rest anchor and collapses it as the pill leaves.
 - `AssistantShell.jsx` renders the one real launcher and keeps modal + key handling; the old
   `.pf-fab` crossfade + IntersectionObserver are removed.
-- Most of the look is applied inline by the hook every frame (refs, not React state); CSS keeps
-  only the base pill + placeholder + modal.
+- Most of the look is applied inline by the hook (refs, not React state); CSS keeps only the
+  base pill + placeholder + modal. **Desktop keeps the full per-frame flight path unchanged;
+  mobile shares the same triggered/committed motion model but paints through the lighter path
+  above** (boundary-only measurement, transform travel, opacity label fade, idle-when-settled).
 - Single rAF owner; cancel on unmount.
 
 ## Do NOT port from the prototype

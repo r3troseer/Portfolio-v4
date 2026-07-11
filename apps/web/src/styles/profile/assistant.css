@@ -76,6 +76,24 @@
   }
 }
 
+/* Mobile: lighter flight path (see useDockFlight). The hook drives movement
+   with translate3d and applies will-change: transform only while flying, so
+   the base hints for the desktop left/top path are dropped; backdrop blur on
+   a moving element is too expensive on phone GPUs. Sub-label and CmdK hint
+   are hidden statically here instead of per-frame JS writes. */
+@media (max-width: 600px) {
+  .pf-ask-fly {
+    will-change: auto;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .pf-ask-fly-sub,
+  .pf-ask-fly-kbd {
+    display: none;
+  }
+}
+
 /* --- Overlay + modal ----------------------------------------------------- */
 .pf-assistant-overlay {
   position: fixed;
