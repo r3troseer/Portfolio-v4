@@ -615,8 +615,32 @@ a.pf-ask-evdoc:hover {
 }
 
 /* --- Responsive ---------------------------------------------------------- */
-@media (max-width: 500px) {
+/* Mobile modal: more room, no backdrop blur (GPU cost on phones - a darker
+   scrim compensates), dvh so the collapsing URL bar can't clip the panel, and
+   comfortable touch targets. Same layout and behaviour, lighter to composite. */
+@media (max-width: 600px) {
   .pf-assistant-overlay {
-    padding: 6vh 12px 12px;
+    padding: 4dvh 10px 10px;
+    background: rgba(4, 7, 13, 0.78);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .pf-assistant-panel {
+    max-height: 92dvh;
+  }
+
+  .pf-ask-inputrow {
+    padding: 12px;
+  }
+
+  .pf-ask-submit,
+  .pf-assistant-close {
+    width: 36px;
+    height: 36px;
+  }
+
+  .pf-ask-body {
+    padding: 14px;
   }
 }
