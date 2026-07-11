@@ -696,6 +696,19 @@ export const useDockFlight = (
         if (reduce) {
           // Reduced motion: snap to the committed end - no travel.
           animP = committed;
+        } else if (mobile) {
+          // MAGNETIC travel (prototype pathMode 'magnetic'): same decisive
+          // hysteresis commits, but the travel is a physical drag whose speed
+          // tracks scroll velocity, springing the rest of the way home the
+          // instant the scroll goes idle (>90ms). Deliberate mobile-only
+          // deviation from the locked Triggered path - a timed autonomous
+          // flight fights touch momentum; see docs/ui/ask-launcher-flight.md.
+          const idle = now - lastScrollT > 90;
+          const step = idle
+            ? 0.1
+            : Math.max(0.03, Math.min(0.24, scrollVel * 0.024));
+          const d = committed - animP;
+          animP += Math.abs(d) <= step ? d : Math.sign(d) * step;
         } else {
           const DUR = Math.max(430, Math.min(560, 560 - scrollVel * 26));
           const t = Math.max(0, Math.min(1, (now - flightStart) / DUR));

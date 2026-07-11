@@ -45,7 +45,16 @@ Design handoff, extracted locally (gitignored, never committed):
 - Docked hover (`p > 0.6` only): border `rgba(100,255,218,0.55)` + glow
   `0 12px 34px rgba(0,0,0,.45), 0 0 0 3px rgba(100,255,218,.12)`; press `brightness(0.94)`.
   No lift.
-- Mobile (`<=600px`): same flight concept on a **lighter performance path**. Sub-descriptor +
+- Mobile (`<=600px`): same flight concept on a **lighter performance path**, and - a
+  **deliberate mobile-only deviation from the locked Triggered path** - travel uses the
+  prototype's **Magnetic** model: identical hysteresis commits (UP 0.62 / DOWN 0.38, so it
+  stays decisive and never rests mid-path), but instead of a timed autonomous flight the
+  progress steps toward the committed end each frame - `clamp(0.03, 0.24, scrollVel * 0.024)`
+  while scrolling (travel speed tracks the finger), springing home at `0.10/frame` (~170ms)
+  once the scroll idles >90ms. Rationale: a fixed-duration flight runs on its own clock while
+  the page moves under the thumb, which reads as lag on touch; the velocity-coupled drag
+  matches touch interaction grammar. A/B tested against Triggered-on-mobile via Vercel
+  previews (the preceding commit is the Triggered variant). Sub-descriptor +
   `CmdK` are hidden by CSS (not per-frame JS); in-flight morph `m = eOut` -> 52px circle,
   h-padding `20 -> (52-17)/2`, icon anchored left, label fades via **opacity** `min(1, m/0.5)`
   (the shrinking overflow-hidden pill does the clipping - no maxWidth/scrollWidth animation).
