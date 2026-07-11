@@ -104,6 +104,7 @@ export const useDockFlight = (
     let lastScrollT = 0;
     let lastY = null;
     let lastYT = null;
+    let lastFrameT = performance.now(); // real frame delta for dt scaling
 
     // --- environment cache (never read per frame) ---
     let vw = window.innerWidth;
@@ -703,10 +704,16 @@ export const useDockFlight = (
           // instant the scroll goes idle (>90ms). Deliberate mobile-only
           // deviation from the locked Triggered path - a timed autonomous
           // flight fights touch momentum; see docs/ui/ask-launcher-flight.md.
+          //
+          // The prototype's steps are per-60fps-FRAME; scale by the real frame
+          // delta so travel duration is frame-rate independent (at a collapsed
+          // frame rate the unscaled model took seconds of wall-clock). The
+          // scale is capped so a single long hitch advances, not teleports.
           const idle = now - lastScrollT > 90;
-          const step = idle
-            ? 0.1
-            : Math.max(0.03, Math.min(0.24, scrollVel * 0.024));
+          const dtScale = Math.min(4, Math.max(0.5, (now - lastFrameT) / 16.7));
+          const step =
+            (idle ? 0.1 : Math.max(0.03, Math.min(0.24, scrollVel * 0.024))) *
+            dtScale;
           const d = committed - animP;
           animP += Math.abs(d) <= step ? d : Math.sign(d) * step;
         } else {
@@ -718,6 +725,7 @@ export const useDockFlight = (
       }
       if (mobile) applyMobile();
       else applyDesktop(animP);
+      lastFrameT = now;
       rafId = requestAnimationFrame(loop);
     };
 
