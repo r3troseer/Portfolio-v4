@@ -131,7 +131,18 @@ export const useDockFlight = (
     let mPillW = null;
     let mPillH = null;
     let slotEl = null;
-    let restTimer = 0;
+    // Settle detection for the rest glue: the hero rows animate in (fadeInUp
+    // translates ancestors ~30px over ~1.3s), so a rect measured during the
+    // reveal parks the pill mid-animation. While "unsettled" the rest branch
+    // re-glues every frame (riding the reveal like the desktop path does) and
+    // goes idle only once the anchor's document coords hold still for a few
+    // consecutive frames. Re-armed by resize/orientation, window load, and
+    // font readiness - the events that legitimately move the row later.
+    const STABLE_FRAMES = 6;
+    const STABLE_EPSILON = 0.5; // px; the reveal's ease tail is sub-pixel
+    let mRestSettled = false;
+    let mStableFrames = 0;
+    let mLastDoc = null;
 
     const slot = () => {
       if (!slotEl || !slotEl.isConnected) {
@@ -177,10 +188,36 @@ export const useDockFlight = (
         if (slotNode) slotNode.removeAttribute("style");
       }
       mState = null; // force the settled state to re-finalize
+      mRestSettled = false;
+      mStableFrames = 0;
+      mLastDoc = null;
       dirtyRef.current = true;
     };
     window.addEventListener("resize", onResize);
     window.addEventListener("orientationchange", onResize);
+
+    // Late layout movers re-arm the sampling so the rest glue corrects, then
+    // idles again: images finishing (load), web fonts swapping in, and - the
+    // hero reveal case - CSS animations starting/ending anywhere on the page.
+    // animationstart matters as much as animationend: fadeInUp holds its
+    // from-state through a 0.1-0.35s animation-delay ("backwards" fill), so
+    // the row is perfectly STILL before it starts moving - stillness alone
+    // would settle the glue right before the row takes off. Infinite
+    // animations only fire animationstart once, so they cost one brief
+    // sampling burst, not a permanent wake-up.
+    let alive = true;
+    const rearmRestGlue = () => {
+      if (!alive) return;
+      mRestSettled = false;
+      mStableFrames = 0;
+      mLastDoc = null;
+    };
+    window.addEventListener("load", rearmRestGlue);
+    document.addEventListener("animationstart", rearmRestGlue, true);
+    document.addEventListener("animationend", rearmRestGlue, true);
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(rearmRestGlue).catch(() => {});
+    }
 
     /* ------------------------- desktop path (unchanged) ------------------ */
 
@@ -437,10 +474,6 @@ export const useDockFlight = (
     // Enter the flight: one measurement + one-time base style setup, then
     // frames only write transform/size/opacity/colours.
     const mStartFlight = () => {
-      if (restTimer) {
-        clearTimeout(restTimer);
-        restTimer = 0;
-      }
       mMeasure();
       mAnchorDirty = false; // just measured
       const from = mMeas || { restLeft: MOBILE_EDGE, restTop: vh };
@@ -534,18 +567,49 @@ export const useDockFlight = (
       fly.style.left = at.restDocLeft + "px";
       fly.style.top = at.restDocTop + "px";
       fly.style.visibility = "visible";
-      // Late layout shifts (fonts/images) move the row: re-glue once shortly
-      // after settling, off the animation loop.
-      if (restTimer) clearTimeout(restTimer);
-      restTimer = setTimeout(() => {
-        restTimer = 0;
-        mMeas = null;
-        mMeasure();
-        if (mState === "rest" && mMeas) {
-          fly.style.left = mMeas.restDocLeft + "px";
-          fly.style.top = mMeas.restDocTop + "px";
-        }
-      }, 350);
+      // The row may still be moving (hero reveal, slot expand transition,
+      // late images/fonts): keep the settle-sampling glue running until the
+      // anchor's document coords hold still, then idle.
+      mRestSettled = false;
+      mStableFrames = 0;
+      mLastDoc = null;
+    };
+
+    // One settle-sampling step at rest: a single rect read per frame, only
+    // while the anchor is still moving. Idles (mRestSettled) after the doc
+    // coords hold still for STABLE_FRAMES consecutive frames, restoring the
+    // zero-reads steady state.
+    const mRestGlueStep = () => {
+      const slotNode = slot();
+      if (!slotNode) {
+        mRestSettled = true;
+        return;
+      }
+      const r = slotNode.getBoundingClientRect();
+      if (!(r.width || r.height || r.top || r.left)) return;
+      const doc = {
+        left: r.left + window.scrollX,
+        top: r.top + window.scrollY,
+      };
+      const still =
+        mLastDoc &&
+        Math.abs(doc.left - mLastDoc.left) <= STABLE_EPSILON &&
+        Math.abs(doc.top - mLastDoc.top) <= STABLE_EPSILON;
+      mLastDoc = doc;
+      if (still) {
+        mStableFrames += 1;
+        if (mStableFrames >= STABLE_FRAMES) mRestSettled = true;
+        return;
+      }
+      mStableFrames = 0;
+      mMeas = {
+        restLeft: r.left,
+        restTop: r.top,
+        restDocLeft: doc.left,
+        restDocTop: doc.top,
+      };
+      fly.style.left = doc.left + "px";
+      fly.style.top = doc.top + "px";
     };
 
     // Settle docked: bake the corner position and drop the transform.
@@ -588,6 +652,9 @@ export const useDockFlight = (
         dirtyRef.current = false;
         return;
       }
+      // At rest, ride any residual row movement (hero reveal, late images/
+      // fonts) until the anchor settles; then the loop is fully idle.
+      if (want === "rest" && !mRestSettled) mRestGlueStep();
       // Idle: repaint colours only when hover/press (or a resize) flips dirty.
       if (dirtyRef.current) {
         mPaintColors(committed);
@@ -646,11 +713,14 @@ export const useDockFlight = (
     rafId = requestAnimationFrame(loop);
 
     return () => {
+      alive = false;
       if (myId === ownerSeq) ownerSeq++; // relinquish ownership
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("orientationchange", onResize);
-      if (restTimer) clearTimeout(restTimer);
+      window.removeEventListener("load", rearmRestGlue);
+      document.removeEventListener("animationstart", rearmRestGlue, true);
+      document.removeEventListener("animationend", rearmRestGlue, true);
       if (rafId) cancelAnimationFrame(rafId);
     };
   }, [launcherRef, slotSelector]);

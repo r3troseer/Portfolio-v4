@@ -50,10 +50,16 @@ Design handoff, extracted locally (gitignored, never committed):
   h-padding `20 -> (52-17)/2`, icon anchored left, label fades via **opacity** `min(1, m/0.5)`
   (the shrinking overflow-hidden pill does the clipping - no maxWidth/scrollWidth animation).
   Travel is `transform: translate3d(...)` from a fixed origin set once at flight start;
-  slot/pill geometry is measured only at flight boundaries (rest entry, flight start,
-  resize/orientation - zero layout reads per frame); the hero slot collapses/expands via a
-  one-shot CSS transition; `will-change: transform` applies only while flying; and the paint
-  loop idles entirely once settled at rest or dock (hover/press wake it via a dirty flag).
+  slot/pill geometry is measured at flight boundaries (rest entry, flight start,
+  resize/orientation), with two targeted exceptions that keep the pill honest without
+  per-frame cost: in flight, a scroll marks the anchor dirty and the next frame re-glues it
+  (the handoff warns a frozen anchor "caused the overshoot"); at rest, a **settle-sampling
+  glue** re-measures each frame only until the anchor's document coords hold still for ~6
+  frames (the hero rows animate in via `fadeInUp` for ~1.3s - a rect taken mid-reveal parks
+  the pill low), re-armed by resize/orientation, `window` load, and `document.fonts.ready`.
+  The hero slot collapses/expands via a one-shot CSS transition; `will-change: transform`
+  applies only while flying; and the paint loop idles entirely once settled at rest or dock
+  (hover/press wake it via a dirty flag) - steady state is zero layout reads/writes.
   True rest leaves the pill fully natural (no width lock - prevents label clipping). No
   backdrop blur `<=600px` (see `assistant.css`).
 - `prefers-reduced-motion: reduce` -> no travel; render inline at rest, docked when committed.
