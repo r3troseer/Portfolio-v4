@@ -118,10 +118,38 @@ export const ParticleEffect = () => {
       return;
     }
 
+    // Mobile (<= 600px): the full-viewport redraw every frame is the single
+    // largest measured baseline cost on weak phones (it saturates the frame
+    // budget while everything else idles), and the drifting dots are barely
+    // visible at phone size anyway. Pause the loop entirely; re-evaluate live
+    // when the viewport crosses the breakpoint.
+    const mobileQuery = window.matchMedia("(max-width: 600px)");
+
+    const stopLoop = () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      particlesRef.current = [];
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
+    const startLoop = () => {
+      if (animationFrameRef.current !== null) return; // never stack loops
+      lastTimeRef.current = performance.now();
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+
     // Initial setup
     resizeCanvas();
-    lastTimeRef.current = performance.now();
-    animationFrameRef.current = requestAnimationFrame(animate);
+    if (!mobileQuery.matches) startLoop();
+
+    const handleBreakpoint = () => {
+      if (mobileQuery.matches) stopLoop();
+      else startLoop();
+    };
+    mobileQuery.addEventListener("change", handleBreakpoint);
 
     // Handle resize
     const handleResize = () => {
@@ -132,6 +160,7 @@ export const ParticleEffect = () => {
     // Cleanup
     return () => {
       window.removeEventListener("resize", handleResize);
+      mobileQuery.removeEventListener("change", handleBreakpoint);
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
@@ -151,8 +180,12 @@ export const ParticleEffect = () => {
           cancelAnimationFrame(animationFrameRef.current);
           animationFrameRef.current = null;
         }
-      } else if (animationFrameRef.current === null) {
-        // Only restart when nothing is scheduled, so we never stack rAF loops.
+      } else if (
+        animationFrameRef.current === null &&
+        !window.matchMedia("(max-width: 600px)").matches
+      ) {
+        // Only restart when nothing is scheduled (never stack rAF loops) and
+        // the viewport is not mobile (the setup effect pauses particles there).
         lastTimeRef.current = performance.now();
         animationFrameRef.current = requestAnimationFrame(animate);
       }
