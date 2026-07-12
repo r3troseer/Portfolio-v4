@@ -316,10 +316,27 @@ export const useDockFlight = (
       rowNode.style.position = "relative";
       const ico = fly.querySelector(".pf-ask-fly-ico");
       paintRest(fly, ico, false, false); // full rest look (incl. shadow) under the fade
+      fly.style.visibility = "visible";
+      // Reshape the hidden slot to the SAME box the rest path uses (padding 0 +
+      // an explicit pill-sized box) before reading its offset, so the pill glues
+      // to its final resting spot - not the slightly different natural-slot box.
+      // On desktop the slot shows the sub-label + kbd, whose natural metrics sit
+      // ~2.6px off the pill's box; without this the pill snaps by that much when
+      // control returns to the rest path. On mobile those are hidden, so this is
+      // a no-op there.
+      const fr = fly.getBoundingClientRect();
+      if (fr.width) {
+        slotFullW = fr.width + 2;
+        slotFullH = fr.height;
+        slotNode.style.overflow = "hidden";
+        slotNode.style.boxSizing = "border-box";
+        slotNode.style.padding = "0";
+        slotNode.style.width = slotFullW + "px";
+        slotNode.style.height = slotFullH + "px";
+      }
       fly.style.position = "absolute";
       fly.style.left = slotNode.offsetLeft + "px";
       fly.style.top = slotNode.offsetTop + "px";
-      fly.style.visibility = "visible";
       rowNode.appendChild(fly); // now inherits the row's fadeInUp transform
       entranceActive = true;
       entranceTimer = window.setTimeout(cancelEntrance, 1500); // safety net
