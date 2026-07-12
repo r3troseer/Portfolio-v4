@@ -140,6 +140,17 @@ export const useDockFlight = (
     // only; released on breakpoint cross so desktop is never touched.
     let actionsEl = null;
     let mRowReserved = false;
+    // Entrance reparent (load glue): the launcher is positioned by JS while the
+    // action row fades in via a compositor CSS animation, so a per-frame JS reader
+    // trails the rising row a few px. Instead, for the initial reveal the pill is
+    // parked as an absolute child INSIDE the row, so it inherits the row's fadeInUp
+    // transform natively - it slides in physically glued to its slot, zero chase,
+    // zero cross-element timing. It returns to the document root (for the normal
+    // flight machinery) the moment the reveal ends or a flight begins.
+    let didEntrance = false;
+    let entranceActive = false;
+    let entranceHome = null; // { parent, next, rowPos } to restore the pill
+    let entranceTimer = 0;
     // Settle detection for the rest glue: the hero rows animate in (fadeInUp
     // translates ancestors ~30px over ~1.3s), so a rect measured during the
     // reveal parks the pill mid-animation. While "unsettled" the rest branch
@@ -286,6 +297,67 @@ export const useDockFlight = (
     if (document.fonts?.ready) {
       document.fonts.ready.then(rearmRestGlue).catch(() => {});
     }
+
+    // Park the launcher inside the row for the reveal (see entrance state above).
+    // Returns true when it takes ownership of the pill for this frame.
+    const startEntrance = () => {
+      const rowNode = actions();
+      const slotNode = slot();
+      if (!rowNode || !slotNode) return false;
+      if (!(slotNode.offsetWidth || slotNode.offsetHeight)) return false; // not laid out yet
+      didEntrance = true;
+      entranceHome = {
+        parent: fly.parentNode,
+        next: fly.nextSibling,
+        rowPos: rowNode.style.position,
+      };
+      // A transform makes the row a containing block only while it is animating;
+      // position:relative keeps the absolute pill anchored to it before/after too.
+      rowNode.style.position = "relative";
+      const ico = fly.querySelector(".pf-ask-fly-ico");
+      paintRest(fly, ico, false, false); // full rest look (incl. shadow) under the fade
+      fly.style.position = "absolute";
+      fly.style.left = slotNode.offsetLeft + "px";
+      fly.style.top = slotNode.offsetTop + "px";
+      fly.style.visibility = "visible";
+      rowNode.appendChild(fly); // now inherits the row's fadeInUp transform
+      entranceActive = true;
+      entranceTimer = window.setTimeout(cancelEntrance, 1500); // safety net
+      return true;
+    };
+
+    // Return the launcher to the document root and re-anchor it in document
+    // coords so the normal rest/flight path continues. Idempotent.
+    const cancelEntrance = () => {
+      if (entranceTimer) {
+        clearTimeout(entranceTimer);
+        entranceTimer = 0;
+      }
+      if (!entranceActive) return;
+      entranceActive = false;
+      const home = entranceHome;
+      entranceHome = null;
+      const rowNode = actions();
+      if (rowNode) rowNode.style.position = home ? home.rowPos || "" : "";
+      if (home && home.parent) home.parent.insertBefore(fly, home.next);
+      const slotNode = slot();
+      if (slotNode) {
+        const r = slotNode.getBoundingClientRect();
+        fly.style.position = "absolute";
+        fly.style.left = r.left + window.scrollX + "px";
+        fly.style.top = r.top + window.scrollY + "px";
+      }
+      mState = null; // force mobile to re-finalize rest cleanly
+    };
+
+    // End the reveal ride as soon as the ROW's own fadeInUp finishes (the row has
+    // stopped, so the handoff to document-coord positioning is seamless).
+    const onRowRevealEnd = (e) => {
+      if (e.target === actions() && /fadeInUp/i.test(e.animationName || "")) {
+        cancelEntrance();
+      }
+    };
+    document.addEventListener("animationend", onRowRevealEnd, true);
 
     /* ------------------------- desktop path (unchanged) ------------------ */
 
@@ -832,8 +904,25 @@ export const useDockFlight = (
           animP = flightFrom + (flightTo - flightFrom) * e;
         }
       }
-      if (mobile) applyMobile();
-      else applyDesktop(animP);
+      // The launcher lives inside the row only while it sits at initial rest. The
+      // instant a flight is needed (committed to dock, or any real travel), return
+      // it to the document root and hand back to the normal paint path this frame.
+      if (entranceActive && (committed === 1 || animP > 0.02)) cancelEntrance();
+      if (!entranceActive) {
+        if (
+          !didEntrance &&
+          !reduce &&
+          slotPresent &&
+          committed === 0 &&
+          animP < 0.02
+        ) {
+          startEntrance(); // if it takes ownership, skip the normal paint
+        }
+        if (!entranceActive) {
+          if (mobile) applyMobile();
+          else applyDesktop(animP);
+        }
+      }
       lastFrameT = now;
       rafId = requestAnimationFrame(loop);
     };
@@ -845,6 +934,7 @@ export const useDockFlight = (
     return () => {
       alive = false;
       if (myId === ownerSeq) ownerSeq++; // relinquish ownership
+      cancelEntrance(); // restore the pill to its original parent for React unmount
       mReleaseRow();
       mClearSiblings();
       window.removeEventListener("scroll", onScroll);
@@ -853,6 +943,7 @@ export const useDockFlight = (
       window.removeEventListener("load", rearmRestGlue);
       document.removeEventListener("animationstart", rearmRestGlue, true);
       document.removeEventListener("animationend", rearmRestGlue, true);
+      document.removeEventListener("animationend", onRowRevealEnd, true);
       if (rafId) cancelAnimationFrame(rafId);
     };
   }, [launcherRef, slotSelector]);
