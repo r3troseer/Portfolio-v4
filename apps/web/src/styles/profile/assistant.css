@@ -86,6 +86,11 @@
     will-change: auto;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
+    /* No hover on touch: shadows only switch at flight-state boundaries, so a
+       box-shadow transition here just runs a non-composited main-thread
+       animation on every boundary paint (flagged in CLS traces). Desktop keeps
+       the full transition for the docked hover glow. */
+    transition: filter 0.16s ease;
   }
 
   .pf-ask-fly-sub,
