@@ -132,6 +132,14 @@ export const useDockFlight = (
     let mPillW = null;
     let mPillH = null;
     let slotEl = null;
+    // Row-height reservation (mobile CLS): on a phone the action row wraps to two
+    // lines (slot + "View work" / "Get in touch"). When the slot collapses the row
+    // un-wraps to one line, shortening it ~37px and jerking the whole facts card
+    // below it up - the dominant home-page layout shift. Pinning the row's rest
+    // height as min-height removes the cause (no height change, no shift). Mobile
+    // only; released on breakpoint cross so desktop is never touched.
+    let actionsEl = null;
+    let mRowReserved = false;
     // Settle detection for the rest glue: the hero rows animate in (fadeInUp
     // translates ancestors ~30px over ~1.3s), so a rect measured during the
     // reveal parks the pill mid-animation. While "unsettled" the rest branch
@@ -150,6 +158,39 @@ export const useDockFlight = (
         slotEl = document.querySelector(slotSelector);
       }
       return slotEl;
+    };
+
+    // The action row that owns the slot; its height is what we reserve.
+    const actions = () => {
+      if (!actionsEl || !actionsEl.isConnected) {
+        const s = slot();
+        actionsEl = s
+          ? s.closest(".pf-hero-actions")
+          : document.querySelector(".pf-hero-actions");
+      }
+      return actionsEl;
+    };
+
+    // Pin the row's current (rest, un-collapsed) height so a later slot collapse
+    // cannot shorten it. Call while the row is at full height (flight start /
+    // settled rest), before the slot collapses.
+    const mReserveRow = () => {
+      if (mRowReserved) return;
+      const a = actions();
+      if (!a) return;
+      const h = a.getBoundingClientRect().height;
+      if (h) {
+        a.style.minHeight = h + "px";
+        mRowReserved = true;
+      }
+    };
+
+    // Drop the reservation so the natural height can be re-measured (resize /
+    // breakpoint cross / unmount).
+    const mReleaseRow = () => {
+      const a = actions();
+      if (a) a.style.minHeight = "";
+      mRowReserved = false;
     };
 
     const onScroll = () => {
@@ -176,6 +217,9 @@ export const useDockFlight = (
       slotFullW = null;
       slotFullH = null;
       subFullW = null;
+      // Release the row reservation so the next flight re-measures the fresh
+      // (possibly re-wrapped) rest height; also clears it entirely on desktop.
+      mReleaseRow();
       if (mobile !== wasMobile) {
         // Crossing the breakpoint swaps paint paths (and the CSS-hidden
         // sub/kbd), so the pill's natural footprint changes: full reset. The
@@ -475,6 +519,10 @@ export const useDockFlight = (
     // Enter the flight: one measurement + one-time base style setup, then
     // frames only write transform/size/opacity/colours.
     const mStartFlight = () => {
+      // Reserve the row height while it is still at full (un-collapsed) height,
+      // before mSlotTo collapses the slot - otherwise the row shortens and the
+      // facts card jumps (the shift we are removing).
+      mReserveRow();
       mMeasure();
       mAnchorDirty = false; // just measured
       const from = mMeas || { restLeft: MOBILE_EDGE, restTop: vh };
@@ -736,6 +784,7 @@ export const useDockFlight = (
     return () => {
       alive = false;
       if (myId === ownerSeq) ownerSeq++; // relinquish ownership
+      mReleaseRow();
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("orientationchange", onResize);
