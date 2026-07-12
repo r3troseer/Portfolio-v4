@@ -13,7 +13,10 @@
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 1100;
+  /* Below the nav chrome (--z-nav: 1000) so the nav and its mobile menu always
+     cover the launcher; still above page content, and below the assistant modal
+     (1200) the launcher opens and the project-detail lightbox (1300). */
+  z-index: 900;
   visibility: hidden; /* revealed by the hook on its first painted frame */
   display: inline-flex;
   align-items: center;
