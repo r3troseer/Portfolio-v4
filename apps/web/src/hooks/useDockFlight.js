@@ -193,6 +193,27 @@ export const useDockFlight = (
       mRowReserved = false;
     };
 
+    // The slot's flow siblings (the "View work" / "Get in touch" buttons). When
+    // the slot collapses/expands these reflow horizontally within the reserved
+    // row; that reflow is the residual mobile shift the FLIP below removes.
+    const mSlotSiblings = () => {
+      const a = actions();
+      if (!a) return [];
+      const s = slot();
+      return Array.from(a.children).filter(
+        (el) => el.nodeType === 1 && el !== s
+      );
+    };
+
+    // Clear any FLIP transforms/transition left on the siblings (resize /
+    // breakpoint cross / unmount) so the desktop path never inherits them.
+    const mClearSiblings = () => {
+      for (const el of mSlotSiblings()) {
+        el.style.transition = "";
+        el.style.transform = "";
+      }
+    };
+
     const onScroll = () => {
       const y = window.scrollY || document.documentElement.scrollTop;
       const tnow = performance.now();
@@ -220,6 +241,8 @@ export const useDockFlight = (
       // Release the row reservation so the next flight re-measures the fresh
       // (possibly re-wrapped) rest height; also clears it entirely on desktop.
       mReleaseRow();
+      // Drop any in-progress FLIP transforms so the re-laid-out row starts clean.
+      mClearSiblings();
       if (mobile !== wasMobile) {
         // Crossing the breakpoint swaps paint paths (and the CSS-hidden
         // sub/kbd), so the pill's natural footprint changes: full reset. The
@@ -488,8 +511,15 @@ export const useDockFlight = (
           ")";
     };
 
-    // Collapse/expand the reserved hero slot with a one-shot CSS transition
-    // instead of per-frame width writes.
+    // Collapse/expand the reserved hero slot and FLIP the sibling buttons.
+    // Rather than CSS-transition the slot width (which reflows the flex row
+    // every frame - each frame a counted layout shift of the buttons), the slot
+    // snaps to its target size in ONE reflow and the siblings glide to their new
+    // spots via transform (First-Last-Invert-Play): record positions, snap,
+    // record again, apply the inverse translate, then transition it to zero.
+    // Transforms are compositor-only and never counted as layout shift, so the
+    // visible tidy-up is identical but CLS-free. One forced reflow per slot
+    // toggle (flight boundary), never per frame.
     const mSlotTo = (collapsed) => {
       const slotNode = slot();
       if (!slotNode) return;
@@ -500,20 +530,51 @@ export const useDockFlight = (
         slotNode.style.height = "";
         slotNode.style.overflow = "";
         slotNode.style.padding = "";
+        mClearSiblings();
         return;
       }
       if (slotFullW == null && mPillW != null) {
         slotFullW = mPillW + 2;
         slotFullH = mPillH;
       }
+
+      const sibs = mSlotSiblings();
+      // FIRST: sibling positions before the size change (visual rects, so an
+      // in-flight transform is included and the glide chains from where it is).
+      const first = reduce ? null : sibs.map((el) => el.getBoundingClientRect());
+
+      // Snap the slot to its target size in a single reflow (no width tween).
+      slotNode.style.transition = "none";
       slotNode.style.overflow = "hidden";
       slotNode.style.boxSizing = "border-box";
       slotNode.style.padding = "0";
       slotNode.style.display = "inline-flex";
-      slotNode.style.transition =
-        "width 0.42s cubic-bezier(0.2, 0.7, 0.2, 1), height 0.42s cubic-bezier(0.2, 0.7, 0.2, 1)";
       slotNode.style.width = collapsed ? "0px" : (slotFullW || 0) + "px";
       slotNode.style.height = collapsed ? "0px" : (slotFullH || 0) + "px";
+
+      if (reduce) {
+        mClearSiblings();
+        return;
+      }
+
+      // LAST + INVERT: measure the settled positions, offset each sibling back
+      // to where it was, with the transition off so the invert is instant.
+      sibs.forEach((el, i) => {
+        const last = el.getBoundingClientRect();
+        const dx = first[i].left - last.left;
+        const dy = first[i].top - last.top;
+        el.style.transition = "none";
+        el.style.transform =
+          dx || dy ? `translate(${dx}px, ${dy}px)` : "";
+      });
+      // Commit the inverted state before playing (single forced reflow).
+      void slotNode.offsetWidth;
+      // PLAY: glide the offset back to zero on the compositor.
+      sibs.forEach((el) => {
+        el.style.transition =
+          "transform 0.42s cubic-bezier(0.2, 0.7, 0.2, 1)";
+        el.style.transform = "";
+      });
     };
 
     // Enter the flight: one measurement + one-time base style setup, then
@@ -785,6 +846,7 @@ export const useDockFlight = (
       alive = false;
       if (myId === ownerSeq) ownerSeq++; // relinquish ownership
       mReleaseRow();
+      mClearSiblings();
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("orientationchange", onResize);
