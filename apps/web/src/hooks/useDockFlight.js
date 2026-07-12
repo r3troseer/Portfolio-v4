@@ -116,6 +116,11 @@ export const useDockFlight = (
     let slotFullW = null;
     let slotFullH = null;
     let subFullW = null;
+    // Desktop action-row rest height. The row wraps to two lines with the pill and
+    // collapses to one when it docks; because the desktop hero is vertically
+    // centred, that height change re-centres the whole column and it visibly jumps.
+    // Pinning the rest height through the flight keeps the column height constant.
+    let desktopRowH = null;
 
     // --- mobile path state ---
     // "rest" | "flight" | "docked" | null (null = not yet painted)
@@ -252,6 +257,7 @@ export const useDockFlight = (
       // Release the row reservation so the next flight re-measures the fresh
       // (possibly re-wrapped) rest height; also clears it entirely on desktop.
       mReleaseRow();
+      desktopRowH = null; // re-capture the desktop rest height for the new width
       // Drop any in-progress FLIP transforms so the re-laid-out row starts clean.
       mClearSiblings();
       if (mobile !== wasMobile) {
@@ -410,6 +416,28 @@ export const useDockFlight = (
           slotNode.style.display = w < 1 ? "none" : "inline-flex";
           slotNode.style.width = Math.max(0, w) + "px";
           slotNode.style.height = Math.max(0, slotFullH * (1 - eOut)) + "px";
+        }
+      }
+
+      // Reserve the action row's rest height through the flight so its two-line ->
+      // one-line collapse can't shrink the row and re-centre the (vertically
+      // centred) hero column. At rest we hold the natural height and re-measure it;
+      // in flight we pin it. Mirror of the mobile reserve, on the desktop path.
+      // Capture the true rest height ONCE at full rest (p ~ 0, before min-height
+      // is applied, slot at full size), then keep it pinned for the whole session
+      // - including at rest, where it equals the natural height so it is invisible.
+      // Never clearing it means there is never a frame where the row is short: the
+      // earlier "clear at rest" left a short frame at re-attach (the slot had not
+      // finished re-expanding), which re-centred the vertically-centred hero ~1px.
+      // Reset on resize (onResize) to re-capture for the new width.
+      const rowNode = actions();
+      if (rowNode) {
+        if (desktopRowH == null && p < 0.004) {
+          const rh = rowNode.getBoundingClientRect().height;
+          if (rh) desktopRowH = rh;
+        }
+        if (desktopRowH && rowNode.style.minHeight !== desktopRowH + "px") {
+          rowNode.style.minHeight = desktopRowH + "px";
         }
       }
 
