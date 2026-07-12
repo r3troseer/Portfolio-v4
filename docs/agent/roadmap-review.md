@@ -20,16 +20,18 @@
 | Layer 0 public content foundation (`apps/web/src/content/public/` + adapters) | Live |
 | `apps/web` Vite SPA on Vercel | Live |
 | `apps/api` Django/DRF on Railway | Live |
-| `POST /api/retrieve/` single-pass lexical evidence ledger | Live |
-| `POST /api/answer/` grounded answer (retrieve -> server-side Gemini -> validated citations) | Live |
-| Cmd+K modal + `/playground` grounded-answer UI | Live |
+| `POST /api/retrieve/` two-stage evidence ledger (lexical candidates + deterministic rerank) | Live |
+| `POST /api/answer/` grounded answer (retrieve -> rerank -> server-side Gemini on selected evidence -> validated citations) | Live |
+| Expanded retrieval ledger (initial / reranked / selected) on both endpoints | Live |
+| Cmd+K modal + `/playground` grounded-answer UI with rag-reveal + retrieval inspector | Live |
 | Railway GitHub autodeploy + Wait for CI (`railway.toml` / Dockerfile) | Live |
 
-**Current retrieval:** single-pass lexical only - **no reranking on dev yet.**
-
-**Pre-prod completion target (before main release):** real backend reranking + the exact
-handoff expanded evidence ledger (initial candidates, reranked candidates, selected evidence).
-See Section 3A.
+**Current retrieval:** lexical candidate generation (`min(3 * top_k, 20)` pool) followed by a
+deterministic, model-free rerank (`deterministic_rerank_v1`: capped lexical carry-over, query
+coverage, title/tag hits, role-lens, exact/near phrase). The answer provider receives only the
+selected reranked evidence, and citation validation is scoped to it. Score/rank numbers explain
+ordering within a result set, not confidence. No embeddings, vector DB, cross-encoder, or
+LLM-based reranking.
 
 ### Explicitly not in this release
 
@@ -41,8 +43,8 @@ See Section 3A.
 - No `packages/contracts` package yet
 
 Embeddings, vector DB, and cross-encoder rerankers stay out unless explicitly added later.
-Lexical candidate generation + a real backend rerank stage is the pre-prod path - not a
-vector-store rewrite.
+Lexical candidate generation + the deterministic backend rerank stage (now live) is the
+shipped path - not a vector-store rewrite.
 
 Split-deploy detail: [`docs/deployment/layer1-runtime.md`](../deployment/layer1-runtime.md).
 
@@ -107,10 +109,11 @@ UI fidelity: [`layer1-playground.md`](./layer1-playground.md).
 | Capability | Notes |
 |---|---|
 | Public evidence index | Fail-closed gating over Layer 0 |
-| Single-pass lexical retrieval | `POST /api/retrieve/` - no rerank stage yet |
-| Raw evidence ledger UI | Cmd+K + `/playground` |
-| Grounded answer | `POST /api/answer/` |
-| Citation validation | Unknown / missing citations fail closed |
+| Two-stage retrieval (lexical candidates + deterministic rerank) | `POST /api/retrieve/` - `deterministic_rerank_v1`, model-free |
+| Expanded retrieval ledger (initial / reranked / selected) | Returned by both `/api/retrieve/` and `/api/answer/`; backend-backed |
+| Rag-reveal loader + retrieval inspector UI | `/playground` - handoff `rag-reveal*` / `rag-insp*` re-authored as `pf-pg-rag-*`; replaced the temporary evidence score-card UI. Modal stays compact (Cmd+K) |
+| Grounded answer | `POST /api/answer/` - provider receives selected reranked evidence only |
+| Citation validation | Unknown / missing / unselected-candidate citations fail closed |
 | Deployed runtime wiring | Vercel web <-> Railway API |
 
 ### A. Pre-prod Layer 1 completion / hardening
@@ -122,7 +125,7 @@ Required before the Layer 1 main release. Do not fake backend behaviours in the 
 | Answer-endpoint cost controls | Section 2 pre-prod gates - release-blocking because each allowed call spends money |
 | Safe answer truncation | Validate full model output first, truncate outside citation/highlight spans, then recompute served citation ids. Fail closed if truncation drops every citation marker. |
 | Citation badge cleanup | Pre-prod Layer 1 polish: reserve numeric refs for project `displayOrder` only; use semantic refs for non-project evidence. Examples: project -> `01`/`02`/`03` by displayOrder; profile -> `profile`; skills -> `skills`; experience -> `exp`; education -> `edu`; links -> `links`; about -> `about`; `role-lenses/<slug>` -> `<slug>`; fallback -> `doc`/`src`. Retrieval rank must not be used as citation `ref`. |
-| Reranking + expanded retrieval ledger | Pre-prod Layer 1 completion: real backend rerank stage, initial candidates, reranked candidates, selected evidence, and exact handoff ledger UI. Pipeline target: query -> lexical candidates -> rerank -> selected evidence -> answer. **Must be backend-backed.** Do not render a pre/post rerank inspector from frontend-only fabricated data. Embeddings / vector DB / cross-encoder remain out of this release unless explicitly added later. |
+| Reranking + expanded retrieval ledger | **Done (live).** Backend rerank stage (`deterministic_rerank_v1`), initial/reranked/selected ledger on both endpoints, and the handoff rag-reveal + retrieval-inspector UI. Pipeline: query -> lexical candidates -> deterministic rerank -> selected evidence -> answer. Backend-backed throughout; the inspector renders only real ledger data. Embeddings / vector DB / cross-encoder remain out of this release unless explicitly added later. |
 | Stopword filter | Cheap win: stopword filter in `_tokenize` |
 | Retry affordance | Cheap win: retry after transient failures / identical query resubmission |
 | SPA route titles | Cheap win: titles for home / playground / project detail / 404 |
@@ -131,8 +134,9 @@ Required before the Layer 1 main release. Do not fake backend behaviours in the 
 
 Cheap wins above are pre-prod polish, not hard blockers on their own; cost controls, safe
 truncation, citation refs, and real rerank + ledger are the substantive pre-prod gates.
-The hardening branch implements every row above except reranking + the expanded retrieval
-ledger, which remains the next separate pre-prod completion branch.
+The hardening branch implemented every row above except reranking + the expanded retrieval
+ledger, which landed on the follow-up reranking-ledger branch - all Section A rows are now
+implemented.
 
 ### B. Post-release deferred Layer 1 / later
 
@@ -204,9 +208,9 @@ release:
 | Order | What | Role |
 |---|---|---|
 | Done / shipping | Layer 0 | Public content foundation |
-| Shipping baseline | Layer 1 core | Evidence index, retrieve, grounded answer, UI, deploy (single-pass lexical today) |
+| Shipping baseline | Layer 1 core | Evidence index, retrieve, grounded answer, UI, deploy |
 | Pre-prod hardening | Layer S + Layer 1 | Answer cost controls, safe truncation, env sanity, citation badges, stopwords, retry, route titles |
-| Pre-prod completion | Layer 1 | Real reranking + exact expanded evidence ledger (backend-backed) |
+| Done / shipping | Layer 1 completion | Deterministic reranking + expanded evidence ledger (backend-backed) with rag-reveal + retrieval-inspector UI |
 | Post-release Layer 1 | Layer 1 later | Evidence detail / passage inspector, slash commands, streaming / chat work |
 | Later | Contracts | When a second consumer exists; before / with Layer 2.5 |
 | Later | Layer 2 | Allowlisted tools + CV |

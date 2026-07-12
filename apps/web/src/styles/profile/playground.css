@@ -1,9 +1,10 @@
 /*
  * Profile - evidence playground (/playground).
  * Ported from the profile handoff's "Evidence" view (the ev-/rag- surface in
- * .notes/prototypes/profile-handoff). Same layout, tokens, and typography,
- * Fed by the live /api/answer/ response: ev-gen-status loading, gen-prose answer
- * with inline gen-cite chips, then the evidence ledger. No rerank or keys.
+ * .notes/prototypes/profile-handoff). Same layout, tokens, and typography.
+ * Fed by the live /api/retrieve/ + /api/answer/ responses: rag-reveal loader,
+ * retrieval inspector pill/panel (retrieve-to-rerank ledger), ev-gen-status
+ * loading, gen-prose answer with inline gen-cite chips. No keys in browser.
  * Imported by Playground.jsx. See docs/agent/layer1-playground.md.
  */
 
@@ -413,243 +414,118 @@
   padding-bottom: 10px;
 }
 
-.pf-pg-seclabel {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ev-dim);
-  margin: var(--spacing-2xl) 0 var(--spacing-lg);
+/* --- RAG reveal + retrieval inspector ------------------------------------- */
+/* Re-authored from the handoff's .rag-reveal / .rag-insp rules (Portfolio.dc.html
+   lines 1242-1285) under the pf-pg-rag-* namespace. Backed only by the real
+   /api/retrieve/ + /api/answer/ ledger - nothing here is fabricated. */
+
+.pf-pg-settle {
+  animation: pfPgSettle 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
-.pf-pg-seclabel svg {
-  color: var(--ev-accent);
+@keyframes pfPgSettle {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pf-pg-rag-reveal {
+  margin-bottom: var(--spacing-lg);
+}
+
+.pf-pg-rag-reveal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ev-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+
+.pf-pg-rag-reveal-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ev-accent);
+  box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.15);
   flex-shrink: 0;
 }
 
-.pf-pg-seclabel::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--ev-line);
-}
-
-/* --- Retrieved entities --------------------------------------------------- */
-.pf-pg-docs {
+.pf-pg-rag-reveal-rows {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 8px;
 }
 
-.pf-pg-doc {
-  display: grid;
-  grid-template-columns: 72px 1fr;
-  gap: var(--spacing-lg);
-  background: var(--ev-panel);
-  border: 1px solid var(--ev-line);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-lg);
-  position: relative;
-  overflow: hidden;
-  text-decoration: none;
-  color: inherit;
-  transition: all var(--transition-fast);
-}
-
-/* Only project-backed entities are links (rendered as <a>); markdown/profile
-   entities have no detail page, so they render as static <article> cards: no pointer,
-   no hover-open affordance. */
-a.pf-pg-doc {
-  cursor: pointer;
-}
-
-.pf-pg-doc::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--ev-accent);
-  transform: scaleY(0);
-  transform-origin: top;
-  transition: transform var(--transition-fast);
-}
-
-a.pf-pg-doc:hover {
-  border-color: color-mix(in srgb, var(--ev-accent) 40%, transparent);
-  background: #151c2c;
-}
-
-a.pf-pg-doc:hover::before {
-  transform: scaleY(1);
-}
-
-.pf-pg-score {
+.pf-pg-rag-reveal-row {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 6px;
-}
-
-.pf-pg-score-bar {
-  width: 6px;
-  height: 56px;
-  background: rgba(148, 163, 184, 0.12);
-  border-radius: 3px;
-  position: relative;
-  overflow: hidden;
-}
-
-.pf-pg-score-fill {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: var(--pf-pg-fill, 0%);
-  background: linear-gradient(to top, var(--ev-accent), var(--ev-accent2));
-  border-radius: 3px;
-}
-
-.pf-pg-score-num {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  color: var(--ev-accent);
-  font-weight: 700;
-}
-
-.pf-pg-doc-body {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.pf-pg-doc-head {
-  display: flex;
-  align-items: baseline;
-  gap: var(--spacing-sm);
-  flex-wrap: wrap;
-  margin-bottom: 6px;
-}
-
-.pf-pg-doc-id {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  color: var(--ev-dim);
-}
-
-.pf-pg-doc-title {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  color: var(--slate-50);
-}
-
-.pf-pg-doc-kind {
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 2px 7px;
-  border-radius: 4px;
-  background: rgba(167, 139, 250, 0.12);
-  color: #c4b5fd;
-  border: 1px solid rgba(167, 139, 250, 0.25);
-}
-
-.pf-pg-doc-snippet {
-  color: var(--ev-text);
-  font-size: var(--font-size-sm);
-  line-height: 1.65;
-  margin-bottom: var(--spacing-sm);
-}
-
-.pf-pg-doc-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-}
-
-.pf-pg-doc-tag {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  color: var(--ev-dim);
-  padding: 3px 8px;
-  border: 1px solid var(--ev-line);
-  border-radius: 4px;
-}
-
-.pf-pg-niche-tag {
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ev-accent);
-  border: 1px solid color-mix(in srgb, var(--ev-accent) 32%, transparent);
-  border-radius: var(--radius-full);
-  padding: 3px 11px;
-  white-space: nowrap;
-}
-
-.pf-pg-doc-src {
-  margin-top: var(--spacing-sm);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--ev-dim);
-  word-break: break-all;
-}
-
-/* "open entity ->" affordance, revealed on hover/focus. */
-.pf-pg-doc-open {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: var(--spacing-sm);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  color: var(--ev-accent);
-  opacity: 0;
-  transition: opacity var(--transition-fast);
-}
-
-a.pf-pg-doc:hover .pf-pg-doc-open,
-a.pf-pg-doc:focus-visible .pf-pg-doc-open {
-  opacity: 1;
-}
-
-/* --- Loading skeleton ----------------------------------------------------- */
-.pf-pg-skel {
-  margin: var(--spacing-md) 0 var(--spacing-xl);
-  display: flex;
-  flex-direction: column;
   gap: 10px;
 }
 
-.pf-pg-skel-bar {
-  height: 14px;
-  width: 160px;
-  border-radius: 6px;
+.pf-pg-rag-reveal-title {
+  font-size: 12px;
+  color: var(--ev-text);
+  width: 100px;
+  font-weight: 500;
+  flex: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.pf-pg-skel-cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-md);
-  margin-top: 6px;
+.pf-pg-rag-reveal-bar {
+  flex: 1;
+  height: 5px;
+  background: rgba(148, 163, 184, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
 }
 
-.pf-pg-skel-card {
-  height: 120px;
-  border-radius: 12px;
+.pf-pg-rag-reveal-fill {
+  height: 100%;
+  background: var(--ev-accent);
+  border-radius: 3px;
+  animation: pfPgRagBarFill 1s cubic-bezier(0.2, 0.7, 0.3, 1) both;
 }
 
-.pf-pg-skel-bar,
-.pf-pg-skel-card {
+@keyframes pfPgRagBarFill {
+  from {
+    width: 0;
+  }
+}
+
+.pf-pg-rag-reveal-score {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ev-accent);
+  font-weight: 700;
+  min-width: 24px;
+  text-align: right;
+}
+
+.pf-pg-rag-reveal-score.dim {
+  color: var(--ev-dim);
+}
+
+/* Neutral pre-retrieve skeleton: no titles, scores, or ranks - only shimmer. */
+.pf-pg-rag-reveal-title.is-skeleton,
+.pf-pg-rag-reveal-score.is-skeleton {
+  height: 10px;
+  border-radius: 4px;
+}
+
+.pf-pg-rag-reveal-title.is-skeleton,
+.pf-pg-rag-reveal-score.is-skeleton,
+.pf-pg-rag-reveal-shimmer {
   background: linear-gradient(
     90deg,
     color-mix(in oklch, var(--ev-panel) 90%, transparent) 25%,
@@ -658,7 +534,11 @@ a.pf-pg-doc:focus-visible .pf-pg-doc-open {
   );
   background-size: 200% 100%;
   animation: pfPgShimmer 1.3s ease-in-out infinite;
-  border: 1px solid var(--ev-line);
+}
+
+.pf-pg-rag-reveal-shimmer {
+  height: 100%;
+  border-radius: 3px;
 }
 
 @keyframes pfPgShimmer {
@@ -670,73 +550,226 @@ a.pf-pg-doc:focus-visible .pf-pg-doc-open {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .pf-pg-skel-bar,
-  .pf-pg-skel-card {
-    animation: none;
-  }
+/* Inspector pill + retrieve-to-rerank panel (handoff Frame 7). */
+.pf-pg-rag-pillwrap {
+  position: relative;
+  display: inline-block;
+  margin-bottom: var(--spacing-lg);
+  z-index: 40;
 }
 
-/* --- Empty / notice states ------------------------------------------------ */
-.pf-pg-empty {
-  display: flex;
-  flex-direction: column;
+.pf-pg-rag-pill {
+  display: inline-flex;
   align-items: center;
-  text-align: center;
-  gap: 12px;
-  padding: var(--spacing-3xl) var(--spacing-lg);
-  color: var(--ev-dim);
+  gap: 9px;
+  padding: 7px 13px;
   background: var(--ev-panel);
   border: 1px solid var(--ev-line);
-  border-radius: var(--radius-md);
+  border-radius: 8px;
+  color: var(--ev-text);
+  font-size: 12.5px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: border-color 0.14s;
 }
 
-.pf-pg-empty svg {
+.pf-pg-rag-pill:hover {
+  border-color: color-mix(in srgb, var(--ev-accent) 40%, var(--ev-line));
+}
+
+.pf-pg-rag-pill svg {
+  color: var(--ev-accent);
+  flex-shrink: 0;
+}
+
+.pf-pg-rag-sep {
+  width: 1px;
+  height: 12px;
+  background: var(--ev-line);
+}
+
+.pf-pg-rag-count {
   color: var(--ev-accent);
 }
 
-.pf-pg-empty p {
-  max-width: 48ch;
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-base);
+.pf-pg-rag-pill svg.pf-pg-rag-chev {
+  color: var(--ev-dim);
 }
 
-.pf-pg-q {
-  color: var(--slate-200);
-  font-weight: 600;
-}
-
-.pf-pg-notice {
-  display: flex;
-  align-items: flex-start;
-  gap: 11px;
-  padding: var(--spacing-lg);
+.pf-pg-rag-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 360px;
+  max-width: calc(100vw - 32px);
   background: var(--ev-panel);
   border: 1px solid var(--ev-line);
-  border-radius: var(--radius-md);
-  color: var(--ev-text);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 50;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
 }
 
-.pf-pg-notice svg {
-  flex-shrink: 0;
-  margin-top: 2px;
-  color: var(--ev-amber, #fbbf24);
-}
-
-.pf-pg-notice.is-offline svg {
-  color: var(--secondary-accent);
-}
-
-.pf-pg-notice-title {
-  font-weight: 600;
-  color: var(--slate-100);
-  margin-bottom: 3px;
-}
-
-.pf-pg-notice-body {
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-base);
+.pf-pg-rag-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--ev-line);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--ev-dim);
+}
+
+.pf-pg-rag-head svg {
+  color: var(--ev-accent);
+  flex-shrink: 0;
+}
+
+.pf-pg-rag-k {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--ev-dim);
+  border: 1px solid var(--ev-line);
+  border-radius: 5px;
+  padding: 2px 6px;
+  text-transform: none;
+}
+
+/* The full ledger can reach 20 rows - scroll inside the panel. */
+.pf-pg-rag-rows {
+  max-height: min(46vh, 380px);
+  overflow-y: auto;
+}
+
+.pf-pg-rag-insprow {
+  display: grid;
+  grid-template-columns: 1fr 42px 16px 42px 44px;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+}
+
+.pf-pg-rag-insprow:last-child {
+  border-bottom: none;
+}
+
+.pf-pg-rag-ititle {
+  font-size: 13px;
+  color: var(--ev-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pf-pg-rag-pre {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ev-dim);
+  text-align: right;
+}
+
+.pf-pg-rag-insprow svg.pf-pg-rag-arrow {
+  color: #3f4d63;
+}
+
+.pf-pg-rag-post {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ev-accent);
+  text-align: right;
+}
+
+.pf-pg-rag-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  justify-content: flex-end;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.pf-pg-rag-trend.up {
+  color: #34d399;
+}
+
+.pf-pg-rag-trend.down {
+  color: #fb7185;
+}
+
+.pf-pg-rag-trend.same {
+  color: var(--ev-dim);
+}
+
+.pf-pg-rag-foot {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 11px 14px;
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--ev-line);
+  color: var(--ev-accent);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: background 0.14s;
+}
+
+.pf-pg-rag-foot:hover {
+  background: rgba(100, 255, 218, 0.06);
+}
+
+.pf-pg-rag-foot svg {
+  color: var(--ev-accent);
+  flex-shrink: 0;
+}
+
+@media (max-width: 520px) {
+  .pf-pg-rag-panel {
+    width: calc(100vw - 32px);
+  }
+
+  .pf-pg-rag-insprow {
+    grid-template-columns: 1fr 36px 14px 36px 40px;
+    gap: 7px;
+    padding: 9px 12px;
+  }
+
+  .pf-pg-rag-ititle {
+    font-size: 12px;
+  }
+
+  .pf-pg-rag-pre,
+  .pf-pg-rag-post {
+    font-size: 11px;
+  }
+
+  .pf-pg-rag-pill {
+    font-size: 11.5px;
+    gap: 7px;
+    padding: 6px 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-pg-settle {
+    animation: none !important;
+  }
+
+  .pf-pg-rag-reveal-fill {
+    animation: none;
+  }
+
+  .pf-pg-rag-reveal-title.is-skeleton,
+  .pf-pg-rag-reveal-score.is-skeleton,
+  .pf-pg-rag-reveal-shimmer {
+    animation: none;
+  }
 }
 
 .pf-pg-retry {
@@ -855,6 +888,24 @@ a.pf-pg-doc:focus-visible .pf-pg-doc-open {
     opacity: 1;
     transform: none;
   }
+}
+
+/* Page-lead headline (handoff gen-headline: h2 lead statement + one sub line). */
+.pf-pg-gen-headline h2 {
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  line-height: 1.14;
+  color: var(--slate-50);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.pf-pg-gen-headline p {
+  margin: 12px 0 0;
+  font-size: var(--font-size-base);
+  color: var(--ev-dim);
+  max-width: 56ch;
+  line-height: 1.55;
 }
 
 .pf-pg-gen-prose p {
@@ -1005,37 +1056,8 @@ a.pf-pg-doc:focus-visible .pf-pg-doc-open {
 
 /* --- Responsive ----------------------------------------------------------- */
 @media (max-width: 680px) {
-  .pf-pg-doc {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-sm);
-  }
-
-  /* Score flips to a horizontal bar above the body. */
-  .pf-pg-score {
-    flex-direction: row;
-  }
-
-  .pf-pg-score-bar {
-    width: 100%;
-    max-width: 180px;
-    height: 6px;
-  }
-
-  .pf-pg-score-fill {
-    top: 0;
-    bottom: auto;
-    left: 0;
-    right: auto;
-    height: 100%;
-    width: var(--pf-pg-fill, 0%);
-  }
-
   .pf-pg-query {
     flex-wrap: wrap;
-  }
-
-  .pf-pg-skel-cards {
-    grid-template-columns: 1fr;
   }
 
   .pf-pg-chrome {

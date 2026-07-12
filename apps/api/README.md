@@ -48,11 +48,14 @@ error, never silently indexed). `manage.py build_evidence_index` writes the giti
 governance errors. No LLM, embeddings, or vector store - see
 [`docs/agent/layer1-evidence-index.md`](../../docs/agent/layer1-evidence-index.md) for the
 full rationale and the record/contract shape (kept API-local until a second consumer exists).
-Runtime retrieval is live: `POST /api/retrieve/` (raw evidence ledger). Grounded generation is
-also live: `POST /api/answer/` retrieves public evidence, calls a server-side model (Gemini),
-validates the output, and returns a grounded answer with citations (see **Endpoints** below).
-The web UI (Cmd+K modal + `/playground`) now composes answers via `/api/answer/` and shows the
-evidence ledger underneath. No chat surface, memory, reranking, tools, or generated UI exist yet.
+Runtime retrieval is live: `POST /api/retrieve/` runs lexical candidate generation plus a
+deterministic, model-free rerank and returns the selected matches with the retrieve-to-rerank
+ledger. Grounded generation is also live: `POST /api/answer/` runs the same pipeline, calls a
+server-side model (Gemini) with the selected evidence only, validates the output, and returns
+a grounded answer with citations and the same ledger (see **Endpoints** below). The web UI
+(Cmd+K modal + `/playground`) composes answers via `/api/answer/`; the playground renders the
+ledger through its retrieval inspector. No chat surface, memory, tools, generated UI,
+embeddings, or model-based reranking exist yet.
 
 > Note: the production WSGI server **gunicorn** is a dependency (used on Railway). It is
 > Unix-only and does not run on Windows - locally, use `manage.py runserver` as above.
@@ -95,16 +98,17 @@ There is no Railway CLI CD workflow and no GitHub `RAILWAY_*` deploy secrets. Fu
 |--------|------------------|---------------------------------------------------|
 | GET    | `/health/`       | `{"status": "ok", "service": "portfolio-api"}`    |
 | GET    | `/api/health/`   | `{"status": "ok", "service": "portfolio-api"}`    |
-| POST   | `/api/retrieve/` | Ranked evidence matches + meta (raw ledger, see below) |
-| POST   | `/api/answer/`   | Grounded answer + citations + evidence (see below) |
+| POST   | `/api/retrieve/` | Reranked evidence matches + retrieval ledger + meta (see below) |
+| POST   | `/api/answer/`   | Grounded answer + citations + evidence + ledger (see below) |
 
 Both health paths reuse the same view (`core/views.py`); health is exempt from throttling.
 
-### `POST /api/retrieve/` - Layer 1 retrieval
+### `POST /api/retrieve/` - Layer 1 retrieval (two-stage: lexical + deterministic rerank)
 
-Deterministic lexical retrieval over the evidence index. **No generated answer, no LLM, no
-embeddings** - just ranked, publicly-indexable evidence records. Covered by the global anon
-throttle (deliberately not exempted).
+Deterministic two-stage retrieval over the evidence index. **No generated answer, no LLM,
+no embeddings, no cross-encoder** - a lexical candidate stage followed by a transparent,
+integer, model-free rerank (`deterministic_rerank_v1`). Covered by the global anon throttle
+(deliberately not exempted).
 
 Request (JSON body):
 
@@ -113,18 +117,60 @@ Request (JSON body):
 ```
 
 - `query` - required, non-empty, max 500 chars.
-- `role_lens` - optional; a soft ranking boost (+2), never a filter, so lens-less records
+- `role_lens` - optional; a soft ranking boost, never a filter, so lens-less records
   (profile silos, about) still rank. Max 50 chars.
-- `top_k` - optional integer, 1-20, default 5.
+- `top_k` - optional integer, 1-20, default 5. Controls the **selected** evidence count;
+  the lexical candidate pool is `min(top_k * 3, 20)` (so 15 for the default 5).
 
-Response: `200` with `{"matches": [{...evidence record fields..., "entity_id",
-"entity_type", "snippet", "score": n}], "meta": {"total_records", "top_k",
-"role_lens", "index_source"}}`. `text` remains the longer retrieval/model context; `snippet`
-is the short plain-text display field for the user-facing entity ledger. An empty `matches`
-list is the deterministic no-results response. `400` on invalid input; `405` on non-POST.
+Pipeline (`core/layer1/retrieval.py` + `core/layer1/reranking.py`):
 
-Scoring is integer token overlap per unique query token: text +1, tags +2, title +3, plus
-the role-lens boost; ties break on record id, so results are reproducible.
+1. **Lexical candidates** - integer token overlap per unique query token: text +1, tags +2,
+   title +3, plus the role-lens boost (+2); ties break on record id. Up to
+   `min(top_k * 3, 20)` candidates.
+2. **Deterministic rerank** - each candidate gets an integer component breakdown:
+   `lexical` (candidate score capped at 8), `coverage` (fraction of query terms matched,
+   worth up to 12), `title` (+4 flat), `tags` (+3 flat), `role_lens` (+2), `phrase`
+   (+10 exact contiguous query-token run in title/text, +5 for any adjacent bigram).
+   `rerank_score` is exactly the sum of the components; ties break on lexical score then
+   record id. Coverage and phrase reward breadth and the user's actual phrasing, so the
+   rerank order is deliberately **not** a monotone transform of the lexical order.
+3. **Selection** - the top `top_k` reranked rows become the served `matches`.
+
+Response: `200` with
+
+```json
+{
+  "matches": [{ "...evidence record fields...": "", "entity_id": "", "entity_type": "",
+                "snippet": "", "score": 25 }],
+  "ledger": {
+    "mode": "deterministic_rerank_v1",
+    "retrieve_k": 15,
+    "selected_k": 5,
+    "initial":  [{ "evidence_id": "", "title": "", "entity_id": "", "entity_type": "",
+                   "source_type": "", "project_id": "", "source_path": "", "snippet": "",
+                   "initial_rank": 1, "lexical_score": 8 }],
+    "reranked": [{ "...initial fields...": "", "rerank_rank": 1, "rerank_score": 25,
+                   "delta": 2, "selected": true,
+                   "components": { "lexical": 8, "coverage": 12, "title": 4, "tags": 3,
+                                   "role_lens": 0, "phrase": 10 },
+                   "reasons": ["matched 3/3 query terms", "exact phrase match"] }],
+    "selected": ["...the reranked rows with selected: true..."]
+  },
+  "meta": { "total_records": 19, "top_k": 5, "role_lens": null, "index_source": "built",
+            "initial_count": 15, "selected_count": 5,
+            "reranker": "deterministic_rerank_v1" }
+}
+```
+
+`initial` is the lexical pool in lexical order; `reranked` is the same pool in rerank order
+with movement data (`delta` = initial_rank - rerank_rank; positive means promoted);
+`selected` is the evidence actually served. **`score` on each match/evidence/citation row
+is the rerank score** (it previously carried the lexical score); the lexical score remains
+visible in the ledger as `lexical_score`. `text` remains the longer retrieval/model context;
+`snippet` is the short plain-text display field. An empty `matches` list plus an
+empty-sectioned ledger is the deterministic no-results response. `400` on invalid input;
+`405` on non-POST. Score and rank numbers explain **ordering within a result set**, not
+confidence or quality.
 
 **Index sourcing (fail-closed):** if the Layer 0 content root exists (dev/CI/monorepo) the
 corpus is built in-process; otherwise the shipped `var/evidence_index.json` artifact is read
@@ -135,39 +181,49 @@ for the process lifetime, so local content edits need a server restart to appear
 
 ### `POST /api/answer/` - Layer 1 grounded answer
 
-Retrieves public evidence (via the same unchanged lexical retrieval), calls a **server-side
-model** (Gemini), validates the model's strict-JSON output against the retrieved evidence, and
-returns a grounded, cited answer. `/api/retrieve/` stays the raw evidence ledger; this endpoint
-grounds an answer on top of it. **The model is never trusted directly** - a citation that was
-not retrieved, malformed JSON, or an unsupported status fails closed. Model keys and model
-choice are **server-side only**; they are never exposed to the frontend. Code lives in
-`core/layer1/answering/` (the prompt text is isolated in `prompts.py` for easy tuning).
+Runs the same two-stage retrieval pipeline (lexical candidates + deterministic rerank),
+calls a **server-side model** (Gemini) with **only the selected reranked evidence** (never
+the wider candidate pool), validates the model's strict-JSON output against the selected
+evidence ids, and returns a grounded, cited answer plus the same retrieval ledger.
+`/api/retrieve/` stays the answer-free evidence ledger; this endpoint grounds an answer on
+top of it. **The model is never trusted directly** - a citation to anything outside the
+selected evidence (including an unselected initial candidate), malformed JSON, or an
+unsupported status fails closed. Model keys and model choice are **server-side only**; they
+are never exposed to the frontend. Code lives in `core/layer1/answering/` (the prompt text
+is isolated in `prompts.py` for easy tuning).
 
 Request (JSON body): same shape as retrieval - `{ "query": "...", "role_lens": "backend",
 "top_k": 5 }` (validated by the shared `parse_retrieval_request`; same limits).
 
 Statuses (all HTTP `200`):
 
-- `answered` - a grounded answer plus `citations` (hydrated from retrieved evidence), the
-  `evidence` ledger, and `meta` (`model`, `provider`, `retrieval_count`, `index_source`).
+- `answered` - a grounded answer plus `citations` (hydrated from selected evidence), the
+  `evidence` list (the selected reranked evidence used for answering), the retrieval
+  `ledger` (same shape as `/api/retrieve/`), an optional `headline`
+  (`{"title", "sub"} | null` - a model-authored plain-text page lead rendered above the
+  answer prose; validated fail-soft: markup or malformed shapes drop the headline without
+  affecting the answer), and `meta` (`model`, `provider`, `retrieval_count`,
+  `initial_count`, `selected_count`, `reranker`, `index_source`).
   The `answer` string uses handoff prose mini-markup for page rendering:
-  `[[evidence_id]]` entity refs (exact ids from retrieval) and optional `==highlight==`
-  spans (max 3). `citation_ids` must match every `[[...]]` marker. Each citation includes
-  `ref` (stable display label from `core/layer1/presentation.py`: zero-padded project
-  `displayOrder` from `projects/index.json`; semantic refs for profile silos, about, and
-  role-lens/markdown slugs; never retrieval rank) plus
-  `score` from lexical retrieval for optional UI relevance display.
-- `insufficient_evidence` - not enough public evidence; a fixed server message and any
-  retrieved `evidence`. Returned **without calling the model** when retrieval finds nothing,
-  or when the model selects this status (model prose is discarded either way).
-- `refused` - out of scope; a fixed server message, no citations, no evidence. For `refused`
-  and `insufficient_evidence` the model's prose is **discarded** and a server-authored message
+  `[[evidence_id]]` entity refs (exact ids from the selected evidence) and optional
+  `==highlight==` spans (max 3). `citation_ids` must match every `[[...]]` marker. Each
+  citation includes `ref` (stable display label from `core/layer1/presentation.py`:
+  zero-padded project `displayOrder` from `projects/index.json`; semantic refs for profile
+  silos, about, and role-lens/markdown slugs; never retrieval rank) plus `score` (the
+  rerank score) for optional UI relevance display.
+- `insufficient_evidence` - not enough public evidence; a fixed server message, any
+  selected `evidence`, and the `ledger`. Returned **without calling the model** when
+  retrieval finds nothing, or when the model selects this status (model prose is discarded
+  either way).
+- `refused` - out of scope; a fixed server message, no citations, no evidence, and **no
+  ledger** (a refusal serves no retrieval artifacts). For `refused` and
+  `insufficient_evidence` the model's prose is **discarded** and a server-authored message
   is used instead.
 
 HTTP status codes: `200` for the three answer statuses; `400` invalid request; `429` when the
 answer throttle or a soft daily cap is exceeded; `503` if the endpoint is disabled, the corpus
 is unavailable, or the answer provider is unavailable (e.g. `GEMINI_API_KEY` unset); `502` if
-the model output is malformed/unsupported or cites evidence that was not retrieved.
+the model output is malformed/unsupported or cites evidence outside the selected set.
 
 ## Configuration (environment variables)
 

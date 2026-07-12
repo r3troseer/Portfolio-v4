@@ -23,10 +23,12 @@ from core.layer1.answering.limits import (
 from core.layer1.answering.providers.fake import FakeProvider
 from core.layer1.answering.schemas import (
     ANSWER_MAX_LENGTH,
+    HEADLINE_TITLE_MAX,
     INSUFFICIENT_MESSAGE,
     REFUSED_MESSAGE,
     AnswerOutputError,
     normalize_answer_prose,
+    parse_headline,
     parse_prose_markup,
     truncate_answer_prose,
     validate_model_output,
@@ -34,11 +36,11 @@ from core.layer1.answering.schemas import (
 from core.layer1.answering.service import generate_answer
 from core.layer1.presentation import citation_display_ref, resolve_citation_ref
 from core.layer1.records import SOURCE_MARKDOWN, SOURCE_PROJECT, EvidenceRecord
+from core.layer1.reranking import RERANK_MODE, retrieve_and_rerank
 from core.layer1.retrieval import (
     RetrievalQuery,
     RetrievalValidationError,
     get_corpus,
-    retrieve,
 )
 from core.throttling import AnswerRateThrottle, client_ident
 
@@ -56,6 +58,18 @@ def _fake_json(status: str, answer: str, citation_ids: list[str]) -> str:
     return json.dumps(
         {"status": status, "answer": answer, "citation_ids": citation_ids}
     )
+
+
+class RecordingFakeProvider(FakeProvider):
+    """FakeProvider that also captures the user prompt it was given."""
+
+    def __init__(self, response: str, model_name: str = "fake-model") -> None:
+        super().__init__(response, model_name)
+        self.last_user: str = ""
+
+    def generate(self, *, system: str, user: str) -> str:
+        self.last_user = user
+        return super().generate(system=system, user=user)
 
 
 class ParseProseMarkupTests(unittest.TestCase):
@@ -284,6 +298,68 @@ class TruncateAnswerProseTests(unittest.TestCase):
             truncate_answer_prose("x" * (ANSWER_MAX_LENGTH + 1))
 
 
+class ParseHeadlineTests(unittest.TestCase):
+    IDS = ("project:a",)
+
+    def _answered(self, headline: object) -> str:
+        return json.dumps(
+            {
+                "status": "answered",
+                "answer": _marked_answer("project:a"),
+                "citation_ids": ["project:a"],
+                "headline": headline,
+            }
+        )
+
+    def test_valid_headline_is_served(self) -> None:
+        out = validate_model_output(
+            self._answered({"title": "Lead statement", "sub": "Supporting line"}),
+            self.IDS,
+        )
+        self.assertEqual(out.headline_title, "Lead statement")
+        self.assertEqual(out.headline_sub, "Supporting line")
+
+    def test_missing_headline_yields_empty_strings(self) -> None:
+        out = validate_model_output(
+            _fake_json("answered", _marked_answer("project:a"), ["project:a"]),
+            self.IDS,
+        )
+        self.assertEqual(out.headline_title, "")
+        self.assertEqual(out.headline_sub, "")
+
+    def test_malformed_headline_is_dropped_not_fatal(self) -> None:
+        for bad in ("just a string", ["list"], {"sub": "no title"}, {"title": "  "}):
+            out = validate_model_output(self._answered(bad), self.IDS)
+            self.assertEqual(out.headline_title, "", msg=repr(bad))
+
+    def test_headline_with_prose_markup_is_dropped(self) -> None:
+        for bad in (
+            {"title": "Cites [[project:a]] inline", "sub": "ok"},
+            {"title": "ok", "sub": "has ==highlight== span"},
+        ):
+            out = validate_model_output(self._answered(bad), self.IDS)
+            self.assertEqual(out.headline_title, "", msg=repr(bad))
+
+    def test_overlong_title_is_clipped_at_whitespace(self) -> None:
+        long_title = "word " * 60
+        title, _ = parse_headline({"headline": {"title": long_title, "sub": ""}})
+        self.assertLessEqual(len(title), HEADLINE_TITLE_MAX)
+        self.assertFalse(title.endswith(" "))
+        self.assertTrue(title)
+
+    def test_non_answered_status_ignores_headline(self) -> None:
+        raw = json.dumps(
+            {
+                "status": "refused",
+                "answer": "ignored",
+                "citation_ids": [],
+                "headline": {"title": "Should not survive", "sub": ""},
+            }
+        )
+        out = validate_model_output(raw, self.IDS)
+        self.assertEqual(out.headline_title, "")
+
+
 class GenerateAnswerServiceTests(SimpleTestCase):
     """Service-level flow with an injected FakeProvider (no model calls)."""
 
@@ -292,9 +368,11 @@ class GenerateAnswerServiceTests(SimpleTestCase):
         reset_answer_usage_for_tests()
 
     def _first_matching_id(self) -> str:
-        matches = retrieve(get_corpus(), RetrievalQuery(query=MATCHING_QUERY))
-        self.assertGreater(len(matches), 0)
-        return matches[0].record.id
+        result = retrieve_and_rerank(
+            get_corpus(), RetrievalQuery(query=MATCHING_QUERY)
+        )
+        self.assertGreater(len(result.selected), 0)
+        return result.selected[0].record.id
 
     def test_no_evidence_returns_insufficient_without_calling_provider(self) -> None:
         provider = FakeProvider(_fake_json("answered", "should not run", []))
@@ -303,7 +381,96 @@ class GenerateAnswerServiceTests(SimpleTestCase):
         self.assertEqual(result["answer"], INSUFFICIENT_MESSAGE)
         self.assertEqual(result["citations"], [])
         self.assertEqual(result["meta"]["reason"], "no_supporting_evidence")
+        self.assertEqual(result["ledger"]["initial"], [])
+        self.assertEqual(result["ledger"]["selected"], [])
         self.assertEqual(provider.calls, 0)
+
+    def test_citation_of_unselected_candidate_fails_closed(self) -> None:
+        # With top_k=1 the pool still holds more candidates than the single
+        # selected row; citing one of the unselected initial candidates must
+        # fail closed even though it was genuinely retrieved.
+        result = retrieve_and_rerank(
+            get_corpus(), RetrievalQuery(query=MATCHING_QUERY, top_k=1)
+        )
+        self.assertGreater(len(result.ranked), 1)
+        unselected = result.ranked[1]
+        self.assertFalse(unselected.selected)
+
+        provider = FakeProvider(
+            _fake_json(
+                "answered",
+                _marked_answer(unselected.record.id),
+                [unselected.record.id],
+            )
+        )
+        with self.assertRaises(AnswerOutputError):
+            generate_answer(
+                {"query": MATCHING_QUERY, "top_k": 1}, provider=provider
+            )
+        self.assertEqual(provider.calls, 1)
+
+    def test_provider_prompt_contains_only_selected_evidence(self) -> None:
+        result = retrieve_and_rerank(
+            get_corpus(), RetrievalQuery(query=MATCHING_QUERY, top_k=1)
+        )
+        self.assertGreater(len(result.ranked), 1)
+        selected_id = result.selected[0].record.id
+        unselected_ids = [c.record.id for c in result.ranked[1:]]
+
+        provider = RecordingFakeProvider(
+            _fake_json("answered", _marked_answer(selected_id), [selected_id])
+        )
+        generate_answer({"query": MATCHING_QUERY, "top_k": 1}, provider=provider)
+        self.assertIn(f"id: {selected_id}", provider.last_user)
+        for unselected_id in unselected_ids:
+            self.assertNotIn(f"id: {unselected_id}", provider.last_user)
+
+    def test_answered_payload_includes_headline_when_model_provides_one(self) -> None:
+        evidence_id = self._first_matching_id()
+        raw = json.dumps(
+            {
+                "status": "answered",
+                "answer": _marked_answer(evidence_id),
+                "citation_ids": [evidence_id],
+                "headline": {"title": "Lead statement", "sub": "Supporting line"},
+            }
+        )
+        result = generate_answer({"query": MATCHING_QUERY}, provider=FakeProvider(raw))
+        self.assertEqual(
+            result["headline"], {"title": "Lead statement", "sub": "Supporting line"}
+        )
+
+    def test_answered_payload_headline_is_none_when_absent(self) -> None:
+        evidence_id = self._first_matching_id()
+        provider = FakeProvider(
+            _fake_json("answered", _marked_answer(evidence_id), [evidence_id])
+        )
+        result = generate_answer({"query": MATCHING_QUERY}, provider=provider)
+        self.assertIsNone(result["headline"])
+
+    def test_answer_payload_includes_ledger_and_meta_counts(self) -> None:
+        evidence_id = self._first_matching_id()
+        provider = FakeProvider(
+            _fake_json("answered", _marked_answer(evidence_id), [evidence_id])
+        )
+        result = generate_answer({"query": MATCHING_QUERY}, provider=provider)
+        ledger = result["ledger"]
+        self.assertEqual(ledger["mode"], RERANK_MODE)
+        self.assertEqual(
+            [e["evidence_id"] for e in ledger["selected"]],
+            [e["id"] for e in result["evidence"]],
+        )
+        self.assertEqual(result["meta"]["reranker"], RERANK_MODE)
+        self.assertEqual(
+            result["meta"]["selected_count"], len(result["evidence"])
+        )
+        self.assertGreaterEqual(
+            result["meta"]["initial_count"], result["meta"]["selected_count"]
+        )
+        # Back-compat: retrieval_count still reflects the served evidence.
+        self.assertEqual(
+            result["meta"]["retrieval_count"], len(result["evidence"])
+        )
 
     def test_valid_output_returns_answered_with_hydrated_citations(self) -> None:
         evidence_id = self._first_matching_id()
@@ -353,6 +520,8 @@ class GenerateAnswerServiceTests(SimpleTestCase):
         self.assertEqual(result["answer"], REFUSED_MESSAGE)
         self.assertEqual(result["citations"], [])
         self.assertEqual(result["evidence"], [])
+        # A refusal serves no retrieval artifacts - the ledger is omitted too.
+        self.assertNotIn("ledger", result)
         self.assertEqual(result["meta"]["reason"], "out_of_scope")
 
     def test_insufficient_output_returns_server_message(self) -> None:
@@ -471,8 +640,10 @@ class AnswerEndpointTests(SimpleTestCase):
         ANSWER_PER_CLIENT_DAILY_LIMIT=0,
     )
     def test_daily_limit_maps_to_429(self) -> None:
-        matches = retrieve(get_corpus(), RetrievalQuery(query=MATCHING_QUERY))
-        evidence_id = matches[0].record.id
+        result = retrieve_and_rerank(
+            get_corpus(), RetrievalQuery(query=MATCHING_QUERY)
+        )
+        evidence_id = result.selected[0].record.id
         provider = FakeProvider(
             _fake_json("answered", _marked_answer(evidence_id), [evidence_id])
         )
@@ -485,8 +656,10 @@ class AnswerEndpointTests(SimpleTestCase):
         self.assertEqual(provider.calls, 1)
 
     def test_answered_path_returns_200(self) -> None:
-        matches = retrieve(get_corpus(), RetrievalQuery(query=MATCHING_QUERY))
-        evidence_id = matches[0].record.id
+        result = retrieve_and_rerank(
+            get_corpus(), RetrievalQuery(query=MATCHING_QUERY)
+        )
+        evidence_id = result.selected[0].record.id
         provider = FakeProvider(
             _fake_json(
                 "answered",
@@ -516,8 +689,9 @@ class AnswerEndpointTests(SimpleTestCase):
         self.assertEqual(self.client.get("/api/answer/").status_code, 405)
 
 
-class RetrieveStillUnchangedTests(SimpleTestCase):
-    """Guard: /api/retrieve/ stays a raw evidence ledger (no answer/citations)."""
+class RetrieveLedgerContractTests(SimpleTestCase):
+    """Guard: /api/retrieve/ stays an answer-free evidence ledger - now with
+    the retrieve-to-rerank ledger object alongside the served matches."""
 
     def setUp(self) -> None:
         get_corpus.cache_clear()
@@ -533,6 +707,16 @@ class RetrieveStillUnchangedTests(SimpleTestCase):
         self.assertIn("matches", body)
         self.assertNotIn("answer", body)
         self.assertNotIn("citations", body)
+        ledger = body["ledger"]
+        self.assertEqual(ledger["mode"], RERANK_MODE)
+        for section in ("initial", "reranked", "selected"):
+            self.assertIn(section, ledger)
+        self.assertEqual(
+            [m["id"] for m in body["matches"]],
+            [e["evidence_id"] for e in ledger["selected"]],
+        )
+        for key in ("initial_count", "selected_count", "reranker"):
+            self.assertIn(key, body["meta"])
 
 
 class AnswerThrottleTests(SimpleTestCase):

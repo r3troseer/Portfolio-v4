@@ -8,13 +8,13 @@ from core.layer1.answering.providers import ProviderError, ProviderUnavailableEr
 from core.layer1.answering.limits import AnswerLimitExceeded
 from core.layer1.answering.schemas import AnswerOutputError
 from core.layer1.answering.service import generate_answer
-from core.layer1.presentation import match_dict as _match_dict
+from core.layer1.presentation import build_retrieval_ledger, match_dict
+from core.layer1.reranking import RERANK_MODE, retrieve_and_rerank
 from core.layer1.retrieval import (
     IndexUnavailableError,
     RetrievalValidationError,
     get_corpus,
     parse_retrieval_request,
-    retrieve,
 )
 from core.throttling import AnswerRateThrottle, client_ident
 
@@ -28,9 +28,10 @@ def health(request: Request) -> Response:
 
 @api_view(["POST"])  # global AnonRateThrottle remains the looser retrieval bucket
 def retrieve_evidence(request: Request) -> Response:
-    """Layer 1 retrieval: deterministic lexical search over the evidence index.
+    """Layer 1 retrieval: lexical candidates, deterministic rerank, selection.
 
-    No generated answer - just ranked, publicly-indexable evidence records.
+    No generated answer - just ranked, publicly-indexable evidence records
+    plus the retrieve-to-rerank ledger explaining how they were ordered.
     An empty ``matches`` list is the deterministic no-results response.
     """
     try:
@@ -47,15 +48,21 @@ def retrieve_evidence(request: Request) -> Response:
             status=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
 
-    matches = retrieve(corpus, query)
+    result = retrieve_and_rerank(corpus, query)
     return Response(
         {
-            "matches": [_match_dict(m.record, m.score) for m in matches],
+            "matches": [
+                match_dict(c.record, c.rerank_score) for c in result.selected
+            ],
+            "ledger": build_retrieval_ledger(result),
             "meta": {
                 "total_records": len(corpus.entries),
                 "top_k": query.top_k,
                 "role_lens": query.role_lens,
                 "index_source": corpus.source,
+                "initial_count": len(result.candidates),
+                "selected_count": len(result.selected),
+                "reranker": RERANK_MODE,
             },
         }
     )

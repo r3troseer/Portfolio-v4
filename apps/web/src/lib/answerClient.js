@@ -1,7 +1,8 @@
 // Client for POST /api/answer/ - the Layer 1 grounded-answer endpoint. It
-// retrieves public evidence server-side, calls the model server-side, validates
-// the output, and returns a grounded answer with citations plus the evidence
-// ledger. The raw evidence endpoint (/api/retrieve/) is unchanged; this is a
+// retrieves and deterministically reranks public evidence server-side, calls
+// the model server-side with the selected evidence only, validates the output,
+// and returns a grounded answer with citations, the selected evidence, and the
+// retrieve-to-rerank ledger. The raw evidence endpoint (/api/retrieve/) is a
 // separate call. No model config or keys ever touch the browser.
 // See docs/agent/layer1-playground.md and apps/api/README.md for the contract.
 
@@ -24,7 +25,7 @@ const ANSWER_URL = `${resolveApiBase()}/api/answer/`;
  * @param {string} [args.roleLens] - optional soft ranking boost (never a filter).
  * @param {AbortSignal} [args.signal] - to cancel a superseded request.
  * @returns {Promise<
- *   | { kind: "ok", answerStatus: string, answer: string, citations: object[], evidence: object[], meta: object }
+ *   | { kind: "ok", answerStatus: string, answer: string, citations: object[], evidence: object[], headline: object | null, ledger: object | null, meta: object }
  *   | { kind: "invalid", message: string }
  *   | { kind: "unavailable", message: string }
  *   | { kind: "malformed", message: string }
@@ -64,6 +65,11 @@ export async function getGroundedAnswer({ query, topK = 5, roleLens, signal }) {
       answer: typeof data?.answer === "string" ? data.answer : "",
       citations: Array.isArray(data?.citations) ? data.citations : [],
       evidence: Array.isArray(data?.evidence) ? data.evidence : [],
+      headline:
+        typeof data?.headline?.title === "string" && data.headline.title
+          ? data.headline
+          : null,
+      ledger: data?.ledger ?? null,
       meta: data?.meta ?? {},
     };
   }

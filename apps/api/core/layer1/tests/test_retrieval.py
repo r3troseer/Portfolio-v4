@@ -13,6 +13,8 @@ from django.test import SimpleTestCase
 
 from core.layer1.builder import DEFAULT_CONTENT_ROOT, build_index, records_as_dicts
 from core.layer1.records import INDEXABLE, EvidenceRecord
+from core.layer1.presentation import match_dict
+from core.layer1.reranking import RERANK_MODE, retrieve_and_rerank
 from core.layer1.retrieval import (
     TOP_K_MAX,
     Corpus,
@@ -24,9 +26,8 @@ from core.layer1.retrieval import (
     _tokenize,
     get_corpus,
     parse_retrieval_request,
-    retrieve,
+    retrieve_candidates,
 )
-from core.views import _match_dict
 
 FIXTURE_ROOT = Path(__file__).resolve().parent / "fixtures" / "content"
 MISSING_ROOT = Path(__file__).resolve().parent / "does-not-exist"
@@ -39,72 +40,88 @@ def _fixture_corpus() -> Corpus:
 
 
 class RetrieveScoringTests(unittest.TestCase):
+    """Lexical candidate-stage scoring (first stage of the pipeline)."""
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.corpus = _fixture_corpus()
 
     def test_matching_query_returns_public_evidence(self) -> None:
-        matches = retrieve(self.corpus, RetrievalQuery(query="curated public summary"))
-        self.assertGreater(len(matches), 0)
-        self.assertEqual(matches[0].record.id, "project:pub-project")
+        candidates = retrieve_candidates(
+            self.corpus, RetrievalQuery(query="curated public summary")
+        )
+        self.assertGreater(len(candidates), 0)
+        self.assertEqual(candidates[0].record.id, "project:pub-project")
+        self.assertEqual(candidates[0].initial_rank, 1)
 
     def test_results_are_deterministic(self) -> None:
         query = RetrievalQuery(query="public summary fixture")
-        self.assertEqual(retrieve(self.corpus, query), retrieve(self.corpus, query))
+        self.assertEqual(
+            retrieve_candidates(self.corpus, query),
+            retrieve_candidates(self.corpus, query),
+        )
 
     def test_equal_scores_tie_break_on_record_id(self) -> None:
-        matches = retrieve(self.corpus, RetrievalQuery(query="paragraph verbatim"))
+        candidates = retrieve_candidates(
+            self.corpus, RetrievalQuery(query="paragraph verbatim")
+        )
         # "paragraph" hits profile:profile text; "verbatim" hits markdown:good
         # text - both score 1, so ordering must fall back to id.
         self.assertEqual(
-            [m.record.id for m in matches], ["markdown:good", "profile:profile"]
+            [c.record.id for c in candidates], ["markdown:good", "profile:profile"]
         )
-        self.assertEqual({m.score for m in matches}, {1})
+        self.assertEqual({c.lexical_score for c in candidates}, {1})
 
     def test_title_match_outranks_text_only_match(self) -> None:
-        matches = retrieve(self.corpus, RetrievalQuery(query="markdown"))
-        by_id = {m.record.id: m.score for m in matches}
+        candidates = retrieve_candidates(self.corpus, RetrievalQuery(query="markdown"))
+        by_id = {c.record.id: c.lexical_score for c in candidates}
         # "markdown" is in markdown:good's title (+3) and only in no other
         # record's text; title weight must dominate any text-only hit.
         self.assertEqual(max(by_id, key=lambda k: by_id[k]), "markdown:good")
 
     def test_role_lens_boost_adds_two_to_matching_records(self) -> None:
-        plain = retrieve(self.corpus, RetrievalQuery(query="curated"))
-        boosted = retrieve(
+        plain = retrieve_candidates(self.corpus, RetrievalQuery(query="curated"))
+        boosted = retrieve_candidates(
             self.corpus, RetrievalQuery(query="curated", role_lens="backend")
         )
         self.assertEqual(plain[0].record.id, "project:pub-project")
         self.assertEqual(boosted[0].record.id, "project:pub-project")
-        self.assertEqual(boosted[0].score, plain[0].score + 2)
+        self.assertEqual(boosted[0].lexical_score, plain[0].lexical_score + 2)
 
     def test_role_lens_does_not_exclude_lensless_records(self) -> None:
-        matches = retrieve(
+        candidates = retrieve_candidates(
             self.corpus, RetrievalQuery(query="public", role_lens="backend")
         )
-        ids = [m.record.id for m in matches]
+        ids = [c.record.id for c in candidates]
         self.assertIn("markdown:good", ids)  # carries no role lenses
 
     def test_zero_score_records_never_match(self) -> None:
-        matches = retrieve(self.corpus, RetrievalQuery(query="zzqqxxyyzz"))
-        self.assertEqual(matches, ())
+        candidates = retrieve_candidates(
+            self.corpus, RetrievalQuery(query="zzqqxxyyzz")
+        )
+        self.assertEqual(candidates, ())
 
-    def test_top_k_caps_result_count(self) -> None:
+    def test_selected_matches_respect_top_k(self) -> None:
+        # The candidate pool is deliberately larger than top_k; the final
+        # selection (what the API serves as matches) still respects it.
         query = RetrievalQuery(query="fixture public summary", top_k=1)
-        self.assertEqual(len(retrieve(self.corpus, query)), 1)
+        result = retrieve_and_rerank(self.corpus, query)
+        self.assertEqual(len(result.selected), 1)
+        self.assertGreaterEqual(len(result.candidates), 1)
 
     def test_stopwords_do_not_change_scores(self) -> None:
-        plain = retrieve(self.corpus, RetrievalQuery(query="curated summary"))
-        with_fillers = retrieve(
+        plain = retrieve_candidates(self.corpus, RetrievalQuery(query="curated summary"))
+        with_fillers = retrieve_candidates(
             self.corpus,
             RetrievalQuery(query="please tell me about the curated summary"),
         )
         self.assertEqual(with_fillers, plain)
 
     def test_all_stopword_query_returns_no_matches(self) -> None:
-        matches = retrieve(
+        candidates = retrieve_candidates(
             self.corpus, RetrievalQuery(query="please tell me about the")
         )
-        self.assertEqual(matches, ())
+        self.assertEqual(candidates, ())
 
     def test_meaningful_technical_terms_remain_tokens(self) -> None:
         terms = (
@@ -114,7 +131,10 @@ class RetrieveScoringTests(unittest.TestCase):
 
     def test_stopword_filter_remains_deterministic(self) -> None:
         query = RetrievalQuery(query="what can you tell me about curated public")
-        self.assertEqual(retrieve(self.corpus, query), retrieve(self.corpus, query))
+        self.assertEqual(
+            retrieve_candidates(self.corpus, query),
+            retrieve_candidates(self.corpus, query),
+        )
 
 
 class ParseRetrievalRequestTests(unittest.TestCase):
@@ -220,7 +240,7 @@ class RetrieveResponseContractTests(unittest.TestCase):
             source_path="markdown/role-lenses/backend.md",
         )
 
-        match = _match_dict(record, score=7)
+        match = match_dict(record, score=7)
 
         self.assertEqual(match["entity_id"], "role-lenses/backend")
         self.assertEqual(match["entity_type"], "role_lens")
@@ -254,6 +274,54 @@ class RetrieveEndpointTests(SimpleTestCase):
             self.assertNotIn("esg-greenwashing", match["id"])
             self.assertNotIn("esg-greenwashing", match["source_path"])
             self.assertNotIn("greenwashing", match["text"].lower())
+        # The ledger surfaces the same public corpus - sweep it too.
+        ledger = body["ledger"]
+        for section in ("initial", "reranked", "selected"):
+            for entry in ledger[section]:
+                self.assertNotIn("esg-greenwashing", entry["evidence_id"])
+                self.assertNotIn("esg-greenwashing", entry["source_path"])
+                self.assertNotIn("greenwashing", entry["snippet"].lower())
+
+    def test_response_includes_ledger_and_rerank_meta(self) -> None:
+        response = self._post({"query": "multi-agent fintech loan reallocation"})
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        ledger = body["ledger"]
+        self.assertEqual(ledger["mode"], RERANK_MODE)
+        self.assertEqual(ledger["selected_k"], 5)
+        self.assertEqual(ledger["retrieve_k"], 15)  # min(3 * top_k, cap)
+        self.assertEqual(len(ledger["initial"]), body["meta"]["initial_count"])
+        # matches are exactly the selected reranked evidence, in order.
+        self.assertEqual(
+            [m["id"] for m in body["matches"]],
+            [e["evidence_id"] for e in ledger["selected"]],
+        )
+        self.assertEqual(body["meta"]["reranker"], RERANK_MODE)
+        self.assertEqual(body["meta"]["selected_count"], len(body["matches"]))
+        for entry in ledger["reranked"]:
+            for field in (
+                "initial_rank",
+                "rerank_rank",
+                "lexical_score",
+                "rerank_score",
+                "delta",
+                "selected",
+                "components",
+                "reasons",
+            ):
+                self.assertIn(field, entry)
+            self.assertEqual(
+                entry["rerank_score"], sum(entry["components"].values())
+            )
+
+    def test_no_results_ledger_is_empty_and_deterministic(self) -> None:
+        first = self._post({"query": "zzqqxxyyzz"})
+        self.assertEqual(first.status_code, 200)
+        ledger = first.json()["ledger"]
+        self.assertEqual(ledger["initial"], [])
+        self.assertEqual(ledger["reranked"], [])
+        self.assertEqual(ledger["selected"], [])
+        self.assertEqual(first.content, self._post({"query": "zzqqxxyyzz"}).content)
 
     def test_empty_query_is_rejected(self) -> None:
         response = self._post({"query": "   "})

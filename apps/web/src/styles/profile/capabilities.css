@@ -183,6 +183,7 @@
 }
 
 /* --- Capability tiles -------------------------------------------------- */
+/* Static tiles: capability cards are not interactive, so no hover feedback. */
 .pf-cap {
   display: flex;
   flex-direction: column;
@@ -191,12 +192,6 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
-  transition: border-color var(--transition-fast), background var(--transition-fast);
-}
-
-.pf-cap:hover {
-  border-color: color-mix(in oklch, var(--primary-accent) 25%, transparent);
-  background: var(--bg-card-hover);
 }
 
 .pf-cap-header {

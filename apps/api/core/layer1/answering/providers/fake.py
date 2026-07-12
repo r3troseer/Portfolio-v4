@@ -56,5 +56,9 @@ class AutoFakeProvider(AnswerProvider):
                 "status": "answered",
                 "answer": answer,
                 "citation_ids": [evidence_id],
+                "headline": {
+                    "title": "Grounded in Pius's public portfolio",
+                    "sub": "Composed from the selected reranked evidence below.",
+                },
             }
         )

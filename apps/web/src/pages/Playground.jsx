@@ -2,17 +2,22 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { Search, ChevronLeft, ChevronRight, CornerDownLeft } from "lucide-react";
 import { useGroundedAnswer, answerLiveMessage } from "../lib/useGroundedAnswer";
-import { EvidenceResults } from "../components/EvidenceResults";
+import { useEvidenceRetrieval } from "../lib/useEvidenceRetrieval";
+import { useRetrievalReveal } from "../lib/useRetrievalReveal";
 import { GroundedAnswer } from "../components/GroundedAnswer";
+import { RagReveal } from "../components/RagReveal";
+import { RetrievalInspector } from "../components/RetrievalInspector";
 import { PRESETS, PRESET_BY_ID } from "../lib/playgroundPresets";
 import { getProfile } from "../content/adapters/profileAdapter";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import "../styles/profile/playground.css";
 
 // The Layer 1 evidence workspace, ported from the profile handoff's "Evidence"
-// view (.notes/prototypes/profile-handoff). It calls POST /api/answer/ for a
-// grounded, cited answer and renders the evidence ledger underneath. The raw
-// ledger endpoint (POST /api/retrieve/) is unchanged; there is no reranking yet.
+// view (.notes/prototypes/profile-handoff). Each query fires POST /api/retrieve/
+// (whose real retrieve-to-rerank ledger drives the rag-reveal loader and the
+// retrieval inspector) and POST /api/answer/ (grounded, cited answer; its
+// ledger becomes authoritative once it arrives). Retrieval is lexical candidate
+// generation plus a deterministic, model-free rerank - see apps/api/README.md.
 //
 // Query source (privacy): free text arrives via navigation state (never the URL);
 // only whitelisted preset ids use ?p=. It resolves in three states, matching the
@@ -72,11 +77,16 @@ function PlaygroundAbout() {
           <strong>About this playground</strong>
           <p>
             Ask about Pius&apos;s public portfolio. Answers are composed by a
-            server-side model, grounded only in the retrieved public evidence
-            shown below. Evidence is ranked by lexical retrieval - there is no
-            reranking yet.
+            server-side model, grounded only in retrieved public evidence.
+            Retrieval runs in two stages: lexical candidate generation, then a
+            deterministic rerank (coverage, phrase, title/tag, and role-lens
+            components). The retrieval pill shows how candidates moved from
+            retrieve to rerank. No embeddings or model-based reranking.
           </p>
-          <p>Score bars show relative rank in this result set, not confidence.</p>
+          <p>
+            Score and rank numbers explain ordering within this result set,
+            not confidence.
+          </p>
         </aside>
       )}
     </div>
@@ -96,7 +106,22 @@ export function Playground() {
   );
 
   const [inputValue, setInputValue] = useState(requestedQuery || stage);
-  const { result, retry } = useGroundedAnswer(requestedQuery, requestedLens);
+  const { result, retry: retryAnswer } = useGroundedAnswer(
+    requestedQuery,
+    requestedLens
+  );
+  // The raw ledger request runs alongside the answer: its real ledger drives
+  // the rag-reveal rows while the answer composes.
+  const { result: retrieval, retry: retryRetrieval } = useEvidenceRetrieval(
+    requestedQuery,
+    requestedLens
+  );
+  const reveal = useRetrievalReveal(retrieval, result);
+
+  const retry = () => {
+    retryAnswer();
+    retryRetrieval();
+  };
 
   // Mirror the resolved/staged query into the box when navigation changes it.
   useEffect(() => {
@@ -135,8 +160,6 @@ export function Playground() {
   const hasEvidence = evidence.length > 0;
   // Show starting-point chips when there is nothing else to act on.
   const showChips = result.status === "done" && !hasEvidence;
-  // Feed the existing ledger renderer with the evidence from the answer response.
-  const ledgerResult = { status: "done", kind: "ok", matches: evidence, meta: result.meta };
 
   const queryBox = (
     <form className="pf-pg-query" role="search" onSubmit={runQuery}>
@@ -216,6 +239,10 @@ export function Playground() {
           </div>
           <div className="pf-pg-strip">
             <div className="pf-pg-query-wrap is-sticky">{queryBox}</div>
+            <RagReveal phase={reveal.phase} rows={reveal.rows} />
+            {reveal.phase === "done" && reveal.ledger && (
+              <RetrievalInspector ledger={reveal.ledger} />
+            )}
             <GroundedAnswer
               result={result}
               variant="page"
@@ -223,13 +250,6 @@ export function Playground() {
               roleLens={requestedLens}
               onRetry={retry}
             />
-            {hasEvidence && (
-              <EvidenceResults
-                result={ledgerResult}
-                query={requestedQuery}
-                roleLens={requestedLens}
-              />
-            )}
             {showChips && chips}
             <footer className="pf-pg-footer">
               <p>

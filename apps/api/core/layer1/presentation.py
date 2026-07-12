@@ -1,11 +1,10 @@
 """Display-field helpers shared by the retrieval and answer surfaces.
 
-These turn an internal ``EvidenceRecord`` into the user-facing shapes the API
-serves: a full retrieval/answer ``match`` dict and the narrower ``citation``
-dict. Kept out of ``views.py`` so both the retrieve view and the answer service
-can reuse them without a circular import (views -> service -> presentation, and
-views -> presentation). No behaviour change from the original ``views.py``
-helpers - only their location moved.
+These turn internal pipeline types into the user-facing shapes the API serves:
+a full retrieval/answer ``match`` dict, the narrower ``citation`` dict, and the
+expanded retrieve-to-rerank ``ledger`` object. Kept out of ``views.py`` so both
+the retrieve view and the answer service can reuse them without a circular
+import (views -> service -> presentation, and views -> presentation).
 """
 
 import json
@@ -19,6 +18,12 @@ from core.layer1.records import (
     SOURCE_PROJECT,
     EvidenceRecord,
 )
+from core.layer1.reranking import (
+    RERANK_MODE,
+    RankedCandidate,
+    RetrievalResult,
+)
+from core.layer1.retrieval import Candidate
 
 SNIPPET_MAX_LENGTH = 180
 _REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -85,6 +90,61 @@ def match_dict(record: EvidenceRecord, score: int) -> dict[str, object]:
         "project_id": record.project_id,
         "source_path": record.source_path,
         "score": score,
+    }
+
+
+def _ledger_base_entry(record: EvidenceRecord) -> dict[str, object]:
+    return {
+        "evidence_id": record.id,
+        "title": record.title,
+        "entity_id": entity_id(record),
+        "entity_type": entity_type(record),
+        "source_type": record.source_type,
+        "project_id": record.project_id,
+        "source_path": record.source_path,
+        "snippet": snippet(record),
+    }
+
+
+def ledger_initial_entry(candidate: Candidate) -> dict[str, object]:
+    """One lexical-stage row of the retrieval ledger."""
+    return {
+        **_ledger_base_entry(candidate.record),
+        "initial_rank": candidate.initial_rank,
+        "lexical_score": candidate.lexical_score,
+    }
+
+
+def ledger_reranked_entry(candidate: RankedCandidate) -> dict[str, object]:
+    """One reranked row: initial fields plus movement and score breakdown."""
+    return {
+        **_ledger_base_entry(candidate.record),
+        "initial_rank": candidate.initial_rank,
+        "lexical_score": candidate.lexical_score,
+        "rerank_rank": candidate.rerank_rank,
+        "rerank_score": candidate.rerank_score,
+        "delta": candidate.delta,
+        "selected": candidate.selected,
+        "components": dict(candidate.components),
+        "reasons": list(candidate.reasons),
+    }
+
+
+def build_retrieval_ledger(result: RetrievalResult) -> dict[str, object]:
+    """The expanded retrieve-to-rerank ledger served by both API endpoints.
+
+    ``initial`` is the lexical candidate pool in lexical order, ``reranked`` is
+    the same pool in rerank order with movement data, and ``selected`` is the
+    reranked evidence actually served/used for answering. An empty pool yields
+    the same shape with empty lists (deterministic no-results ledger).
+    """
+    return {
+        "mode": RERANK_MODE,
+        "retrieve_k": result.retrieve_k,
+        "selected_k": result.top_k,
+        "initial": [ledger_initial_entry(c) for c in result.candidates],
+        "reranked": [ledger_reranked_entry(c) for c in result.ranked],
+        "selected": [ledger_reranked_entry(c) for c in result.selected],
     }
 
 
