@@ -119,7 +119,9 @@ Codex retains:
 
 ## 5. Capability tiers
 
-The policy defines capabilities rather than permanently pinning model names or prices.
+The policy defines capabilities rather than permanently pinning model names or prices. Worker
+selection must consider both task difficulty and the current subscription budget. A stronger
+model is not automatically justified by either factor alone.
 
 | Tier | Purpose | Selection principle |
 |---|---|---|
@@ -128,8 +130,82 @@ The policy defines capabilities rather than permanently pinning model names or p
 | Controller | Planning, boundaries, review, escalation | Codex at a reasoning level proportionate to risk |
 | Escalation | Independent hard investigations or unusually deep reasoning | Ultra or explicit Codex subagents only with user approval |
 
-Current models may be recorded as examples in a run log, but model names and prices are not
-normative policy. Recheck current pricing and availability before changing routing defaults.
+### 5.1 Current first-party routing examples
+
+As of 2026-07-13, the installed Cursor CLI exposes these useful first-party routes:
+
+| Capability | Current CLI model example | Use |
+|---|---|---|
+| Economical coding specialist | `composer-2.5` | Default for bounded implementation and repair |
+| Strong first-party worker | `cursor-grok-4.5-medium` | Harder decision-complete work where additional reasoning may reduce repair risk |
+| Highest normal first-party worker | `cursor-grok-4.5-high` | Difficult, high-value work when the task and available first-party allowance both justify it |
+| Latency variant | A corresponding `-fast` model | Urgent interactive latency only, not a quality upgrade |
+
+`composer-2.5-fast` has the same intelligence as standard Composer 2.5 at a materially higher
+published token price. A `-fast` suffix must never be treated as a stronger reasoning tier. Use
+it only when reduced wall-clock latency has explicit value. `auto` is useful when Cursor should
+route around availability or reliability conditions, but its opaque selection makes it a poor
+default for deterministic budget routing.
+
+These names are examples, not permanent policy. Before changing routing defaults, refresh the
+available IDs with `cursor-agent --list-models` and recheck current first-party pool coverage and
+pricing from official Cursor sources.
+
+### 5.2 Budget snapshot
+
+Before the first delegated Cursor run of a working day, and after any unusually large run, Codex
+must obtain or ask the user for a current Cursor dashboard snapshot containing:
+
+- first-party model pool percentage remaining;
+- third-party/API model pool percentage remaining, when shown separately;
+- snapshot time;
+- subscription reset time;
+- whether on-demand billing is enabled.
+
+The dashboard is the balance source of truth. The Cursor CLI currently provides model selection
+and per-run telemetry, but no documented command for the remaining subscription allowance or
+reset time. Per-run token totals can support accounting but cannot reconstruct the balance
+reliably because pool sizes, bonus capacity, cache charging, and model pricing may change.
+
+A snapshot older than 24 hours is stale. If a current snapshot cannot be obtained, use the
+conservative lane: at most one approved `composer-2.5` standard run, no Fast variant, no strong
+worker, and no automatic repair run until the balance is refreshed.
+
+### 5.3 Budget-aware router
+
+The default protected reserve is 15% of the first-party model pool. The default surplus window
+starts 72 hours before reset. These defaults may be changed by the user for a task or billing
+cycle and must be recorded in the run log. Evaluate the rows from top to bottom and use the first
+matching state so near-reset rules take precedence over ordinary percentage bands.
+
+| First-party budget state | Default route |
+|---|---|
+| Reset is within 24 hours and less than 15% remains | Spend the protected reserve only with explicit user approval; otherwise preserve the cutoff |
+| Reset is within 24 hours and at least 15% remains | Surplus mode: prefer Grok high for suitable high-value work; keep the task bounded and independently reviewed |
+| Reset is within 72 hours and at least 30% remains | Surplus mode: prefer Grok medium/high for suitable difficult or high-value queued work |
+| At least 60% remains | Composer by default; Grok medium/high is allowed when task difficulty justifies it |
+| 25% to 59% remains | Composer standard; Grok only when Codex explains why it is likely to prevent greater repair cost |
+| 15% to 24% remains | Conservation: Composer standard only, no Fast variant, and no extra run beyond the approved ceiling |
+| Less than 15% remains | Cutoff: launch no new Cursor work; Codex takes over or asks the user |
+| Balance is missing or stale | Use the conservative unknown-balance lane defined above |
+
+First-party surplus never justifies consuming the separate third-party/API pool. Budget headroom
+also does not justify delegating a poor-fit task, increasing scope, adding parallel writers, or
+skipping review. The objective is to use already-paid allowance intelligently, not to manufacture
+work before reset.
+
+### 5.4 Financial and workflow cutoffs
+
+There are two distinct controls:
+
+1. Financial cutoff: keep Cursor on-demand billing disabled unless the user explicitly approves
+   paid overage. The workflow must never enable on-demand billing. If it is enabled and a run could
+   cross included usage, stop and ask before launching the run.
+2. Workflow cutoff: Codex must not invoke Cursor when the budget router reaches its cutoff. This
+   preflight rule is enforceable from the recorded dashboard snapshot, but it cannot interrupt a
+   run at an exact live balance because the CLI exposes no documented balance endpoint.
+
+The selected model, budget lane, and reason must appear in both the task contract and run log.
 
 ## 6. Task contract
 
@@ -139,6 +215,15 @@ authority boundary.
 ```text
 Task ID:
 Mode: read-only | implementation | repair
+
+Budget snapshot time:
+First-party pool remaining:
+Third-party/API pool remaining:
+Reset time:
+Protected reserve:
+On-demand billing enabled: yes | no
+Budget lane:
+Selected model and reason:
 
 Objective:
 
@@ -330,16 +415,22 @@ The default budget per delegated workstream is:
 1. one primary Cursor implementation run;
 2. one focused Cursor repair run after Codex review.
 
-After those runs, Codex must either complete the remaining work directly or ask the user before
-another Cursor run, a stronger worker, Ultra, or Codex subagents.
+The budget-aware router in Section 5 may tighten this ceiling but never expands it. After the
+permitted runs, Codex must either complete the remaining work directly or ask the user before
+another Cursor run, a stronger worker, Ultra, or Codex subagents. Surplus mode permits choosing a
+stronger first-party worker within the existing run count; it does not authorize additional runs.
 
 Cost controls:
 
 - Do not delegate microscopic questions or edits with poor context-cost amortization.
 - Prefer one complete task contract over repeated steering.
-- Use capability tiers instead of the strongest model by default.
+- Select the model from both task difficulty and the current budget lane.
+- Use standard variants by default; Fast variants buy latency, not intelligence.
+- Protect the 15% reserve outside the approved surplus exception.
+- Never consume paid on-demand usage without explicit user approval.
 - Resume only within the bounded workstream.
 - Record input, cached input, output, duration, model, and request/session IDs when returned.
+- Refresh the dashboard balance after an unusually large run or before a run near a cutoff.
 - Judge economy by accepted work and repair rate, not token price alone.
 
 ## 12. Run log
@@ -357,6 +448,8 @@ Each log should contain:
 
 - task ID, objective, mode, and task contract;
 - base commit, branch, and worktree path;
+- dashboard snapshot time, reset time, pool percentages, reserve, and on-demand status;
+- selected budget lane, model, and routing reason;
 - Cursor session ID, request ID, model, duration, and usage;
 - worker result and reported checks;
 - actual changed paths found by Codex;
@@ -396,6 +489,9 @@ away. Stop, quarantine the worktree, and inspect independently.
 | Verification disagrees with worker report | Trust observed diff/test/browser evidence, not the report |
 | Visual change lacks user confirmation | Keep it uncommitted from the mainline |
 | Cleanup would be destructive | Ask before removing or discarding anything |
+| Balance is missing or older than 24 hours | Refresh it or use the conservative unknown-balance lane |
+| First-party allowance is below the protected reserve | Do not launch new Cursor work unless the final-24-hour reserve exception is explicitly approved |
+| A run may enter paid on-demand usage | Stop and obtain explicit user approval before launching |
 
 ## 15. Definition of a successful delegated workstream
 
@@ -407,6 +503,7 @@ A delegated workstream is successful only when:
 - the diff is scoped and independently reviewed;
 - required verification passed or remaining gaps are explicit;
 - user approvals were obtained where required;
+- model selection followed the recorded budget lane and did not silently cross the reserve;
 - usage and disposition were recorded in the gitignored run log;
 - no worker-created commit, push, PR, or stale process remains;
 - worktree integration or quarantine status is clear.
@@ -421,7 +518,9 @@ The workflow is based on the documented behavior of:
 - Cursor CLI sessions and rules: `https://docs.cursor.com/en/cli/using`;
 - Cursor headless mode: `https://docs.cursor.com/en/cli/headless`;
 - Cursor CLI permissions: `https://docs.cursor.com/cli/reference/permissions`;
-- Cursor model and usage pricing: `https://docs.cursor.com/account/pricing`.
+- Cursor model and usage pricing: `https://docs.cursor.com/account/pricing`;
+- Composer 2.5 variants and pricing: `https://cursor.com/changelog/composer-2-5`;
+- Cursor Grok 4.5 first-party coverage: `https://cursor.com/blog/grok-4-5`.
 
 Recheck these sources before changing default model examples, cost assumptions, authentication,
 permission syntax, headless write flags, session behavior, or worktree automation. Verified local
