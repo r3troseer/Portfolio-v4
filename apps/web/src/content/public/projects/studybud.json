@@ -128,7 +128,11 @@
     "publicSummary": "AI-powered study tool that generates summaries and quizzes from uploaded PDF/DOCX documents using NLP text extraction and GPT-based models. BSc final year project built with Django.",
     "roleLenses": ["backend", "python-django", "ai-nlp", "document-intelligence"],
     "evidenceSkills": ["Django", "NLP", "Document Processing"],
-    "safeTalkingPoints": [],
+    "safeTalkingPoints": [
+      "BSc final-year tool: upload PDF/DOCX, extract text, get summaries and multi-choice quizzes.",
+      "Django backend with NLP extraction and GPT-based generation for study workflows.",
+      "Shipped for public online access as a complete document-to-quiz pipeline."
+    ],
     "sensitivity": "safe"
   }
 }

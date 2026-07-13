@@ -7,7 +7,7 @@
   "card": {
     "title": "TicketSage",
     "subtitle": "Movie Ticket Booking Platform",
-    "summary": "Django-based movie booking system with TMDB API integration, user authentication, and automated showtime scheduling for cinema management.",
+    "summary": "Django movie booking platform (TMDB, auth, showtimes) - group software engineering course competition winner at University of Ilorin; backend-led.",
     "technologies": ["Django", "TMDB API", "Authentication", "PythonAnywhere"],
     "listTech": ["Django", "TMDB API", "Auth"]
   },
@@ -109,7 +109,7 @@
     ]
   },
   "ai": {
-    "publicSummary": "Full-stack movie ticket booking platform with a Django REST Framework backend and Next.js frontend, integrating the TMDB API, automated showtime scheduling, and transaction-safe seat booking.",
+    "publicSummary": "Full-stack movie ticket booking platform (Django REST + Next.js, TMDB, transaction-safe seats). Won University of Ilorin software engineering course competition; led backend APIs and booking logic.",
     "roleLenses": ["backend", "python-django", "fullstack"],
     "evidenceSkills": ["Django", "REST APIs", "TMDB Integration"],
     "safeTalkingPoints": [],

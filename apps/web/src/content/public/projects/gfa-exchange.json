@@ -96,7 +96,11 @@
     "publicSummary": "AI-driven loan reallocation sandbox for UK SME lending: a multi-agent system with a privacy-preserving marketplace, LLM-powered explainability, and financial inclusion as a first-class metric. Honourable Mention at UKFinnovator by Ukfin+.",
     "roleLenses": ["backend", "ai-nlp", "fintech", "fullstack"],
     "evidenceSkills": ["FastAPI", "Multi-Agent AI", "Explainable AI"],
-    "safeTalkingPoints": [],
+    "safeTalkingPoints": [
+      "Built a multi-agent loan reallocation sandbox for UK SME lending at UKFinnovator (Honourable Mention).",
+      "Privacy-preserving marketplace: double-blind matching so lenders can trade fit without exposing raw company data.",
+      "Explainability layer with Gemini plus a deterministic fallback so every recommendation has an auditable narrative."
+    ],
     "sensitivity": "safe"
   }
 }

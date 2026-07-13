@@ -86,7 +86,11 @@
     "publicSummary": "A .NET 8 Web API train seat booking system built on Clean Architecture, handling routes, schedules, real-time seat availability, conflict-free bookings, payments, and OTP authentication.",
     "roleLenses": ["backend", "dotnet"],
     "evidenceSkills": [".NET", "Clean Architecture", "Booking Logic"],
-    "safeTalkingPoints": [],
+    "safeTalkingPoints": [
+      ".NET 8 Clean Architecture API for routes, schedules, and seat booking with conflict-free holds.",
+      "Database locking plus Redis expiry so concurrent users cannot double-book a seat.",
+      "OTP auth and payments wired into the booking flow end to end."
+    ],
     "sensitivity": "safe"
   }
 }
