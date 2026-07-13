@@ -25,7 +25,12 @@ export const Contact = () => {
             <a className="pf-clink pf-clink-primary" href={`mailto:${links.email}`}>
               <Icon name="mail" size={16} /> {links.email}
             </a>
-            {links.profiles.map((profile) => (
+            {/* A profile can opt out of the contact list with showInContact: false
+                (e.g. the Portfolio self-link, which stays in links.json for CV /
+                AI export). Absent flag means shown. */}
+            {links.profiles
+              .filter((profile) => profile.showInContact !== false)
+              .map((profile) => (
               <a
                 key={profile.label}
                 className="pf-clink"

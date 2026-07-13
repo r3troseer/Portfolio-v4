@@ -8,7 +8,7 @@
     "title": "PACTGuard",
     "subtitle": "Pre-Release Compliance Middleware for AI-Era Financial Communications",
     "summary": "RegTech middleware that reviews AI-generated financial communications and robo-advice before release. Compares three independent engines (deterministic rules, semantic retrieval, and a Gemini AI judge), then applies a Pass / Adjust / Check / Terminate decision with an evidence-bound explanation. Built for the Cambridge Spark 'Financial Regulation in an AI-Driven World' challenge.",
-    "technologies": ["Django", "DRF", "React", "Gemini 2.0 Flash", "Sentence-Transformers", "RegTech"],
+    "technologies": ["Django", "DRF", "React", "Gemini", "Sentence-Transformers", "RegTech"],
     "listTech": ["Sentence-Transformers", "LLM Judge", "NLI / Evidence"]
   },
   "detail": {
@@ -26,14 +26,14 @@
     ],
     "contentCards": [
       {
-        "markdown": "### Architecture\n- **Three independent engines, compared:** deterministic keyword/context rules, semantic xRAG reference retrieval (`sentence-transformers` `all-MiniLM-L6-v2` + cosine similarity), and a Gemini 2.0 Flash AI judge, with a deterministic *simulated* fallback when no API key is present.\n- **Hybrid PACT release gate** combines scoring, severe-risk overrides, session escalation, and engine disagreement into a final Pass / Adjust / Check / Terminate decision.\n- **Backend:** Django + Django REST Framework, SQLite, a metadata-wrapped control library (`controls.json`), and a service layer (`risk_engine`, `retrieval`, `scoring`, `pact_gate`, `evidence_pack`, `xai`, `sandbox`, `audit`).\n- **Frontend:** React + Vite single-page app for review, sandbox comparison, and dashboards.\n- **Version-controlled middleware:** every decision is stamped with the control-library version; publishing a new version flags prior decisions as needing reassessment.",
+        "markdown": "### Architecture\n- **Three independent engines, compared:** deterministic keyword/context rules, semantic xRAG reference retrieval (`sentence-transformers` `all-MiniLM-L6-v2` + cosine similarity), and a Gemini AI judge, with a deterministic *simulated* fallback when no API key is present.\n- **Hybrid PACT release gate** combines scoring, severe-risk overrides, session escalation, and engine disagreement into a final Pass / Adjust / Check / Terminate decision.\n- **Backend:** Django + Django REST Framework, SQLite, a metadata-wrapped control library (`controls.json`), and a service layer (`risk_engine`, `retrieval`, `scoring`, `pact_gate`, `evidence_pack`, `xai`, `sandbox`, `audit`).\n- **Frontend:** React + Vite single-page app for review, sandbox comparison, and dashboards.\n- **Version-controlled middleware:** every decision is stamped with the control-library version; publishing a new version flags prior decisions as needing reassessment.",
         "type": "Architecture",
         "tags": [
           "Django",
           "DRF",
           "React",
           "Vite",
-          "Gemini 2.0 Flash",
+          "Gemini",
           "Sentence-Transformers",
           "Semantic Retrieval",
           "SQLite"
@@ -101,7 +101,11 @@
     "publicSummary": "PACTGuard is RegTech pre-release compliance middleware for AI-era financial communications: it compares deterministic rules, semantic retrieval, and a Gemini AI judge, then applies a Pass / Adjust / Check / Terminate decision with an evidence-bound explanation. FCA-aligned, not FCA-certified; it supports compliance decision-making and does not provide advice or regulatory approval.",
     "roleLenses": ["backend", "python-django", "ai-nlp", "fintech", "fullstack"],
     "evidenceSkills": ["Django REST", "Semantic Retrieval", "Explainable AI"],
-    "safeTalkingPoints": [],
+    "safeTalkingPoints": [
+      "RegTech middleware that scores financial communications before release using rules, retrieval, and a Gemini judge.",
+      "Outputs a Pass / Adjust / Check / Terminate decision with an evidence-bound explanation - decision support, not advice.",
+      "FCA-aligned framing, not FCA-certified; built for compliance review workflows."
+    ],
     "sensitivity": "safe"
   }
 }
