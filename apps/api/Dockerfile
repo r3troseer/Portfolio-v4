@@ -7,6 +7,10 @@
 # the API source, production venv, and generated artifact. Raw canonical
 # Layer 0 content is absent from the final image.
 #
+# Runtime runs as an unprivileged numeric UID. Application source and the
+# evidence artifact stay root-owned and read-only; only a narrow temp/cache
+# path is writable for the runtime user.
+#
 # This replaces the Railpack/Mise toolchain: Mise installed Python only on the
 # build image, so the .venv shebangs pointed at paths missing at runtime.
 # The Dockerfile owns both build and runtime; CMD stays the Railway start owner.
@@ -42,14 +46,31 @@ RUN cd apps/api && DJANGO_DEBUG=true uv run python manage.py build_evidence_inde
 
 FROM python:3.13-slim AS runtime
 
-ENV PYTHONUNBUFFERED=1
+# Disable bytecode writes beside source; send temp/cache to a narrow path.
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    HOME=/tmp \
+    TMPDIR=/tmp \
+    XDG_CACHE_HOME=/tmp/app-cache
 
 WORKDIR /app
 
 # Production venv, API source, and generated artifact only (no Layer 0 tree).
+# Copied as root-owned so source and the evidence artifact stay read-only for
+# the unprivileged runtime user.
 COPY --from=builder /app/apps/api /app/apps/api
 
+# Numeric unprivileged user; only /tmp/app-cache is owned for runtime writes.
+# Base-image /tmp remains the process temp directory (sticky, world-writable).
+RUN groupadd --system --gid 10001 appuser \
+    && useradd --system --uid 10001 --gid appuser --no-create-home \
+        --home-dir /tmp --shell /usr/sbin/nologin appuser \
+    && mkdir -p /tmp/app-cache \
+    && chown 10001:10001 /tmp/app-cache
+
 WORKDIR /app/apps/api
+
+USER 10001:10001
 
 EXPOSE 8000
 
