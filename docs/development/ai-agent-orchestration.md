@@ -395,7 +395,7 @@ receive the full old conversation unless a specific earlier exchange is essentia
 
 ## 9. Deterministic scripted control plane
 
-Use the tracked, dependency-free PowerShell entry point:
+Use the local, dependency-free PowerShell entry point:
 
 ```text
 scripts/orchestration/orchestrate.ps1
@@ -406,6 +406,12 @@ Its task-contract schema is:
 ```text
 scripts/orchestration/task-contract.schema.json
 ```
+
+The `scripts/` directory is intentionally gitignored and local-only. Never stage, commit,
+force-add, push, or otherwise publish it. Bootstrap Gate G0 verifies the local files and records
+their SHA-256 hashes before delegation. Cursor worker worktrees receive sealed contracts and do
+not require the control-plane files to be present or published in their branches. A fresh clone
+must restore the approved local control plane separately before delegated release work can run.
 
 Generated contracts, prompts, preflight records, Cursor output, diff audits, verification output,
 and cleanup evidence live under gitignored `tools/agent-runs/<task-id>/`.
@@ -429,7 +435,7 @@ contract, select a more expensive model, stop unrelated processes, delete a work
 changes. Those actions require controller judgment and the existing user approvals.
 
 Use named verification identifiers rather than arbitrary command strings in contracts. Add a new
-identifier to the tracked script only when repeated work genuinely requires it. This prevents a
+identifier to the local script only when repeated work genuinely requires it. This prevents a
 task manifest from becoming an unreviewed shell-script transport.
 
 Dry-run is the default for worktree creation and Cursor execution. The controller must pass the
