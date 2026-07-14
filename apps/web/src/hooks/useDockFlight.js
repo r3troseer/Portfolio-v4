@@ -84,6 +84,10 @@ export const useDockFlight = (
   const hoverRef = useRef(false);
   const pressRef = useRef(false);
   const dirtyRef = useRef(true);
+  // Intent-level route-exit handshake: callers (AssistantShell) release any
+  // temporary entrance reparent before navigate unmounts this tree. The effect
+  // installs the real cancel; outside the effect this is a no-op.
+  const prepareForRouteExitRef = useRef(() => {});
 
   useEffect(() => {
     const fly = launcherRef.current;
@@ -349,8 +353,9 @@ export const useDockFlight = (
       return true;
     };
 
-    // Return the launcher to the document root and re-anchor it in document
-    // coords so the normal rest/flight path continues. Idempotent.
+    // Return the launcher to its React-owned host and re-anchor it in document
+    // coords so the normal rest/flight path continues. Idempotent: safe after an
+    // explicit prepareForRouteExit() and as the unmount-cleanup fallback.
     const cancelEntrance = () => {
       if (entranceTimer) {
         clearTimeout(entranceTimer);
@@ -372,6 +377,12 @@ export const useDockFlight = (
       }
       mState = null; // force mobile to re-finalize rest cleanly
     };
+
+    // Synchronous route-exit release: cancel the entrance timer and, if the
+    // launcher is temporarily parented inside the hero action row, restore it to
+    // the React host before navigation. No-op when entrance is inactive so
+    // settled rest / flight / dock geometry stay untouched.
+    prepareForRouteExitRef.current = cancelEntrance;
 
     // End the reveal ride as soon as the ROW's own fadeInUp finishes (the row has
     // stopped, so the handoff to document-coord positioning is seamless).
@@ -978,6 +989,7 @@ export const useDockFlight = (
 
     return () => {
       alive = false;
+      prepareForRouteExitRef.current = () => {};
       if (myId === ownerSeq) ownerSeq++; // relinquish ownership
       cancelEntrance(); // restore the pill to its original parent for React unmount
       mReleaseRow();
@@ -994,6 +1006,9 @@ export const useDockFlight = (
   }, [launcherRef, slotSelector]);
 
   return {
+    prepareForRouteExit: () => {
+      prepareForRouteExitRef.current();
+    },
     onHoverIn: () => {
       hoverRef.current = true;
       dirtyRef.current = true;

@@ -26,6 +26,7 @@ export const AssistantShell = () => {
   const [inputValue, setInputValue] = useState("");
   const [ran, setRan] = useState({ query: "", lens: undefined });
   const panelRef = useRef(null);
+  const askLauncherRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
   const returnTo = `${location.pathname}${location.search}${location.hash}`;
@@ -107,6 +108,9 @@ export const AssistantShell = () => {
   };
 
   const openInPlayground = () => {
+    // F-01: release any temporary entrance reparent before Layout unmounts
+    // AssistantShell on /playground. Same event turn; navigation is not delayed.
+    askLauncherRef.current?.prepareForRouteExit();
     const typed = inputValue.trim();
     const answered = hasQueried && result.status === "done";
     if (answered && (!typed || typed === ran.query)) {
@@ -123,7 +127,7 @@ export const AssistantShell = () => {
 
   return (
     <>
-      <AskLauncher />
+      <AskLauncher ref={askLauncherRef} />
 
       {open && (
         <div className="pf-assistant-overlay" onClick={() => setOpen(false)}>
