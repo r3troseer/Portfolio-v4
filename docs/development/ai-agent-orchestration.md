@@ -12,7 +12,9 @@ The workflow is designed to combine:
 - lower-cost, bounded implementation work from Cursor Agent;
 - explicit user control over scope, risk, and publication;
 - isolation that protects the user's current checkout and uncommitted work;
-- measurable cost and verification records.
+- measurable cost and verification records;
+- deterministic repeated operations that do not depend on controller memory;
+- atomic, independently revertible commits created only after review.
 
 This policy does not expand the authority granted by the user's request. Repository rules,
 Layer S boundaries, approval requirements, and public-content restrictions still apply.
@@ -51,10 +53,12 @@ Codex owns:
 - the task contract and acceptance criteria;
 - worker selection and capability tier;
 - worktree creation and lifecycle;
+- deterministic contract sealing, write-set locks, and execution records;
 - permission and sensitive-data boundaries;
 - independent diff review and verification;
 - browser, Computer Use, accessibility, performance, and visual checks where relevant;
 - integration, commit, push, and PR actions only when separately authorized;
+- atomic commit boundaries and commit-gate verification;
 - the final report to the user.
 
 Codex must not outsource its final judgment to the worker.
@@ -215,6 +219,7 @@ authority boundary.
 ```text
 Task ID:
 Mode: read-only | implementation | repair
+State: draft | ready | running | awaiting_review | accepted | blocked | rejected | complete
 
 Budget snapshot time:
 First-party pool remaining:
@@ -229,8 +234,18 @@ Objective:
 
 Base commit and branch:
 Worktree path, if writing:
+Worker branch, if writing:
 
-Allowed paths:
+Completed dependencies:
+Blocking dependencies:
+
+Allowed read paths:
+Allowed write paths:
+
+Relevant sealed context:
+- exact path
+- reason it is required
+- SHA-256 at contract approval
 
 Relevant read-only context:
 - Include only necessary handoffs, decisions, plans, audits, or other ignored files.
@@ -249,7 +264,14 @@ Forbidden actions:
 
 Acceptance criteria:
 
-Required verification:
+Required verification identifiers:
+
+Atomic commit units:
+- unit id
+- intent
+- exact path envelope
+- planned commit message
+- whether user visual approval is required and recorded
 
 Expected result:
 - summary
@@ -262,6 +284,10 @@ Expected result:
 
 If the worker finds that the contract is incomplete or contradictory, it must stop and report
 the conflict instead of choosing a direction.
+
+The JSON representation of this contract is the execution authority. Prose prompts are rendered
+from it. A worker prompt must not silently broaden paths, acceptance criteria, budget, model, or
+commit units beyond the sealed contract.
 
 ## 7. Rule and context policy
 
@@ -305,6 +331,40 @@ Cursor must not:
 Because ignored files are not copied into a Git worktree, relevant notes normally remain in the
 main checkout and are supplied as explicit, read-only absolute paths.
 
+Only `.notes/decision-log.md` and `.notes/cc-plans.md` are append-only. Other `.notes` artifacts
+may be revised or consolidated under the repository working agreement, but Cursor workers remain
+read-only against every `.notes` path unless a task explicitly assigns a non-append-only note as
+an allowed write path.
+
+### 7.4 Deterministic context manifest
+
+Every delegated task receives a minimal context manifest. It lists only the files needed for the
+task, why each file is needed, and its SHA-256 hash when the contract is sealed.
+
+- Do not ask a worker to discover all plans, decisions, audits, or handoffs broadly.
+- Do not include entire conversations when a current specification and checkpoint contain the
+  required decisions.
+- Do not reread unchanged context after a checkpoint merely because a new model turn begins.
+- Re-read a context file only when its hash changes, the task changes scope, verification exposes a
+  contradiction, or a named acceptance criterion requires a section not previously supplied.
+- Source files under active implementation may change normally; governance, specifications,
+  handoffs, and decision context are the files that must be sealed.
+
+If a required context hash changes, preflight fails. Codex reviews the change, updates the contract
+deliberately, reseals it, and explains any effect on the task. The worker must not decide that a
+changed plan is close enough.
+
+### 7.5 Career OS ownership in delegated work
+
+Career OS notification awareness is scoped to Layer 0/public-content work. Codex performs the
+direct sibling notification check once per relevant workstream, reports open items to the user,
+and records only the relevant named result in the task contract. Cursor must not independently
+scan the sibling Career OS workspace unless Codex explicitly authorizes that exact read because
+the controller result is unavailable or stale.
+
+This keeps the awareness boundary intact without repeating a private sibling-workspace scan in
+every worker session.
+
 ## 8. Session and attention policy
 
 Use one Cursor session per bounded, PR-sized workstream.
@@ -333,9 +393,73 @@ Exact next action:
 A new session receives the checkpoint, current diff summary, and task contract. It does not
 receive the full old conversation unless a specific earlier exchange is essential.
 
-## 9. Worktree policy
+## 9. Deterministic scripted control plane
 
-### 9.1 Boundary
+Use the tracked, dependency-free PowerShell entry point:
+
+```text
+scripts/orchestration/orchestrate.ps1
+```
+
+Its task-contract schema is:
+
+```text
+scripts/orchestration/task-contract.schema.json
+```
+
+Generated contracts, prompts, preflight records, Cursor output, diff audits, verification output,
+and cleanup evidence live under gitignored `tools/agent-runs/<task-id>/`.
+
+The script owns repeatable mechanics only:
+
+- create a contract skeleton;
+- seal and verify context hashes;
+- record repository/worktree/model/budget preflight state;
+- reject active write-set conflicts;
+- create a worker worktree from the exact approved SHA;
+- render the prompt from the contract;
+- invoke the installed WSL Cursor CLI with explicit model and workspace;
+- audit changed paths;
+- run named repository checks;
+- verify an atomic staged unit;
+- report cleanup readiness.
+
+The script must not automatically stage, commit, merge, cherry-pick, push, open a PR, broaden a
+contract, select a more expensive model, stop unrelated processes, delete a worktree, or discard
+changes. Those actions require controller judgment and the existing user approvals.
+
+Use named verification identifiers rather than arbitrary command strings in contracts. Add a new
+identifier to the tracked script only when repeated work genuinely requires it. This prevents a
+task manifest from becoming an unreviewed shell-script transport.
+
+Dry-run is the default for worktree creation and Cursor execution. The controller must pass the
+explicit execution switch only after preflight succeeds.
+
+## 10. Parallelism and write-set locks
+
+Parallel work is an optimization, not a default. Run write-capable tasks concurrently only when:
+
+- their exact allowed write paths do not overlap;
+- neither depends on evidence or output from the other;
+- both start from recorded approved base commits;
+- their atomic integration order is fixed before launch;
+- current budget and controller review capacity support both;
+- no scientific measurement requires a stable, single-change baseline.
+
+The default maximum is two active write lanes. A third writer requires explicit user approval and
+a concrete reason why it reduces delivery risk or schedule rather than only increasing activity.
+
+Preflight scans active task contracts in `ready`, `running`, and `awaiting_review` states. Any
+overlapping write envelope blocks the newer task. If an implementation discovers a required write
+outside its envelope, stop and amend the contract; do not treat the path as implicitly allowed.
+
+Performance experiments that attribute a result to one change run sequentially against a frozen
+integration base. Other work may continue in isolated worktrees, but it must not enter that base
+until the measurement checkpoint finishes.
+
+## 11. Worktree policy
+
+### 11.1 Boundary
 
 - Read-only Cursor checks may inspect the current checkout.
 - Every Cursor edit must occur in a separate sibling Git worktree and worker branch.
@@ -352,7 +476,7 @@ git worktree add `
   <approved-base-commit>
 ```
 
-### 9.2 Preflight
+### 11.2 Preflight
 
 Before creation, Codex must record:
 
@@ -366,7 +490,7 @@ Worktrees start from committed state. They do not include the main checkout's un
 ignored `.notes`, `node_modules`, local environments, or build artifacts. If required state is
 missing, Codex must stop and ask rather than silently commit, copy, or discard user changes.
 
-### 9.3 Setup and execution
+### 11.3 Setup and execution
 
 Restore only existing locked dependencies required for verification, such as `npm ci` or
 `uv sync`. Adding or upgrading dependencies remains separately approval-gated.
@@ -380,7 +504,7 @@ wsl.exe -d Ubuntu-24.04 -- bash -lc "cd '<wsl-worktree-path>' && cursor-agent -p
 Write-capable invocation may use `--force` only after the worktree, path boundary, contract, and
 permissions are established. `--trust` acknowledges the workspace; it is not a security sandbox.
 
-### 9.4 Integration and cleanup
+### 11.4 Integration and cleanup
 
 After the worker finishes, Codex independently reviews the uncommitted worktree diff. Cursor does
 not commit it. Codex may integrate accepted work only under the user's existing Git and visual
@@ -390,7 +514,36 @@ Do not force-remove or clean a dirty rejected worktree. Quarantine it, report wh
 and ask before destructive cleanup. Remove a worktree only after its useful changes are safely
 integrated or the user explicitly authorizes disposal.
 
-## 10. Permissions and data boundaries
+## 12. Atomic commit policy
+
+Cursor never commits. Codex creates commits only after independent review, required verification,
+and any required user visual confirmation.
+
+An atomic commit is one causally coherent, independently revertible change that leaves the
+repository in a valid buildable state. Atomic does not mean one file or one issue. A contract,
+adapter, renderer, canonical-content, validation, dependency, and lockfile migration may need one
+larger commit when splitting it would leave an invalid intermediate state.
+
+Before a workstream begins, its contract declares each intended commit unit, path envelope,
+message, checks, and visual-approval requirement. After one unit is implemented:
+
+1. Cursor stops and returns the diff and evidence.
+2. Codex audits paths and the complete diff.
+3. Codex runs the named checks independently.
+4. The user visually approves UI work before a mainline commit, or the work remains uncommitted or
+   on an explicitly allowed preview branch.
+5. Codex stages only that unit and runs the scripted commit gate.
+6. Codex commits only when separately authorized.
+7. The same bounded Cursor session may resume from the clean checkpoint for the next unit.
+
+Never accumulate several planned commit units into an intertwined diff and attempt to reconstruct
+their boundaries afterward. If a unit cannot pass independently, revise the boundary before
+implementation or keep the inseparable work in one declared atomic unit.
+
+Parallel branches integrate through reviewed atomic commits in the predetermined order. Do not
+merge a worker branch wholesale merely because its final tree builds.
+
+## 13. Permissions and data boundaries
 
 Worktrees prevent edit collisions; they are not security sandboxes. The task contract and Cursor
 CLI permissions must apply least privilege.
@@ -408,7 +561,7 @@ Default prohibitions:
 Allow only the shell commands needed by the task. Codex, not Cursor, owns Git inspection and
 publication. Any permission escalation requires a reason tied to an acceptance criterion.
 
-## 11. Cost policy
+## 14. Cost policy
 
 The default budget per delegated workstream is:
 
@@ -433,7 +586,7 @@ Cost controls:
 - Refresh the dashboard balance after an unusually large run or before a run near a cutoff.
 - Judge economy by accepted work and repair rate, not token price alone.
 
-## 12. Run log
+## 15. Run log
 
 Store operational records under the already-gitignored `tools/agent-runs/` directory. Do not put
 routine worker telemetry in `.notes/decision-log.md` or `.notes/cc-plans.md`.
@@ -453,13 +606,15 @@ Each log should contain:
 - Cursor session ID, request ID, model, duration, and usage;
 - worker result and reported checks;
 - actual changed paths found by Codex;
+- context hashes and active write-set result;
+- atomic commit unit and resulting commit hash when authorized;
 - Codex verification results;
 - final disposition: accepted, repaired, taken over, blocked, rejected, or awaiting user review.
 
 Logs must not contain secrets, credentials, raw private material, or prohibited research content.
 They are operational evidence, not project decisions, and must never be committed.
 
-## 13. Independent review and verification
+## 16. Independent review and verification
 
 Cursor completion is not proof of correctness. Codex must independently:
 
@@ -475,7 +630,7 @@ Cursor completion is not proof of correctness. Codex must independently:
 If the diff is suspicious or materially out of scope, do not ask the same session to explain it
 away. Stop, quarantine the worktree, and inspect independently.
 
-## 14. Failure and escalation rules
+## 17. Failure and escalation rules
 
 | Condition | Required response |
 |---|---|
@@ -492,8 +647,11 @@ away. Stop, quarantine the worktree, and inspect independently.
 | Balance is missing or older than 24 hours | Refresh it or use the conservative unknown-balance lane |
 | First-party allowance is below the protected reserve | Do not launch new Cursor work unless the final-24-hour reserve exception is explicitly approved |
 | A run may enter paid on-demand usage | Stop and obtain explicit user approval before launching |
+| Context hash changed after approval | Stop, review the change, amend and reseal the contract |
+| Active write sets overlap | Do not launch in parallel; sequence or redefine the task boundary |
+| Atomic unit cannot pass independently | Stop and correct the boundary before committing |
 
-## 15. Definition of a successful delegated workstream
+## 18. Definition of a successful delegated workstream
 
 A delegated workstream is successful only when:
 
@@ -506,9 +664,10 @@ A delegated workstream is successful only when:
 - model selection followed the recorded budget lane and did not silently cross the reserve;
 - usage and disposition were recorded in the gitignored run log;
 - no worker-created commit, push, PR, or stale process remains;
+- every accepted commit is atomic, independently verified, and recorded;
 - worktree integration or quarantine status is clear.
 
-## 16. Reference basis and refresh triggers
+## 19. Reference basis and refresh triggers
 
 The workflow is based on the documented behavior of:
 

@@ -41,3 +41,4 @@ yarn-error.log*
 CLAUDE.md
 .cursor
 AGENTS.md
+scripts/
