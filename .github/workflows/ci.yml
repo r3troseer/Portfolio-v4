@@ -55,3 +55,129 @@ jobs:
       # (checkout is the full monorepo, so ../web content is present).
       - run: uv run python manage.py build_evidence_index --check
       - run: uv run python manage.py test core
+
+  api-image:
+    name: API production image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare isolated image test
+        run: |
+          echo "IMAGE_TAG=portfolio-api-ci:${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_ENV"
+          echo "PROD_CONTAINER=portfolio-api-ci-prod-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_ENV"
+          echo "FAKE_CONTAINER=portfolio-api-ci-fake-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_ENV"
+          echo "CI_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
+      - name: Build production image from monorepo root
+        run: docker build --file apps/api/Dockerfile --tag "$IMAGE_TAG" .
+
+      - name: Inspect artifact-only non-root runtime
+        run: |
+          configured_user="$(docker image inspect --format '{{.Config.User}}' "$IMAGE_TAG")"
+          case "$configured_user" in
+            ""|0|root|0:0|root:root)
+              echo "Unsafe runtime user: '$configured_user'" >&2
+              exit 1
+              ;;
+          esac
+
+          effective_uid="$(docker run --rm --entrypoint id "$IMAGE_TAG" -u)"
+          test "$effective_uid" -ne 0
+
+          docker run --rm --entrypoint sh "$IMAGE_TAG" -c '
+            test -x /app/apps/api/.venv/bin/gunicorn &&
+            test -s /app/apps/api/var/evidence_index.json &&
+            test ! -e /app/apps/web/src/content/public &&
+            test ! -e /app/apps/web &&
+            test ! -w /app/apps/api &&
+            test ! -w /app/apps/api/var/evidence_index.json
+          '
+
+      - name: Start production container
+        run: |
+          docker run --detach \
+            --name "$PROD_CONTAINER" \
+            --publish 127.0.0.1:8123:8000 \
+            --env DJANGO_DEBUG=false \
+            --env "DJANGO_SECRET_KEY=$CI_SECRET" \
+            --env WEB_CONCURRENCY=1 \
+            "$IMAGE_TAG"
+
+      - name: Verify production health and artifact retrieval
+        run: |
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --show-error http://127.0.0.1:8123/health/ > "$RUNNER_TEMP/prod-health.json"; then
+              ready=true
+              break
+            fi
+            if [ "$(docker inspect --format '{{.State.Running}}' "$PROD_CONTAINER" 2>/dev/null)" != "true" ]; then
+              exit 1
+            fi
+            sleep 0.5
+          done
+          test "$ready" = true
+
+          curl --fail --silent --show-error \
+            --header 'Content-Type: application/json' \
+            --data '{"query":"multi-agent fintech","top_k":3}' \
+            http://127.0.0.1:8123/api/retrieve/ > "$RUNNER_TEMP/prod-retrieve.json"
+
+          python3 -c 'import json, sys; value = json.load(open(sys.argv[1], encoding="utf-8")); assert value["status"] == "ok" and value["service"] == "portfolio-api"' "$RUNNER_TEMP/prod-health.json"
+          python3 -c 'import json, sys; value = json.load(open(sys.argv[1], encoding="utf-8")); assert value["meta"]["index_source"] == "artifact" and value["matches"]' "$RUNNER_TEMP/prod-retrieve.json"
+
+      # The fake provider is intentionally DEBUG-only. Keep the production
+      # container unchanged and use a second container from the same image.
+      - name: Start isolated debug fake-provider container
+        run: |
+          docker run --detach \
+            --name "$FAKE_CONTAINER" \
+            --publish 127.0.0.1:8124:8000 \
+            --env DJANGO_DEBUG=true \
+            --env "DJANGO_SECRET_KEY=$CI_SECRET" \
+            --env ANSWER_PROVIDER=fake \
+            --env WEB_CONCURRENCY=1 \
+            "$IMAGE_TAG"
+
+      - name: Verify deterministic fake answer without Gemini
+        run: |
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --show-error http://127.0.0.1:8124/health/ > "$RUNNER_TEMP/fake-health.json"; then
+              ready=true
+              break
+            fi
+            if [ "$(docker inspect --format '{{.State.Running}}' "$FAKE_CONTAINER" 2>/dev/null)" != "true" ]; then
+              exit 1
+            fi
+            sleep 0.5
+          done
+          test "$ready" = true
+
+          curl --fail --silent --show-error \
+            --header 'Content-Type: application/json' \
+            --data '{"query":"What backend systems has Pius built?","top_k":3}' \
+            http://127.0.0.1:8124/api/answer/ > "$RUNNER_TEMP/fake-answer.json"
+
+          python3 -c 'import json, sys; value = json.load(open(sys.argv[1], encoding="utf-8")); assert value["status"] == "answered" and value["meta"]["provider"] == "fake" and value["meta"]["index_source"] == "artifact"' "$RUNNER_TEMP/fake-answer.json"
+
+      - name: Emit container logs on failure
+        if: failure()
+        run: |
+          for container in "$PROD_CONTAINER" "$FAKE_CONTAINER"; do
+            if docker container inspect "$container" > /dev/null 2>&1; then
+              echo "Logs for $container"
+              docker logs "$container" 2>&1 || true
+            fi
+          done
+
+      - name: Remove exact image test resources
+        if: always()
+        run: |
+          for container in "$PROD_CONTAINER" "$FAKE_CONTAINER"; do
+            docker rm --force "$container" 2>/dev/null || true
+          done
+          docker image rm "$IMAGE_TAG" 2>/dev/null || true
