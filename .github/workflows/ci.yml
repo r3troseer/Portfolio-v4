@@ -34,6 +34,9 @@ jobs:
     defaults:
       run:
         working-directory: apps/api
+    env:
+      # Ephemeral CI-only key satisfying production startup policy (B-07); not a deploy secret.
+      DJANGO_SECRET_KEY: ci-ephemeral-test-django-secret-key-not-for-production-use-0001
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -44,7 +47,10 @@ jobs:
           enable-cache: true
           cache-dependency-glob: apps/api/uv.lock
       - run: uv sync --locked
-      - run: uv run python manage.py check
+      - name: Production settings check
+        run: uv run python manage.py check
+        env:
+          DJANGO_DEBUG: "false"
       # Layer 1 evidence-index gating: fails on any governance error
       # (checkout is the full monorepo, so ../web content is present).
       - run: uv run python manage.py build_evidence_index --check
