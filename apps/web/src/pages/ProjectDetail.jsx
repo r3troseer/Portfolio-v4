@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { Icon } from "../components/Icon";
@@ -9,6 +10,7 @@ import { ProblemSolutionCard } from "../components/ProblemSolutionCard";
 import { Timeline } from "../components/Timeline";
 import { EVIDENCE_ORIGIN, safeReturnPath } from "../lib/evidenceNavigation";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { useRouteDestination } from "../components/RouteCompletion";
 import "../styles/profile/detail.css";
 
 // Presentation-only mapping from a link icon key to a lucide icon name.
@@ -23,12 +25,14 @@ export const ProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const headingRef = useRef(null);
   const project = getProjectById(id);
   useDocumentTitle(
     project
       ? `${project.header.title} - Pius Agboola`
       : "Page not found - Pius Agboola"
   );
+  useRouteDestination(headingRef, "Project", Boolean(project));
 
   if (!project) {
     return <NotFound />;
@@ -91,7 +95,14 @@ export const ProjectDetail = () => {
             />
           </div>
         )}
-        <h1 className="pf-pd-title">{header.title}</h1>
+        <h1
+          ref={headingRef}
+          className="pf-pd-title"
+          data-route-focus="project"
+          tabIndex={-1}
+        >
+          {header.title}
+        </h1>
         <p className="pf-pd-subtitle">{header.subtitle}</p>
         <p className="pf-pd-overview">{header.overview}</p>
 

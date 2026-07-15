@@ -193,8 +193,9 @@ main {
   outline-offset: 2px;
 }
 
-/* Skip link: hidden off-screen until focused, then drops into view so keyboard
-   users can jump past the nav to <main>. */
+/* Skip link: hidden off-screen until keyboard-focused, then drops into view so
+   keyboard users can jump past the nav to <main>. :focus-visible keeps ordinary
+   desktop/mobile pointer navigation from exposing the control. */
 .pf-skip-link {
   position: fixed;
   top: 0;
@@ -210,12 +211,30 @@ main {
   transition: transform var(--transition-fast);
 }
 
-.pf-skip-link:focus {
+.pf-skip-link:focus-visible {
   transform: translateY(0);
 }
 
 /* Don't ring the whole <main> region when the skip link hands it focus. */
 main:focus {
+  outline: none;
+}
+
+/* Route-completion live region: announce without affecting layout. */
+.pf-route-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Programmatic route focus is announced without imitating keyboard focus. */
+[data-route-focus][data-route-programmatic-focus]:focus {
   outline: none;
 }
 
