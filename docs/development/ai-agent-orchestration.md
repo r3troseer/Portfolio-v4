@@ -82,6 +82,20 @@ Cursor Agent must not:
 - treat its own tests or summary as final proof;
 - expand the task because adjacent improvements appear useful.
 
+### 3.4 Dedicated Cursor verifier
+
+For production-release gate reviews, Codex may assign one independent read-only Cursor verifier
+after implementation evidence exists. The verifier receives a sealed verification contract, the
+smallest relevant source/diff/evidence set, and no write paths. It does not replace Codex judgment
+or repository checks. Use regular-speed `cursor-grok-4.5-high` when the installed model list and
+current budget lane permit, reflecting the user's preferred verifier; never infer a model ID from
+memory or silently substitute a Fast variant.
+
+Do not spend a verifier run on a microscopic change or while implementation is still moving. One
+verifier may review a coherent gate or atomic unit. A repair continuation is allowed only when the
+first result fails the verifier output contract, and it must resume the same session rather than
+start a new agent.
+
 ## 4. Routing rubric
 
 ### 4.1 Delegate to Cursor when all gates pass
@@ -441,6 +455,62 @@ task manifest from becoming an unreviewed shell-script transport.
 Dry-run is the default for worktree creation and Cursor execution. The controller must pass the
 explicit execution switch only after preflight succeeds.
 
+### 9.1 Canonical controller commands
+
+Never reconstruct a Cursor command from memory. Before writing or running one, confirm the current
+parameters in `scripts/orchestration/orchestrate.ps1`. If a Cursor flag or model ID is relevant,
+also check the installed CLI with `cursor-agent --help` and `cursor-agent --list-models`. Run the
+controller dry-run first and inspect its resolved workspace, model, mode, and prompt. Only then may
+the same command be repeated with `-Execute`.
+
+The normal sealed-task sequence is:
+
+```powershell
+$Contract = "tools/agent-runs/<task-id>/contract.json"
+
+.\scripts\orchestration\orchestrate.ps1 seal -Contract $Contract
+.\scripts\orchestration\orchestrate.ps1 preflight -Contract $Contract
+.\scripts\orchestration\orchestrate.ps1 prompt -Contract $Contract
+.\scripts\orchestration\orchestrate.ps1 run -Contract $Contract
+.\scripts\orchestration\orchestrate.ps1 run -Contract $Contract -Execute
+.\scripts\orchestration\orchestrate.ps1 diff -Contract $Contract
+.\scripts\orchestration\orchestrate.ps1 verify -Contract $Contract
+.\scripts\orchestration\orchestrate.ps1 commit-check -Contract $Contract -CommitUnit "<unit-id>" -Message "<exact-message>"
+.\scripts\orchestration\orchestrate.ps1 status -Contract $Contract -NewState complete
+.\scripts\orchestration\orchestrate.ps1 cleanup-check -Contract $Contract
+```
+
+Use `verify -VerificationId <id>` when only one verification named in the contract should run.
+`commit-check` checks an already staged unit but never commits it. `cleanup-check` reports readiness
+but never stops a process or removes a worktree. Codex performs any separately authorized Git commit
+between `commit-check` and the `complete` state transition; that Git action is intentionally not a
+controller-script command.
+
+For a new worker worktree, run `worktree -Contract $Contract` as a dry-run and repeat it with
+`-Execute` only after reviewing the resolved path and branch. Do not create another worktree when
+the approved programme worktree already exists.
+
+The controller is the source of truth and raw CLI invocation is diagnostic only. Its resolved
+write-capable shape is:
+
+```text
+cursor-agent -p --output-format json --trust --workspace "<wsl-worktree-path>" --model "<verified-model-id>" "<rendered-task-prompt>"
+```
+
+For a read-only task the controller adds `--mode plan`. It adds `--force` only when the sealed
+contract explicitly permits force, and `--resume` only with the sealed session ID. `--trust` is a
+boolean workspace acknowledgement: it never receives the task-contract path. The contract path is
+passed to `orchestrate.ps1 -Contract`; the controller renders and passes the task prompt as the
+final Cursor argument.
+
+From PowerShell, these literal probes avoid host-shell expansion while checking the installed WSL
+CLI. Re-run them after a Cursor CLI version change rather than treating their output as permanent:
+
+```powershell
+wsl.exe --% -d Ubuntu-24.04 -- bash -lc 'export PATH="$HOME/.local/bin:$PATH"; cursor-agent --help'
+wsl.exe --% -d Ubuntu-24.04 -- bash -lc 'export PATH="$HOME/.local/bin:$PATH"; cursor-agent --version; cursor-agent --list-models'
+```
+
 ## 10. Parallelism and write-set locks
 
 Parallel work is an optimization, not a default. Run write-capable tasks concurrently only when:
@@ -501,14 +571,10 @@ missing, Codex must stop and ask rather than silently commit, copy, or discard u
 Restore only existing locked dependencies required for verification, such as `npm ci` or
 `uv sync`. Adding or upgrading dependencies remains separately approval-gated.
 
-Read-only invocation pattern:
-
-```powershell
-wsl.exe -d Ubuntu-24.04 -- bash -lc "cd '<wsl-worktree-path>' && cursor-agent -p --output-format json --trust '<task-contract>'"
-```
-
-Write-capable invocation may use `--force` only after the worktree, path boundary, contract, and
-permissions are established. `--trust` acknowledges the workspace; it is not a security sandbox.
+Use the controller sequence in Section 9.1 for both read-only and write-capable tasks. Do not pass a
+contract path to raw `cursor-agent`, and do not bypass the required dry-run. Write-capable
+invocation may use `--force` only after the worktree, path boundary, sealed contract, and permissions
+are established. `--trust` acknowledges the workspace; it is not a security sandbox.
 
 ### 11.4 Integration and cleanup
 
@@ -635,6 +701,28 @@ Cursor completion is not proof of correctness. Codex must independently:
 
 If the diff is suspicious or materially out of scope, do not ask the same session to explain it
 away. Stop, quarantine the worktree, and inspect independently.
+
+### 16.1 Dedicated verifier protocol
+
+The dedicated verifier is an evidence reviewer, not a second implementer:
+
+1. Launch it only after the implementation diff and controller verification evidence are stable.
+2. Use a new read-only verifier session, never the implementation worker session.
+3. Prefer the existing programme worktree or controller checkout; read-only verification does not
+   justify creating another product worktree.
+4. Send only the sealed contract, exact diff or changed files, named acceptance criteria, and the
+   smallest evidence required to test them. Exclude unrelated notes and repository context.
+5. Require findings to distinguish `confirmed`, `uncertain`, and `non-issue`, with exact evidence.
+6. Require these final fields: summary, changed files, checks and outcomes, acceptance status,
+   unresolved risks, and session/model/usage metadata when available.
+7. Treat a successful process exit without that report as an invalid verifier result. Resume the
+   same session once with a result-only correction; do not launch a second verifier.
+8. Codex checks every claimed defect against source or runtime evidence and rejects false positives.
+9. Codex still runs deterministic checks and owns acceptance, commits, integration, and reporting.
+
+Use a verifier at release gates, security/data-boundary reviews, or complex atomic units where an
+independent defect search is worth its context cost. Do not use it for routine mechanical checks
+that the controller can run deterministically.
 
 ## 17. Failure and escalation rules
 
