@@ -3,12 +3,21 @@
   "visibility": "public",
   "status": "honourable-mention",
   "sensitivity": "safe",
-  "repo": { "visibility": "public" },
+  "repo": {
+    "visibility": "public"
+  },
   "card": {
     "title": "GFA Exchange",
     "subtitle": "Inclusive AI Loan Reallocation Engine",
     "summary": "AI-driven loan reallocation sandbox for UK SME lending. Multi-agent system with privacy-preserving marketplace, LLM-powered explainability, and financial inclusion as a first-class metric. Honourable Mention at UKFinnovator by Ukfin+.",
-    "technologies": ["FastAPI", "React", "TypeScript", "Multi-Agent AI", "SQLAlchemy", "Zustand"]
+    "technologies": [
+      "FastAPI",
+      "React",
+      "TypeScript",
+      "Multi-Agent AI",
+      "SQLAlchemy",
+      "Zustand"
+    ]
   },
   "detail": {
     "focus": "Multi-Agent AI · Fintech",
@@ -20,17 +29,106 @@
         "href": "https://github.com/r3troseer/SME_loan_transact"
       }
     ],
-    "badge": { "text": "Honourable Mention", "type": "tertiary", "size": "medium" },
+    "badge": {
+      "text": "Honourable Mention",
+      "type": "tertiary",
+      "size": "medium"
+    },
     "metrics": [
-      { "number": "6", "label": "AI Agents" },
-      { "number": "4", "label": "Lender Archetypes" },
-      { "number": "~70%", "label": "Implemented" },
-      { "number": "1", "label": "Hackathon Award" }
+      {
+        "number": "6",
+        "label": "AI Agents"
+      },
+      {
+        "number": "4",
+        "label": "Lender Archetypes"
+      },
+      {
+        "number": "~70%",
+        "label": "Implemented"
+      },
+      {
+        "number": "1",
+        "label": "Hackathon Award"
+      }
     ],
     "contentCards": [
       {
-        "markdown": "### Architecture\n- **Multi-Agent System**: Six specialised agents (Risk Analyst, Inclusion Scanner, Matcher, Pricer, Swap Matcher, and an LLM Explainer), each with a distinct role in the reallocation pipeline.\n- **FastAPI** backend with a modular service layer, SQLAlchemy ORM, and Pydantic schemas.\n- **React + TypeScript** frontend with Zustand for state management.\n- **Privacy Layer**: Loan amounts banded, scores rounded, company identities anonymised. Identity revealed only on mutual consent.\n- **Double-blind matching**: Buyers and sellers cannot identify each other until both accept a transaction.\n- **LLM Explainability**: Gemini API generates natural language justifications for every recommendation, with deterministic template fallbacks to avoid black-box dependence.",
         "type": "Architecture",
+        "title": "Architecture",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "text": "Multi-Agent System",
+                    "bold": true
+                  },
+                  {
+                    "text": ": Six specialised agents (Risk Analyst, Inclusion Scanner, Matcher, Pricer, Swap Matcher, and an LLM Explainer), each with a distinct role in the reallocation pipeline."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "FastAPI",
+                    "bold": true
+                  },
+                  {
+                    "text": " backend with a modular service layer, SQLAlchemy ORM, and Pydantic schemas."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "React + TypeScript",
+                    "bold": true
+                  },
+                  {
+                    "text": " frontend with Zustand for state management."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Privacy Layer",
+                    "bold": true
+                  },
+                  {
+                    "text": ": Loan amounts banded, scores rounded, company identities anonymised. Identity revealed only on mutual consent."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Double-blind matching",
+                    "bold": true
+                  },
+                  {
+                    "text": ": Buyers and sellers cannot identify each other until both accept a transaction."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "LLM Explainability",
+                    "bold": true
+                  },
+                  {
+                    "text": ": Gemini API generates natural language justifications for every recommendation, with deterministic template fallbacks to avoid black-box dependence."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
         "tags": [
           "FastAPI",
           "SQLAlchemy",
@@ -43,8 +141,92 @@
         ]
       },
       {
-        "markdown": "### Features\n- **Risk Scoring**: Agents evaluate liquidity, solvency, and profitability to produce a 0-100 risk score per SME.\n- **Inclusion Gap Detection**: Flags systematic underserving by region, sector, and company size.\n- **Lender-Loan Fit Scoring**: Multi-factor match score between each loan and each lender's appetite, mandate, and risk tolerance.\n- **Marketplace**: Loan sale, swap, and swap-with-cash-adjustment transaction types.\n- **NPV-based Pricing**: Discount/premium logic and risk-adjusted ROI calculation for every opportunity.\n- **Credit System**: Action-based credit costs (view details, generate explanation, express interest, reveal counterparty).\n- **LLM Explanations**: Every reallocation recommendation includes a plain-English justification covering why the current lender is mismatched and why the recommended one fits.",
         "type": "Features",
+        "title": "Features",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "text": "Risk Scoring",
+                    "bold": true
+                  },
+                  {
+                    "text": ": Agents evaluate liquidity, solvency, and profitability to produce a 0-100 risk score per SME."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Inclusion Gap Detection",
+                    "bold": true
+                  },
+                  {
+                    "text": ": Flags systematic underserving by region, sector, and company size."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Lender-Loan Fit Scoring",
+                    "bold": true
+                  },
+                  {
+                    "text": ": Multi-factor match score between each loan and each lender's appetite, mandate, and risk tolerance."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Marketplace",
+                    "bold": true
+                  },
+                  {
+                    "text": ": Loan sale, swap, and swap-with-cash-adjustment transaction types."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "NPV-based Pricing",
+                    "bold": true
+                  },
+                  {
+                    "text": ": Discount/premium logic and risk-adjusted ROI calculation for every opportunity."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Credit System",
+                    "bold": true
+                  },
+                  {
+                    "text": ": Action-based credit costs (view details, generate explanation, express interest, reveal counterparty)."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "LLM Explanations",
+                    "bold": true
+                  },
+                  {
+                    "text": ": Every reallocation recommendation includes a plain-English justification covering why the current lender is mismatched and why the recommended one fits."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
         "tags": [
           "Financial Scoring",
           "Inclusion Metrics",
@@ -94,8 +276,17 @@
   },
   "ai": {
     "publicSummary": "AI-driven loan reallocation sandbox for UK SME lending: a multi-agent system with a privacy-preserving marketplace, LLM-powered explainability, and financial inclusion as a first-class metric. Honourable Mention at UKFinnovator by Ukfin+.",
-    "roleLenses": ["backend", "ai-nlp", "fintech", "fullstack"],
-    "evidenceSkills": ["FastAPI", "Multi-Agent AI", "Explainable AI"],
+    "roleLenses": [
+      "backend",
+      "ai-nlp",
+      "fintech",
+      "fullstack"
+    ],
+    "evidenceSkills": [
+      "FastAPI",
+      "Multi-Agent AI",
+      "Explainable AI"
+    ],
     "safeTalkingPoints": [
       "Built a multi-agent loan reallocation sandbox for UK SME lending at UKFinnovator (Honourable Mention).",
       "Privacy-preserving marketplace: double-blind matching so lenders can trade fit without exposing raw company data.",

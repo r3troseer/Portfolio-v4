@@ -3,29 +3,140 @@
   "visibility": "public",
   "status": "case-study",
   "sensitivity": "safe",
-  "repo": { "visibility": "private" },
+  "repo": {
+    "visibility": "private"
+  },
   "card": {
     "title": "Online Printing Service",
     "subtitle": "Clean Architecture .NET Backend + Blazor Frontend",
     "summary": "Document printing platform with .NET backend and Blazor frontend. Users upload files, pay online, receive a unique code, and retrieve their prints at a connected printing station.",
-    "technologies": [".NET", "Blazor", "Cloud Storage", "Payments"],
-    "listTech": ["Blazor", ".NET", "Payments"]
+    "technologies": [
+      ".NET",
+      "Blazor",
+      "Cloud Storage",
+      "Payments"
+    ],
+    "listTech": [
+      "Blazor",
+      ".NET",
+      "Payments"
+    ]
   },
   "detail": {
     "focus": ".NET · E-Commerce",
     "overview": "OPS is a full-stack document printing service built with ASP.NET Core Web API and a Blazor Server UI. Users upload documents, pay online, and get a unique code to collect their prints at a physical station. It uses Clean Architecture with MongoDB/MySQL persistence, Redis caching, Azure Blob storage, and JWT authentication.",
     "links": [],
-    "badge": { "text": "Private", "type": "private", "size": "small" },
+    "badge": {
+      "text": "Private",
+      "type": "private",
+      "size": "small"
+    },
     "metrics": [
-      { "number": "100+", "label": "Documents printed" },
-      { "number": "3+", "label": "Storage Backends (MongoDB, MySQL, SQLite)" },
-      { "number": "100%", "label": "Clean Architecture" },
-      { "number": "Redis + Azure", "label": "Caching & File Storage" }
+      {
+        "number": "100+",
+        "label": "Documents printed"
+      },
+      {
+        "number": "3+",
+        "label": "Storage Backends (MongoDB, MySQL, SQLite)"
+      },
+      {
+        "number": "100%",
+        "label": "Clean Architecture"
+      },
+      {
+        "number": "Redis + Azure",
+        "label": "Caching & File Storage"
+      }
     ],
     "contentCards": [
       {
-        "markdown": "### Architecture & Backend\n- **Clean Architecture:** Core (domain & use cases), Infrastructure (repositories, persistence), WebAPI (controllers).\n- **Persistence:** Supports MongoDB, MySQL, and SQLite with repository pattern.\n- **Caching:** Redis integration for performance.\n- **File Storage:** Azure Blob storage for uploaded documents.\n- **Auth:** Custom JWT authentication with token validation via IdentityManager.\n- **Use Cases:** Organized under Core/Application/Services for accounts, print jobs, and payments.\n- **Testing:** Separate Core and Infrastructure test projects ensure business logic is verifiable.",
         "type": "Architecture",
+        "title": "Architecture & Backend",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "text": "Clean Architecture:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Core (domain & use cases), Infrastructure (repositories, persistence), WebAPI (controllers)."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Persistence:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Supports MongoDB, MySQL, and SQLite with repository pattern."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Caching:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Redis integration for performance."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "File Storage:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Azure Blob storage for uploaded documents."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Auth:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Custom JWT authentication with token validation via IdentityManager."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Use Cases:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Organized under Core/Application/Services for accounts, print jobs, and payments."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Testing:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Separate Core and Infrastructure test projects ensure business logic is verifiable."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
         "tags": [
           "ASP.NET Core",
           "Clean Architecture",
@@ -35,9 +146,87 @@
         ]
       },
       {
-        "markdown": "### Features & User Experience\n- **User Workflow:** Upload a document, pay online, get a unique code, then collect the print at a station.\n- **Payments:** Integrated payment processing with transaction tracking.\n- **Blazor Server UI:** Components for login, upload, payment confirmation, and job management.\n- **Queueing:** Background job consumer processes print jobs asynchronously.\n- **Admin Tools:** API endpoints and Blazor components for managing users, jobs, and transactions.\n- **Security:** JWT token-based authentication with OTP support.",
         "type": "Features",
-        "tags": ["Blazor Server", "JWT Auth", "Payments", "Background Jobs"],
+        "title": "Features & User Experience",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "text": "User Workflow:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Upload a document, pay online, get a unique code, then collect the print at a station."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Payments:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Integrated payment processing with transaction tracking."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Blazor Server UI:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Components for login, upload, payment confirmation, and job management."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Queueing:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Background job consumer processes print jobs asynchronously."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Admin Tools:",
+                    "bold": true
+                  },
+                  {
+                    "text": " API endpoints and Blazor components for managing users, jobs, and transactions."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Security:",
+                    "bold": true
+                  },
+                  {
+                    "text": " JWT token-based authentication with OTP support."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tags": [
+          "Blazor Server",
+          "JWT Auth",
+          "Payments",
+          "Background Jobs"
+        ],
         "gallery": {
           "title": "OPS Screenshots",
           "images": [
@@ -106,8 +295,16 @@
   },
   "ai": {
     "publicSummary": "Full-stack document printing service with an ASP.NET Core Web API backend and Blazor Server UI: upload, pay online, receive a code, and print at a station. Clean Architecture with MongoDB/MySQL, Redis caching, and Azure Blob storage.",
-    "roleLenses": ["backend", "dotnet", "fullstack"],
-    "evidenceSkills": [".NET", "Clean Architecture", "Blazor"],
+    "roleLenses": [
+      "backend",
+      "dotnet",
+      "fullstack"
+    ],
+    "evidenceSkills": [
+      ".NET",
+      "Clean Architecture",
+      "Blazor"
+    ],
     "safeTalkingPoints": [],
     "sensitivity": "safe"
   }

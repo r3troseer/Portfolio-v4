@@ -159,7 +159,7 @@ each step; `npm run build` stayed green throughout.
   guard added.
 
 **2. Project detail rebuild (`pf-pd`):** back link, editorial hero (badge, title, subtitle,
-overview, **Focus / Stack / Links** meta - `detail.focus` added per project), metric cards, markdown
+overview, **Focus / Stack / Links** meta - `detail.focus` added per project), metric cards, structured
 content cards, rose->cyan problem/solution, dot timeline, gradient CTA. **Galleries kept and extended**
 (prototype had none) with a `pf`-surface lightbox and per-image `onError` that hides failed shots and
 drops the whole media block when all fail. Legacy `projectDetail.css` (556 lines), `styles/base.css`,
@@ -170,11 +170,12 @@ drops the whole media block when all fail. Legacy `projectDetail.css` (556 lines
 `getRestProjects`/`getSkills`); `getEducation` retained deliberately (silo with no UI consumer yet -
 see `.notes` layer-0 **D22**). Bundle shrunk **537 KB -> 311 KB** main (100 KB gzip) by replacing
 `lucide-react/dynamic` with a 16-icon `Icon` registry (emitted JS files **1618 -> 3**) and lazy-loading
-the detail/404 routes so react-markdown leaves the home bundle.
+the detail/404 routes. Project detail content later moved from Markdown to structured JSON cards
+(FE-B12), removing `react-markdown` from the runtime dependency set.
 
 **Governance held:** featured project is `gfa-exchange`; ESG/greenwashing stays unregistered; **X-RAG
 genericized** to "RAG / retrieval" in the niche chips. The one remaining `xRAG` mention is PACTGuard's
-own detail markdown - **intentionally left** (Pius's decision). UI never imports `content/public/markdown/`
+own detail content - **intentionally left** (Pius's decision). UI never imports `content/public/markdown/`
 and never reads project `ai.*` fields, so the Layer-0 seam for the future RAG layer stays clean.
 
 **Deliberately not done / deferred:** terminal, Evidence-as-variant, real assistant/RAG (backend

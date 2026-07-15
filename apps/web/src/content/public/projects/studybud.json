@@ -3,30 +3,152 @@
   "visibility": "public",
   "status": "case-study",
   "sensitivity": "safe",
-  "repo": { "visibility": "public" },
+  "repo": {
+    "visibility": "public"
+  },
   "card": {
     "title": "StudyBud",
     "subtitle": "AI-Powered Document Analysis & Quiz Generation",
     "summary": "AI-powered tool for generating summaries and quizzes from documents. Features advanced NLP techniques for text extraction from PDF and DOCX files, integrated with OpenAI's language models.",
-    "technologies": ["Django", "NLP", "OpenAI", "PDF Processing"],
-    "listTech": ["NLP", "OpenAI", "PDF Processing"]
+    "technologies": [
+      "Django",
+      "NLP",
+      "OpenAI",
+      "PDF Processing"
+    ],
+    "listTech": [
+      "NLP",
+      "OpenAI",
+      "PDF Processing"
+    ]
   },
   "detail": {
     "focus": "NLP · EdTech",
     "overview": "StudyBud was my final year project, built to help students get more out of their study materials. Users upload PDF or DOCX files, and it uses NLP and GPT-based models to generate summaries and quizzes for revision.",
     "links": [
-      { "icon": "github", "text": "View Code", "href": "https://github.com/r3troseer/StudyBud" }
+      {
+        "icon": "github",
+        "text": "View Code",
+        "href": "https://github.com/r3troseer/StudyBud"
+      }
     ],
     "metrics": [
-      { "number": "95%", "label": "Text Extraction Accuracy" },
-      { "number": "3s", "label": "Avg Processing Time" },
-      { "number": "10MB", "label": "Max Document Size" },
-      { "number": "500+", "label": "Documents Processed" }
+      {
+        "number": "95%",
+        "label": "Text Extraction Accuracy"
+      },
+      {
+        "number": "3s",
+        "label": "Avg Processing Time"
+      },
+      {
+        "number": "10MB",
+        "label": "Max Document Size"
+      },
+      {
+        "number": "500+",
+        "label": "Documents Processed"
+      }
     ],
     "contentCards": [
       {
-        "markdown": "### Architecture\n- **Django + Django REST Framework** for backend API and user management.\n- **Celery + Redis** for asynchronous processing of large documents.\n- **PyMuPDF** chosen over PyPDF2 for much faster PDF extraction.\n- **docx2txt** selected after comparing with mammoth and python-docx.\n- **NLTK** for preprocessing and tokenization of extracted text.\n- **Chunking Strategy**: Large documents broken into smaller tokenized chunks for efficient GPT processing.\n- **OpenAI GPT Models** to generate contextual summaries and quiz questions.\n- **PostgreSQL** for reliable and scalable data storage.",
         "type": "Architecture",
+        "title": "Architecture",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "text": "Django + Django REST Framework",
+                    "bold": true
+                  },
+                  {
+                    "text": " for backend API and user management."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Celery + Redis",
+                    "bold": true
+                  },
+                  {
+                    "text": " for asynchronous processing of large documents."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "PyMuPDF",
+                    "bold": true
+                  },
+                  {
+                    "text": " chosen over PyPDF2 for much faster PDF extraction."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "docx2txt",
+                    "bold": true
+                  },
+                  {
+                    "text": " selected after comparing with mammoth and python-docx."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "NLTK",
+                    "bold": true
+                  },
+                  {
+                    "text": " for preprocessing and tokenization of extracted text."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Chunking Strategy",
+                    "bold": true
+                  },
+                  {
+                    "text": ": Large documents broken into smaller tokenized chunks for efficient GPT processing."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "OpenAI GPT Models",
+                    "bold": true
+                  },
+                  {
+                    "text": " to generate contextual summaries and quiz questions."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "PostgreSQL",
+                    "bold": true
+                  },
+                  {
+                    "text": " for reliable and scalable data storage."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
         "tags": [
           "Django",
           "Celery",
@@ -54,9 +176,70 @@
         }
       },
       {
-        "markdown": "### Features & Results\n- Upload a PDF or DOCX and it extracts and summarizes the text automatically.\n- Generate quizzes (MCQ, True/False, Short Answer).\n- Track progress and get feedback on weak areas.\n- Achieved **95% text extraction accuracy** and **sub-5 second average processing time**.\n- User testing confirmed improved study efficiency and positive learning outcomes.",
         "type": "Features",
-        "tags": ["Quiz Generation", "Summarization", "NLP", "AI Integration"],
+        "title": "Features & Results",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "text": "Upload a PDF or DOCX and it extracts and summarizes the text automatically."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Generate quizzes (MCQ, True/False, Short Answer)."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Track progress and get feedback on weak areas."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Achieved "
+                  },
+                  {
+                    "text": "95% text extraction accuracy",
+                    "bold": true
+                  },
+                  {
+                    "text": " and "
+                  },
+                  {
+                    "text": "sub-5 second average processing time",
+                    "bold": true
+                  },
+                  {
+                    "text": "."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "User testing confirmed improved study efficiency and positive learning outcomes."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tags": [
+          "Quiz Generation",
+          "Summarization",
+          "NLP",
+          "AI Integration"
+        ],
         "gallery": {
           "title": "Key Features",
           "images": [
@@ -126,8 +309,17 @@
   },
   "ai": {
     "publicSummary": "AI-powered study tool that generates summaries and quizzes from uploaded PDF/DOCX documents using NLP text extraction and GPT-based models. BSc final year project built with Django.",
-    "roleLenses": ["backend", "python-django", "ai-nlp", "document-intelligence"],
-    "evidenceSkills": ["Django", "NLP", "Document Processing"],
+    "roleLenses": [
+      "backend",
+      "python-django",
+      "ai-nlp",
+      "document-intelligence"
+    ],
+    "evidenceSkills": [
+      "Django",
+      "NLP",
+      "Document Processing"
+    ],
     "safeTalkingPoints": [
       "BSc final-year tool: upload PDF/DOCX, extract text, get summaries and multi-choice quizzes.",
       "Django backend with NLP extraction and GPT-based generation for study workflows.",

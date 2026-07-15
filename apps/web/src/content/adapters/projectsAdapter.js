@@ -100,9 +100,11 @@ export const getProjectListItems = () =>
     };
   });
 
-// Returns a legacy-compatible object so ProjectDetail.jsx renders unchanged:
+// Presentation-ready detail object for ProjectDetail:
 // { id, header: { title, subtitle, overview, links, badge }, metrics,
 //   contentCards, problemSolutions, timeline }. Returns null when not found.
+// contentCards are structured ({ title, type, blocks, tags?, gallery? }) with
+// gallery image src values base-URL resolved here.
 export const getProjectById = (id) => {
   const project = projectsById[id];
   if (!project) return null;

@@ -8,8 +8,8 @@ import { Home } from "./pages/Home";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { RouteCompletion } from "./components/RouteCompletion";
 
-// Route-split: the detail page pulls in react-markdown, so lazy-load it (and the
-// 404) to keep that weight off the home bundle.
+// Route-split: lazy-load the project detail and 404 routes to keep their
+// weight off the home bundle.
 const ProjectDetail = lazy(() =>
   import("./pages/ProjectDetail").then((m) => ({ default: m.ProjectDetail }))
 );

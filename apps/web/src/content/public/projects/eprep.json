@@ -3,37 +3,247 @@
   "visibility": "public",
   "status": "mvp",
   "sensitivity": "safe",
-  "repo": { "visibility": "public" },
+  "repo": {
+    "visibility": "public"
+  },
   "card": {
     "title": "EPrep",
     "subtitle": "API-Driven Exam Preparation Platform",
     "summary": "Student study app backend with parent-child management system, OTP-based phone verification, and structured learning content organization using Django REST Framework.",
-    "technologies": ["Django REST", "OTP Verification", "User Management", "Mobile Backend"],
-    "listTech": ["Django REST", "OTP Auth", "Mobile Backend"]
+    "technologies": [
+      "Django REST",
+      "OTP Verification",
+      "User Management",
+      "Mobile Backend"
+    ],
+    "listTech": [
+      "Django REST",
+      "OTP Auth",
+      "Mobile Backend"
+    ]
   },
   "detail": {
     "focus": "Mobile Backend · EdTech",
     "overview": "EPrep is an unfinished Django REST Framework backend for a mobile-first exam preparation service. It provides OTP authentication, exam/practice APIs, and Paystack payments. It is not production-ready, but covers the backend architecture and third-party integrations the service would need.",
     "links": [
-      { "icon": "github", "text": "View Code", "href": "https://github.com/r3troseer/EPrep" }
+      {
+        "icon": "github",
+        "text": "View Code",
+        "href": "https://github.com/r3troseer/EPrep"
+      }
     ],
-    "badge": { "text": "MVP", "type": "mvp", "size": "small" },
+    "badge": {
+      "text": "MVP",
+      "type": "mvp",
+      "size": "small"
+    },
     "metrics": [
-      { "number": "4", "label": "Core Apps (api, users, payment, otp)" },
-      { "number": "2", "label": "OTP Providers Integrated (Termii, Twilio)" },
-      { "number": "100%", "label": "API-First Design" },
-      { "number": "MVP", "label": "Development Stage" }
+      {
+        "number": "4",
+        "label": "Core Apps (api, users, payment, otp)"
+      },
+      {
+        "number": "2",
+        "label": "OTP Providers Integrated (Termii, Twilio)"
+      },
+      {
+        "number": "100%",
+        "label": "API-First Design"
+      },
+      {
+        "number": "MVP",
+        "label": "Development Stage"
+      }
     ],
     "contentCards": [
       {
-        "markdown": "### Backend Architecture\n- **Framework:** Django 4.1 + Django REST Framework.\n- **Authentication:** JWT tokens via SimpleJWT, with social login (django-allauth + dj-rest-auth).\n- **Apps:**\n  - `users`: Registration, login, password reset.\n  - `api`: Core exam/practice APIs.\n  - `payment`: Paystack integration for subscriptions.\n  - `otp`: OTP verification with Termii/Twilio.\n- **Config & Secrets:** Managed via python-decouple.\n- **Database:** SQLite in dev; Postgres/MySQL ready for production.",
         "type": "Architecture",
-        "tags": ["Django", "DRF", "JWT", "Paystack", "Termii", "Twilio"]
+        "title": "Backend Architecture",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "text": "Framework:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Django 4.1 + Django REST Framework."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Authentication:",
+                    "bold": true
+                  },
+                  {
+                    "text": " JWT tokens via SimpleJWT, with social login (django-allauth + dj-rest-auth)."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Apps:",
+                    "bold": true
+                  }
+                ],
+                "items": [
+                  {
+                    "spans": [
+                      {
+                        "text": "users",
+                        "code": true
+                      },
+                      {
+                        "text": ": Registration, login, password reset."
+                      }
+                    ]
+                  },
+                  {
+                    "spans": [
+                      {
+                        "text": "api",
+                        "code": true
+                      },
+                      {
+                        "text": ": Core exam/practice APIs."
+                      }
+                    ]
+                  },
+                  {
+                    "spans": [
+                      {
+                        "text": "payment",
+                        "code": true
+                      },
+                      {
+                        "text": ": Paystack integration for subscriptions."
+                      }
+                    ]
+                  },
+                  {
+                    "spans": [
+                      {
+                        "text": "otp",
+                        "code": true
+                      },
+                      {
+                        "text": ": OTP verification with Termii/Twilio."
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Config & Secrets:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Managed via python-decouple."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Database:",
+                    "bold": true
+                  },
+                  {
+                    "text": " SQLite in dev; Postgres/MySQL ready for production."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tags": [
+          "Django",
+          "DRF",
+          "JWT",
+          "Paystack",
+          "Termii",
+          "Twilio"
+        ]
       },
       {
-        "markdown": "### Features & Current Status\n- **User Management:** Secure signup/login, password reset, social login.\n- **Payments:** Paystack integration with transaction records.\n- **OTP Security:** SMS/email OTP for secure authentication.\n- **Exam APIs:** Partially implemented, designed for question/answer flow.\n- **Status:** Backend MVP complete, Flutter frontend in progress, no live deployment yet.",
         "type": "Features",
-        "tags": ["API-First", "Mobile Backend", "Authentication", "Payments"],
+        "title": "Features & Current Status",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "text": "User Management:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Secure signup/login, password reset, social login."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Payments:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Paystack integration with transaction records."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "OTP Security:",
+                    "bold": true
+                  },
+                  {
+                    "text": " SMS/email OTP for secure authentication."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Exam APIs:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Partially implemented, designed for question/answer flow."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Status:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Backend MVP complete, Flutter frontend in progress, no live deployment yet."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tags": [
+          "API-First",
+          "Mobile Backend",
+          "Authentication",
+          "Payments"
+        ],
         "gallery": {
           "title": "EPrep (Figma UI)",
           "images": [
@@ -102,8 +312,16 @@
   },
   "ai": {
     "publicSummary": "API-first Django REST Framework backend for a mobile-first exam preparation service, featuring JWT + OTP authentication, Paystack payments, and modular app architecture. An MVP, not yet deployed.",
-    "roleLenses": ["backend", "python-django", "fintech"],
-    "evidenceSkills": ["Django REST", "Authentication", "Payments"],
+    "roleLenses": [
+      "backend",
+      "python-django",
+      "fintech"
+    ],
+    "evidenceSkills": [
+      "Django REST",
+      "Authentication",
+      "Payments"
+    ],
     "safeTalkingPoints": [],
     "sensitivity": "safe"
   }

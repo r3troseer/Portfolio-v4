@@ -1,7 +1,7 @@
 /*
  * Profile - project detail page (pf-pd), re-authored from the prototype spec.
  * Editorial case study: back link, hero (badge, title, subtitle, overview,
- * Focus/Stack/Links meta), metric cards, markdown content cards (.md-render),
+ * Focus/Stack/Links meta), metric cards, structured content cards (.pf-pd-card-body),
  * media gallery (our extension - prototype has none), problem->solution split,
  * dot timeline, gradient CTA. Imported by pages/ProjectDetail.jsx.
  */
@@ -177,7 +177,7 @@
   letter-spacing: -0.01em;
 }
 
-/* --- Content cards (markdown) --------------------------------------------- */
+/* --- Content cards (structured JSON) -------------------------------------- */
 .pf-pd-cards {
   display: flex;
   flex-direction: column;
@@ -191,25 +191,25 @@
   padding: var(--spacing-lg);
 }
 
-.pf-pd-card .md-render {
+.pf-pd-card-body {
   color: var(--text-secondary);
   line-height: 1.7;
 }
 
-.pf-pd-card .md-render p {
+.pf-pd-card-body p {
   margin-bottom: var(--spacing-sm);
 }
 
-.pf-pd-card .md-render ul {
+.pf-pd-card-body ul {
   padding-left: var(--spacing-md);
 }
 
-.pf-pd-card .md-render li {
+.pf-pd-card-body li {
   margin-bottom: var(--spacing-xs);
 }
 
-/* Section header (Architecture / Features) - set apart from the body. */
-.pf-pd-card .md-render h3 {
+/* Card title uses h2 for outline rank; class keeps the prior visual size. */
+.pf-pd-card-title {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
@@ -222,22 +222,23 @@
   border-bottom: 1px solid color-mix(in oklch, var(--primary-accent) 22%, var(--border-subtle));
 }
 
-.pf-pd-card .md-render h4 {
+/* In-card subsection label (was markdown h4); not a heading — outline stays h1/h2/h3. */
+.pf-pd-card-subtitle {
   color: var(--slate-50);
   margin: var(--spacing-md) 0 var(--spacing-sm);
   font-size: var(--font-size-lg);
   font-weight: 500;
 }
 
-.pf-pd-card .md-render strong {
+.pf-pd-card-body strong {
   color: var(--slate-50);
 }
 
-.pf-pd-card .md-render a {
+.pf-pd-card-body a {
   color: var(--primary-accent);
 }
 
-.pf-pd-card .md-render code {
+.pf-pd-card-body code {
   color: var(--primary-accent);
   background: var(--pf-kbd-bg);
   padding: 2px 6px;
@@ -422,7 +423,7 @@
   color: var(--primary-accent);
 }
 
-.pf-pd-ps-card h4 {
+.pf-pd-ps-title {
   font-size: var(--font-size-lg);
   color: var(--slate-50);
   margin-bottom: var(--spacing-sm);
@@ -465,7 +466,7 @@
   border: 2px solid var(--slate-900);
 }
 
-.pf-pd-tl-item h4 {
+.pf-pd-tl-title {
   font-size: var(--font-size-base);
   color: var(--slate-100);
   margin-bottom: 6px;
@@ -492,7 +493,7 @@
   margin-top: var(--spacing-2xl);
 }
 
-.pf-pd-cta h3 {
+.pf-pd-cta-title {
   font-size: var(--font-size-xl);
   color: var(--slate-50);
   margin-bottom: 6px;
