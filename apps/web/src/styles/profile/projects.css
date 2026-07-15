@@ -164,7 +164,7 @@
   color: var(--primary-accent);
 }
 
-.pf-list-main h4 {
+.pf-list-title {
   color: var(--slate-50);
   font-size: var(--font-size-xl);
   font-weight: 600;
