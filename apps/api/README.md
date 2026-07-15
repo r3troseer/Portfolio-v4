@@ -37,6 +37,21 @@ With `DJANGO_DEBUG=true`, DRF's **browsable API** is enabled for manual endpoint
 open `http://127.0.0.1:8000/api/retrieve/` in a browser and use the POST form. Production
 (`DEBUG` off) stays JSON-only with no template/staticfiles machinery.
 
+### Production secret startup enforcement (B-07)
+
+When `DJANGO_DEBUG=false`, Django settings load **fails closed** before serving traffic
+(`manage.py`, Gunicorn, containers, and Railway) if `DJANGO_SECRET_KEY` is missing, empty,
+whitespace-only, the named development fallback (`django-insecure-dev-only-change-me`),
+shorter than **50 characters**, or an exact match on the documented placeholder denylist
+(`changeme`, `change-me`, `django-insecure`, `insert-secret-key-here`, `password`,
+`replace-me`, `secret`, `your-secret-key`, plus the development fallback). Surrounding
+whitespace on an otherwise valid production key is stripped deterministically. Failures
+raise `ImproperlyConfigured` naming `DJANGO_SECRET_KEY` without printing its value. This is
+deterministic length-plus-denylist policy only - no secret manager and no entropy analysis.
+
+With `DJANGO_DEBUG=true`, a missing `DJANGO_SECRET_KEY` uses the explicit development
+fallback above so local boot stays frictionless.
+
 ## Layer 1: public evidence index
 
 `core/layer1/` builds the first Layer 1 artifact: deterministic **evidence records** from the
@@ -233,7 +248,7 @@ and **fail-closed** (`DEBUG` off by default).
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `DJANGO_SECRET_KEY` | insecure dev key | **Set in any non-local environment.** |
+| `DJANGO_SECRET_KEY` | dev fallback when `DJANGO_DEBUG=true` and unset | **Required in production.** Startup rejects missing, empty, whitespace-only, the development fallback, keys under 50 characters, and known placeholder values when `DJANGO_DEBUG=false`. See **Production secret startup enforcement** above. |
 | `DJANGO_DEBUG` | `false` | `true` enables debug (local only). |
 | `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | Comma-separated allowed hosts. Railway needs its domain plus `healthcheck.railway.app`. |
 | `DJANGO_CORS_ALLOWED_ORIGINS` | `https://piusagboola.com,http://localhost:5173,http://localhost:3000` | Comma-separated CORS allowlist. |
