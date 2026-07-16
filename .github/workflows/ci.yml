@@ -23,6 +23,8 @@ jobs:
           cache-dependency-path: apps/web/package-lock.json
       - run: npm ci
       - run: npm run validate:content
+      # Shared packages/contracts served-answer fixtures (Ajv; pairs with API contract tests).
+      - run: npm run validate:answer-contract
       - run: npm run build
         env:
           # Public build config, not a secret. Production uses the Railway origin.
@@ -54,6 +56,7 @@ jobs:
       # Layer 1 evidence-index gating: fails on any governance error
       # (checkout is the full monorepo, so ../web content is present).
       - run: uv run python manage.py build_evidence_index --check
+      # Includes packages/contracts shared-fixture + generate_answer producer-boundary tests.
       - run: uv run python manage.py test core
 
   api-image:

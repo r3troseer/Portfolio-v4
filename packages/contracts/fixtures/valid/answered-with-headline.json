@@ -1,0 +1,79 @@
+{
+  "status": "answered",
+  "answer": "Pius built a multi-agent fintech flow [[project:demo]].",
+  "citations": [
+    {
+      "evidence_id": "project:demo",
+      "ref": "01",
+      "title": "Demo project",
+      "snippet": "Multi-agent fintech demo.",
+      "source_type": "project",
+      "project_id": "demo",
+      "source_path": "projects/demo-project.json",
+      "score": 12
+    }
+  ],
+  "evidence": [
+    {
+      "id": "project:demo",
+      "source_type": "project",
+      "source_id": "demo",
+      "entity_id": "demo",
+      "entity_type": "project",
+      "title": "Demo project",
+      "snippet": "Multi-agent fintech demo.",
+      "text": "A multi-agent fintech demo project.",
+      "visibility": "public",
+      "sensitivity": "safe",
+      "role_lenses": ["backend"],
+      "tags": ["fintech"],
+      "project_id": "demo",
+      "source_path": "projects/demo-project.json",
+      "score": 12
+    }
+  ],
+  "headline": {
+    "title": "Lead statement",
+    "sub": "Supporting line"
+  },
+  "ledger": {
+    "mode": "deterministic_rerank_v1",
+    "retrieve_k": 3,
+    "selected_k": 1,
+    "initial": [
+      {
+        "evidence_id": "project:demo",
+        "title": "Demo project",
+        "initial_rank": 1,
+        "lexical_score": 4
+      }
+    ],
+    "reranked": [
+      {
+        "evidence_id": "project:demo",
+        "title": "Demo project",
+        "rerank_rank": 1,
+        "rerank_score": 12,
+        "selected": true
+      }
+    ],
+    "selected": [
+      {
+        "evidence_id": "project:demo",
+        "title": "Demo project",
+        "rerank_rank": 1,
+        "rerank_score": 12,
+        "selected": true
+      }
+    ]
+  },
+  "meta": {
+    "retrieval_count": 1,
+    "initial_count": 1,
+    "selected_count": 1,
+    "reranker": "deterministic_rerank_v1",
+    "index_source": "built",
+    "model": "fake-model",
+    "provider": "fake"
+  }
+}

@@ -5,8 +5,10 @@
 > retrieval (lexical candidates + **deterministic reranking** with the expanded
 > retrieve-to-rerank ledger), the web evidence UI (rag-reveal + retrieval inspector), and the
 > **grounded-answer slice** (`POST /api/answer/`: retrieve -> rerank -> server-side Gemini on
-> selected evidence -> validated, cited answer) are live. Tools, chat memory, generated UI, and
-> `packages/contracts` remain later work. Safety, visibility, and content rules live in
+> selected evidence -> validated, cited answer) are live. The **served-answer response schema**
+> lives in `packages/contracts` and is enforced by web + API fixture validators. Tools, chat
+> memory, generated UI, and further shared contracts (content shape, UI-spec) remain later work.
+> Safety, visibility, and content rules live in
 > [`layer-s-policy.md`](./layer-s-policy.md); this document references that policy rather than
 > repeating it. For the live / pre-prod / deferred register, see
 > [`roadmap-review.md`](./roadmap-review.md).
@@ -66,10 +68,10 @@ repo-root/
   pipeline (`POST /api/retrieve/`: lexical candidates + deterministic rerank + ledger); the
   grounded-answer runtime is live; tools land in later slices. The web app calls it over HTTP;
   they are never co-deployed.
-- **`packages/contracts`** - shared, language-agnostic schemas so web and api never drift:
-  the **content shape** (already de-facto defined by Layer 0), **agent response schemas**
-  (grounded answers + evidence), and the **typed UI-spec schema** (Layer 2.5). Added only when
-  a second consumer exists - not before.
+- **`packages/contracts`** - shared, language-agnostic JSON schemas so web and api never drift.
+  The **served grounded-answer response schema** (`answer-response.schema.json` + fixture corpus)
+  is live and consumed by both apps. The broader **content shape** and **typed UI-spec schema**
+  (Layer 2.5) remain later extractions - added when a second consumer needs them.
 
 The split-deploy boundary is deliberate: the public site stays cheap, fast, and static on the
 edge; the agent runtime lives where it can hold secrets, state, and model access safely.
@@ -94,6 +96,9 @@ answer egress, refusal, answer-pipeline budgets) remain future work.
 - Retrieval input limits and fail-closed corpus loading on `POST /api/retrieve/`.
 - **Grounded-answer egress** on `POST /api/answer/`: every `answered` claim must cite retrieved
   evidence; unknown citations, malformed model output, or unsupported statuses fail closed (502).
+- **Served-answer response contract** (`packages/contracts`): shared JSON Schema + fixtures;
+  web (`validate:answer-contract` / client validator) and API contract tests agree. Distinct from
+  raw model-output validation and from semantic entailment.
 - **Refusal / insufficient-evidence as first-class responses** with server-authored messages
   (the model's prose is discarded for those states) and an answer length cap.
 - Runtime foundations: CORS allowlist, request-size cap, basic anon rate limiting (not yet
@@ -102,8 +107,10 @@ answer egress, refusal, answer-pipeline budgets) remain future work.
   (see `apps/api/README.md`).
 
 **Still documentation-only or incomplete**
-- **`packages/contracts` schema validation** - content checks exist in `validate-content.mjs`;
-  shared cross-language contracts are not extracted yet.
+- **Further `packages/contracts` extractions** - the served-answer response schema is live
+  (`packages/contracts/answer-response.schema.json`, web `validate:answer-contract`, API
+  `test_answer_contract`). Content-shape and UI-spec schemas are not extracted yet; content
+  checks remain in `validate-content.mjs`.
 - **Answer-pipeline budgets** - full token/input budgets, concurrent caps, and prompt/log
   minimisation beyond the current output cap; tool allowlist and UI-spec validation
   (Layers 2 / 2.5).
@@ -161,7 +168,8 @@ Practical view of each rule: where it is enforced, what happens on violation, an
 
 | Rule | Enforcement location | Failure behaviour | Phase |
 |---|---|---|---|
-| Content schema validation | Build / CI (`validate-content.mjs` today; `packages/contracts` later) | Fail the build; content can't ship | Layer 0 / Contracts |
+| Content schema validation | Build / CI (`validate-content.mjs`) | Fail the build; content can't ship | Layer 0 |
+| Served-answer response schema | `packages/contracts` + web `validate:answer-contract` + API `test_answer_contract` | Reject malformed served payloads (web: controlled `malformed`; API: test/producer boundary) | Contracts / Layer 1 |
 | Visibility-based index gating | `apps/api` indexer (AI/content adapter) | Item excluded from index; not retrievable | Layer 1 |
 | `public_summary_only` redaction | `apps/api` indexer (pre-embed) | Deep detail dropped; summary-only indexed | Layer 1 |
 | `private` / `blocked` content exclusion | Build + `apps/api` indexer | Excluded from application rendering and indexing; never returned by the API | Layer 1 |
@@ -209,9 +217,12 @@ Layer 1 is a **public portfolio assistant only**. Deliberately small:
 
 Retrieval and grounded answers run in `apps/api` today (`POST /api/retrieve/`,
 `POST /api/answer/`); `apps/web` calls the answer endpoint from the Cmd+K modal and
-`/playground`. Until `packages/contracts` is extracted, the retrieval/answer response shapes
-stay **API-local** (see `apps/api/README.md`, `core/layer1/records.py`, and
-`core/layer1/answering/schemas.py`).
+`/playground`. The **served** answer response shape is shared via
+`packages/contracts/answer-response.schema.json` (web + API validators + fixture corpus).
+That is distinct from **raw model-output validation** in
+`core/layer1/answering/schemas.py` (`validate_model_output`) and from **semantic entailment**
+(not implemented as a contract). Retrieval match shapes and evidence records remain
+API-local for now (see `apps/api/README.md`, `core/layer1/records.py`).
 
 ### Backend behaviours the evidence playground needs (handoff-derived)
 
@@ -271,8 +282,9 @@ Small, ordered, reversible steps. Each step lands before the next begins.
    Vercel deploy working. No backend yet.
 3. **Backend skeleton** - stand up `apps/api` (Django / DRF) deployed separately; health check
    (done). Lexical retrieval (`POST /api/retrieve/`) and the evidence index are live.
-4. **Contracts** - extract shared schemas into `packages/contracts` once web + api both consume
-   them (content shape first, then agent response shape). Deferred; retrieval shape is API-local.
+4. **Contracts** - the served-answer response schema is extracted in `packages/contracts` and
+   enforced by web + API shared fixtures. Further schemas (content shape, UI-spec) land when
+   web + api both consume them; retrieval match shape remains API-local for now.
 5. **Layer 1 RAG prototype** - index approved public content, return grounded answers, wire the
    answer surface to the api. Lands in slices: the evidence index, retrieval endpoint,
    retrieval-ledger UI, the **grounded-answer slice** (`POST /api/answer/` + answer UI), and

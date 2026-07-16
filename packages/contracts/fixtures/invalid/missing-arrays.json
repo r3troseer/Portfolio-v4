@@ -1,0 +1,32 @@
+{
+  "status": "answered",
+  "answer": "Has evidence but citations array is missing [[project:demo]].",
+  "evidence": [
+    {
+      "id": "project:demo",
+      "source_type": "project",
+      "source_id": "demo",
+      "entity_id": "demo",
+      "entity_type": "project",
+      "title": "Demo project",
+      "snippet": "Demo.",
+      "text": "Demo text.",
+      "visibility": "public",
+      "sensitivity": "safe",
+      "role_lenses": [],
+      "tags": [],
+      "project_id": "demo",
+      "source_path": "projects/demo-project.json",
+      "score": 1
+    }
+  ],
+  "meta": {
+    "retrieval_count": 1,
+    "initial_count": 1,
+    "selected_count": 1,
+    "reranker": "deterministic_rerank_v1",
+    "index_source": "built",
+    "model": "fake-model",
+    "provider": "fake"
+  }
+}

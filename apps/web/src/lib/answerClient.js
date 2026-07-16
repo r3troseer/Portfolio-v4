@@ -58,6 +58,14 @@ export async function getGroundedAnswer({ query, topK = 5, roleLens, signal }) {
       };
     }
     const data = parsed.data;
+    // Dynamic import keeps Ajv + the validator out of the homepage critical bundle.
+    const { validateAnswerResponse } = await import("./answerResponseValidator.js");
+    if (!validateAnswerResponse(data).ok) {
+      return {
+        kind: "malformed",
+        message: "A grounded answer could not be produced for that question.",
+      };
+    }
     return {
       kind: "ok",
       answerStatus:

@@ -62,7 +62,10 @@ error, never silently indexed). `manage.py build_evidence_index` writes the giti
 `var/evidence_index.json`; `--check` validates without writing and exits non-zero on
 governance errors. No LLM, embeddings, or vector store - see
 [`docs/agent/layer1-evidence-index.md`](../../docs/agent/layer1-evidence-index.md) for the
-full rationale and the record/contract shape (kept API-local until a second consumer exists).
+full rationale and the record shape. The **served** `POST /api/answer/` response contract is
+shared in [`packages/contracts`](../../packages/contracts/) (JSON Schema + fixtures); that is
+distinct from raw model-output validation in `core/layer1/answering/schemas.py`. Evidence-index
+record shapes stay API-local until a second consumer needs them.
 Runtime retrieval is live: `POST /api/retrieve/` runs lexical candidate generation plus a
 deterministic, model-free rerank and returns the selected matches with the retrieve-to-rerank
 ledger. Grounded generation is also live: `POST /api/answer/` runs the same pipeline, calls a
@@ -199,10 +202,14 @@ for the process lifetime, so local content edits need a server restart to appear
 Runs the same two-stage retrieval pipeline (lexical candidates + deterministic rerank),
 calls a **server-side model** (Gemini) with **only the selected reranked evidence** (never
 the wider candidate pool), validates the model's strict-JSON output against the selected
-evidence ids, and returns a grounded, cited answer plus the same retrieval ledger.
-`/api/retrieve/` stays the answer-free evidence ledger; this endpoint grounds an answer on
-top of it. **The model is never trusted directly** - a citation to anything outside the
-selected evidence (including an unselected initial candidate), malformed JSON, or an
+evidence ids (API-local `schemas.validate_model_output` - raw model output, not the served
+HTTP contract), and returns a grounded, cited answer plus the same retrieval ledger. The
+**served** response body is validated against
+[`packages/contracts/answer-response.schema.json`](../../packages/contracts/answer-response.schema.json)
+at the API contract test/producer boundary and again in the web client before UI state
+derivation. `/api/retrieve/` stays the answer-free evidence ledger; this endpoint grounds an
+answer on top of it. **The model is never trusted directly** - a citation to anything outside
+the selected evidence (including an unselected initial candidate), malformed JSON, or an
 unsupported status fails closed. Model keys and model choice are **server-side only**; they
 are never exposed to the frontend. Code lives in `core/layer1/answering/` (the prompt text
 is isolated in `prompts.py` for easy tuning).

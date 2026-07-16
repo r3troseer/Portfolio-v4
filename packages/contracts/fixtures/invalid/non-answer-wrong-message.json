@@ -1,0 +1,14 @@
+{
+  "status": "refused",
+  "answer": "Model prose must never be served for refused.",
+  "citations": [],
+  "evidence": [],
+  "meta": {
+    "retrieval_count": 1,
+    "initial_count": 3,
+    "selected_count": 1,
+    "reranker": "deterministic_rerank_v1",
+    "index_source": "built",
+    "reason": "out_of_scope"
+  }
+}
