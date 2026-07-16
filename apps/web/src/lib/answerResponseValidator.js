@@ -7,7 +7,7 @@
 // payloads — callers map failures to a controlled internal result.
 
 import Ajv2020 from "ajv/dist/2020.js";
-import schema from "../../../../packages/contracts/answer-response.schema.json" with { type: "json" };
+import schema from "@portfolio/contracts/answer-response.schema.json" with { type: "json" };
 
 const ajv = new Ajv2020({ allErrors: true, strict: false });
 const validateSchema = ajv.compile(schema);
