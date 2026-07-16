@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://piusagboola.com/contracts/answer-response.schema.json",
+  "title": "Served grounded-answer response",
+  "description": "Authoritative schema for the HTTP-served POST /api/answer/ body. Top-level compatibility: additionalProperties is false (unknown top-level keys rejected); declared optional fields (headline, ledger) may be omitted; headline may be null on answered. Companion invariant (enforced by both language validators after schema validation): every citations[].evidence_id must appear as some evidence[].id. This is not raw model-output validation (schemas.py) and not semantic entailment.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "answer", "citations", "evidence", "meta"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["answered", "insufficient_evidence", "refused"]
+    },
+    "answer": {
+      "type": "string"
+    },
+    "citations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/citation" }
+    },
+    "evidence": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidence" }
+    },
+    "headline": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/headline" }
+      ]
+    },
+    "ledger": { "$ref": "#/$defs/ledger" },
+    "meta": { "$ref": "#/$defs/meta" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "status": { "const": "answered" } },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "answer": { "type": "string", "minLength": 1 },
+          "citations": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/citation" }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "status": { "const": "insufficient_evidence" } },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "answer": {
+            "const": "I do not have enough public portfolio evidence to answer that confidently."
+          },
+          "citations": {
+            "type": "array",
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "status": { "const": "refused" } },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "answer": {
+            "const": "I can only answer questions about Pius's public portfolio work, skills, projects, education, and professional experience."
+          },
+          "citations": {
+            "type": "array",
+            "maxItems": 0
+          },
+          "evidence": {
+            "type": "array",
+            "maxItems": 0
+          },
+          "headline": false,
+          "ledger": false
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "headline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "sub"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "sub": { "type": "string" }
+      }
+    },
+    "citation": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "evidence_id",
+        "ref",
+        "title",
+        "snippet",
+        "source_type",
+        "project_id",
+        "source_path"
+      ],
+      "properties": {
+        "evidence_id": { "type": "string", "minLength": 1 },
+        "ref": { "type": "string", "minLength": 1 },
+        "title": { "type": "string" },
+        "snippet": { "type": "string" },
+        "source_type": { "type": "string" },
+        "project_id": { "type": ["string", "null"] },
+        "source_path": { "type": "string" },
+        "score": { "type": "number" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "source_type",
+        "source_id",
+        "entity_id",
+        "entity_type",
+        "title",
+        "snippet",
+        "text",
+        "visibility",
+        "sensitivity",
+        "role_lenses",
+        "tags",
+        "project_id",
+        "source_path",
+        "score"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "source_type": { "type": "string" },
+        "source_id": { "type": "string" },
+        "entity_id": { "type": "string" },
+        "entity_type": { "type": "string" },
+        "title": { "type": "string" },
+        "snippet": { "type": "string" },
+        "text": { "type": "string" },
+        "visibility": { "type": "string" },
+        "sensitivity": { "type": "string" },
+        "role_lenses": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "project_id": { "type": ["string", "null"] },
+        "source_path": { "type": "string" },
+        "score": { "type": "number" }
+      }
+    },
+    "ledger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "retrieve_k",
+        "selected_k",
+        "initial",
+        "reranked",
+        "selected"
+      ],
+      "properties": {
+        "mode": { "type": "string", "minLength": 1 },
+        "retrieve_k": { "type": "integer", "minimum": 0 },
+        "selected_k": { "type": "integer", "minimum": 0 },
+        "initial": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ledgerEntry" }
+        },
+        "reranked": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ledgerEntry" }
+        },
+        "selected": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ledgerEntry" }
+        }
+      }
+    },
+    "ledgerEntry": {
+      "type": "object",
+      "required": ["evidence_id"],
+      "properties": {
+        "evidence_id": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "retrieval_count",
+        "initial_count",
+        "selected_count",
+        "reranker",
+        "index_source"
+      ],
+      "properties": {
+        "retrieval_count": { "type": "integer", "minimum": 0 },
+        "initial_count": { "type": "integer", "minimum": 0 },
+        "selected_count": { "type": "integer", "minimum": 0 },
+        "reranker": { "type": "string" },
+        "index_source": { "type": "string" },
+        "model": { "type": "string" },
+        "provider": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}

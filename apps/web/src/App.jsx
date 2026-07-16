@@ -63,7 +63,7 @@ function Layout() {
 
   return (
     <>
-      <SkipLink mainRef={mainRef} />
+      {!evidenceMode && <SkipLink mainRef={mainRef} />}
       {!evidenceMode && <Navigation />}
       <main ref={mainRef} tabIndex={-1}>
         <Suspense fallback={null}>

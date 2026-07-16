@@ -1,0 +1,22 @@
+{
+  "status": "insufficient_evidence",
+  "answer": "I do not have enough public portfolio evidence to answer that confidently.",
+  "citations": [],
+  "evidence": [],
+  "ledger": {
+    "mode": "deterministic_rerank_v1",
+    "retrieve_k": 15,
+    "selected_k": 5,
+    "initial": [],
+    "reranked": [],
+    "selected": []
+  },
+  "meta": {
+    "retrieval_count": 0,
+    "initial_count": 0,
+    "selected_count": 0,
+    "reranker": "deterministic_rerank_v1",
+    "index_source": "built",
+    "reason": "no_supporting_evidence"
+  }
+}

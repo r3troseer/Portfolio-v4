@@ -125,4 +125,4 @@ fail-closed. The UI adapter ignores these fields.
 | `getCapabilities()` | `skills.json`: `{ niche, categories: [] }` (feeds the Capabilities bento). |
 | `getExperience()` | `experience.json`: `{ roles: [{ title, company, date, location, responsibilities: [{ t, m? }] }] }` (feeds Experience). |
 | `getEducation()` | `education.json`: `{ entries: [{ institution, qualification, detail }] }` (no UI consumer yet; future Education section + AI). |
-| `getLinks()` | `links.json`: `{ email, profiles: [{ label, value, href, external }] }` (feeds Contact). |
+| `getLinks()` | `links.json`: `{ email, profiles: [{ label, value, href, external, showInUi?, showInContact? }] }`; the UI adapter removes entries with `showInUi: false`, while individual surfaces may additionally honour `showInContact: false`. |

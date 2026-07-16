@@ -7,7 +7,9 @@
     "node": "24.x"
   },
   "dependencies": {
+    "@portfolio/contracts": "file:../../packages/contracts",
     "@vercel/analytics": "^1.5.0",
+    "ajv": "^8.17.1",
     "lucide-react": "^0.542.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -21,6 +23,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "validate:content": "node scripts/validate-content.mjs"
+    "validate:content": "node scripts/validate-content.mjs",
+    "validate:answer-contract": "node src/lib/answerResponseValidator.fixture-test.mjs"
   }
 }

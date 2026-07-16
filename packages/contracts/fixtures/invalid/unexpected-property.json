@@ -1,0 +1,15 @@
+{
+  "status": "refused",
+  "answer": "I can only answer questions about Pius's public portfolio work, skills, projects, education, and professional experience.",
+  "citations": [],
+  "evidence": [],
+  "unexpected_top_level": true,
+  "meta": {
+    "retrieval_count": 0,
+    "initial_count": 0,
+    "selected_count": 0,
+    "reranker": "deterministic_rerank_v1",
+    "index_source": "built",
+    "reason": "out_of_scope"
+  }
+}

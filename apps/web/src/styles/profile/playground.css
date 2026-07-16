@@ -917,14 +917,26 @@
 }
 
 /* Lift an active popover above the sticky query (90) and Playground chrome (100). */
-.pf-pg-gen-page:has(.pf-pg-gen-cite:hover, .pf-pg-gen-cite:focus-within) {
+.pf-pg-gen-page:has(
+    .pf-pg-gen-cite:hover,
+    .pf-pg-gen-cite:focus-within,
+    .pf-pg-gen-cite-disclosure.is-open
+  ) {
   position: relative;
   z-index: 101;
 }
 
 .pf-pg-gen-cite:hover,
-.pf-pg-gen-cite:focus-within {
+.pf-pg-gen-cite:focus-within,
+.pf-pg-gen-cite-disclosure.is-open {
   z-index: 1;
+}
+
+.pf-pg-gen-cite-disclosure {
+  position: relative;
+  display: inline-flex;
+  vertical-align: super;
+  margin-left: 2px;
 }
 
 .pf-pg-ev-mark {
@@ -957,15 +969,23 @@
   background: rgba(125, 211, 252, 0.26);
 }
 
+.pf-pg-gen-cite:focus-visible {
+  outline: 2px solid var(--ev-accent);
+  outline-offset: 2px;
+}
+
 .pf-pg-gen-cite.is-static {
-  cursor: default;
+  margin-left: 0;
+  border-color: color-mix(in srgb, var(--ev-accent) 28%, transparent);
+  cursor: pointer;
 }
 
 .pf-pg-gen-cite-pop {
   position: absolute;
   bottom: calc(100% + 8px);
   left: 50%;
-  transform: translateX(calc(-50% + var(--cite-pop-shift, 0px))) translateY(4px);
+  transform: translateX(calc(-50% + var(--cite-pop-shift, 0px)));
+  translate: 0 4px;
   width: var(--cite-pop-width, 232px);
   display: flex;
   flex-direction: column;
@@ -978,16 +998,17 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.14s ease, transform 0.14s ease;
+  transition: opacity 0.14s ease, translate 0.14s ease;
   z-index: 2;
   text-align: left;
 }
 
 .pf-pg-gen-cite:hover .pf-pg-gen-cite-pop,
-.pf-pg-gen-cite:focus-within .pf-pg-gen-cite-pop {
+.pf-pg-gen-cite:focus-within .pf-pg-gen-cite-pop,
+.pf-pg-gen-cite-disclosure.is-open .pf-pg-gen-cite-pop {
   opacity: 1;
   visibility: visible;
-  transform: translateX(calc(-50% + var(--cite-pop-shift, 0px))) translateY(0);
+  translate: 0 0;
 }
 
 .pf-pg-gen-cite-pop::after {

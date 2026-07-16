@@ -53,24 +53,28 @@ export async function getGroundedAnswer({ query, topK = 5, roleLens, signal }) {
     const parsed = await safeReadJson(res);
     if (!parsed.ok) {
       return {
-        kind: "unavailable",
-        message: "The answer service is currently unavailable.",
+        kind: "malformed",
+        message: "A grounded answer could not be produced for that question.",
       };
     }
     const data = parsed.data;
+    // Dynamic import keeps Ajv + the validator out of the homepage critical bundle.
+    const { validateAnswerResponse } = await import("./answerResponseValidator.js");
+    if (!validateAnswerResponse(data).ok) {
+      return {
+        kind: "malformed",
+        message: "A grounded answer could not be produced for that question.",
+      };
+    }
     return {
       kind: "ok",
-      answerStatus:
-        typeof data?.status === "string" ? data.status : "insufficient_evidence",
-      answer: typeof data?.answer === "string" ? data.answer : "",
-      citations: Array.isArray(data?.citations) ? data.citations : [],
-      evidence: Array.isArray(data?.evidence) ? data.evidence : [],
-      headline:
-        typeof data?.headline?.title === "string" && data.headline.title
-          ? data.headline
-          : null,
-      ledger: data?.ledger ?? null,
-      meta: data?.meta ?? {},
+      answerStatus: data.status,
+      answer: data.answer,
+      citations: data.citations,
+      evidence: data.evidence,
+      headline: data.headline ?? null,
+      ledger: data.ledger ?? null,
+      meta: data.meta,
     };
   }
 
