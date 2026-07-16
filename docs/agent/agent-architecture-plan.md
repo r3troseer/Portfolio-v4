@@ -112,9 +112,10 @@ answer egress, refusal, answer-pipeline budgets) remain future work.
   (`packages/contracts/answer-response.schema.json`, web `validate:answer-contract`, API
   `test_answer_contract`). Content-shape and UI-spec schemas are not extracted yet; content
   checks remain in `validate-content.mjs`.
-- **Answer-pipeline budgets** - full token/input budgets, concurrent caps, and prompt/log
-  minimisation beyond the current output cap; tool allowlist and UI-spec validation
-  (Layers 2 / 2.5).
+- **Answer-pipeline budgets** - full token/input budgets, concurrent caps; tool allowlist and
+  UI-spec validation (Layers 2 / 2.5). Prompt/log minimisation for answer/retrieve operational
+  events is live (allow-listed outcomes + `X-Request-Id`); broader retention policy remains
+  documentation intent.
 
 **Visibility / status / sensitivity rules (unchanged, see policy doc)**
 - `status` = display label only, **never** a privacy signal.
@@ -158,7 +159,10 @@ the request is rejected rather than allowed.
 - **Server-side secrets only** - API keys and model credentials live in `apps/api`, never in
   `apps/web` or any committed file.
 - **Prompt / log minimisation** - log only what's needed to operate; don't retain raw prompts or
-  visitor content beyond what is required, and never log secrets.
+  visitor content beyond what is required, and never log secrets. Live for `/api/answer/` and
+  `/api/retrieve/`: privacy-safe one-line structured operational events (`core/telemetry.py`)
+  with a fixed outcome taxonomy, a server-generated `X-Request-Id` correlation header, and an
+  allow-listed field set (outcome, correlation id, endpoint, status code, coarse duration only).
 - **No silent visitor identification / tracking** - no fingerprinting or profiling; analytics on
   conversation content only with explicit consent.
 
@@ -181,7 +185,7 @@ Practical view of each rule: where it is enforced, what happens on violation, an
 | Concurrent request limits | `apps/api` edge / middleware | Reject / queue excess; shed load | Backend skeleton |
 | CORS allowlist | `apps/api` config | Reject disallowed origins | Backend skeleton |
 | Server-side secrets only | `apps/api` config + repo hygiene | No secret in client/repo; deploy/CI blocks | Backend skeleton |
-| Prompt / log minimisation | `apps/api` logging | Minimal retention; secrets never logged | Backend skeleton |
+| Prompt / log minimisation | `apps/api` logging (`core/telemetry.py` allow-listed outcomes) | Minimal retention; secrets/prompts/evidence never logged; unknown outcomes dropped | Backend skeleton / Layer 1 |
 | Tool allowlist | `apps/api` tool dispatcher | Reject any non-allowlisted tool call | Layer 2 |
 | UI spec validation | `apps/api` (validate) + `apps/web` (render) | Reject invalid spec; render only approved components | Layer 2.5 |
 | No silent visitor identification / tracking | `apps/api` + `apps/web` | No profiling; tracking only with consent | Layer 1 |
