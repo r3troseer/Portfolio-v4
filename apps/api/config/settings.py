@@ -106,8 +106,12 @@ INSTALLED_APPS = [
 ]
 
 # Minimal middleware for a JSON API: no sessions/auth/CSRF.
+# RequestCorrelationMiddleware binds a server-generated opaque id for
+# operational events and response-header correlation only - it does not log
+# request/response bodies, headers, or exception details.
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "core.middleware.RequestCorrelationMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
 ]
@@ -209,3 +213,22 @@ USE_TZ = True
 
 # --- Static ----------------------------------------------------------------
 STATIC_URL = "static/"
+
+# Operational events: console one-liners for Railway log drains. The telemetry
+# helpers allow-list fields; this logger must never be pointed at request bodies.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "core.telemetry": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}

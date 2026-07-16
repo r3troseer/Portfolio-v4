@@ -22,6 +22,14 @@ class ProviderError(RuntimeError):
     """
 
 
+class ProviderTimeoutError(ProviderError):
+    """The provider call timed out.
+
+    Mapped to HTTP 503 with a distinct operational outcome from other
+    provider execution failures. Public response body stays unchanged.
+    """
+
+
 class AnswerProvider(ABC):
     """Turns a system + user prompt into raw model output text.
 

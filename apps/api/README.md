@@ -247,6 +247,38 @@ answer throttle or a soft daily cap is exceeded; `503` if the endpoint is disabl
 is unavailable, or the answer provider is unavailable (e.g. `GEMINI_API_KEY` unset); `502` if
 the model output is malformed/unsupported or cites evidence outside the selected set.
 
+### Operational events (privacy-safe)
+
+`/api/answer/` and `/api/retrieve/` emit **one** Railway-readable JSON log line per terminal
+outcome via `core/telemetry.py`. Events are allow-listed: construction accepts only fixed safe
+fields and never interpolates exception text, request bodies, prompts, queries, answer prose,
+evidence, secrets, provider payloads, client identity, or IP addresses.
+
+**Correlation:** every request gets a server-generated opaque id (UUID hex). Client-supplied
+correlation headers are ignored. The same id is attached to the event and returned as the
+`X-Request-Id` response header (including DRF throttle responses). Public JSON bodies and
+HTTP statuses are unchanged.
+
+**Fixed outcome taxonomy** (no dynamic names):
+
+| Outcome | Typical status |
+|---|---|
+| `answer.ok` | 200 |
+| `answer.invalid_request` | 400 |
+| `answer.throttled` | 429 (DRF `AnswerRateThrottle`) |
+| `answer.soft_limit` | 429 (process-local daily caps) |
+| `answer.provider_timeout` | 503 |
+| `answer.provider_unavailable` | 503 |
+| `answer.provider_contract` | 502 |
+| `answer.corpus_unavailable` | 503 |
+| `answer.disabled` | 503 |
+| `retrieve.ok` | 200 |
+| `retrieve.invalid_request` | 400 |
+| `retrieve.corpus_unavailable` | 503 |
+
+Event fields only: `outcome`, `correlation_id`, `endpoint` (`answer` \| `retrieve`),
+`status_code`, `duration_ms`.
+
 ## Configuration (environment variables)
 
 All config is read via `python-decouple` (`config/env.py`). `apps/api/.env` is loaded for
@@ -291,7 +323,9 @@ grounded-answer enforcement (every answered claim must cite retrieved evidence; 
 citations, malformed output, or unsupported statuses fail closed), safe post-validation
 truncation, a first-class refusal status, server-authored refusal/insufficient messages, the
 answer-only throttle, an env kill switch, and optional soft process-local daily caps.
+Privacy-safe structured operational events (fixed taxonomy + `X-Request-Id`) land for both
+`/api/answer/` and `/api/retrieve/` without logging request/response bodies or secrets.
 Two Gunicorn workers improve availability, but each worker owns its own throttle and daily
 counters until Redis/shared cache is introduced; effective limits can therefore multiply.
 See the runtime guide for the Redis upgrade triggers. Still to come: exact shared counters,
-concurrency limits, full token/input budgets, and prompt/log minimisation.
+concurrency limits, and full token/input budgets.
