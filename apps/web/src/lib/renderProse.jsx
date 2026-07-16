@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useId, useLayoutEffect, useRef } from "react";
 import { Link } from "react-router";
 import { EVIDENCE_ORIGIN } from "./evidenceNavigation";
 
@@ -46,8 +46,8 @@ function citePopoverEdgeShift(rect, vw) {
 }
 
 /** Keep the anchored popover within horizontal viewport gutters. */
-function alignCitePopover(popEl) {
-  if (!popEl) return;
+function alignCitePopover(popEl, triggerEl) {
+  if (!popEl || !triggerEl) return;
 
   const vw = window.innerWidth;
   const width = Math.min(CITE_POP_MAX_WIDTH, Math.max(0, vw - CITE_POP_GUTTER * 2));
@@ -56,15 +56,32 @@ function alignCitePopover(popEl) {
   popEl.style.setProperty("--cite-pop-width", `${width}px`);
   popEl.style.setProperty("--cite-pop-shift", "0px");
 
-  let shift = citePopoverEdgeShift(popEl.getBoundingClientRect(), vw);
+  const triggerRect = triggerEl.getBoundingClientRect();
+  const centeredLeft = triggerRect.left + triggerRect.width / 2 - width / 2;
+  const shift = citePopoverEdgeShift(
+    { left: centeredLeft, right: centeredLeft + width },
+    vw,
+  );
   if (shift === 0) return;
 
   popEl.style.setProperty("--cite-pop-shift", `${shift}px`);
 }
 
-function GenCiteChip({ citation, query, roleLens }) {
+function GenCiteChip({
+  citation,
+  query,
+  roleLens,
+  disclosureId,
+  isOpen,
+  onDisclosureToggle,
+}) {
   const popRef = useRef(null);
-  const align = () => alignCitePopover(popRef.current);
+  const triggerRef = useRef(null);
+  const disclosureRef = useRef(null);
+  const pinnedRef = useRef(false);
+  const reactId = useId();
+  const popoverId = `citation-popover-${reactId.replace(/:/g, "")}`;
+  const align = () => alignCitePopover(popRef.current, triggerRef.current);
   const label = `[${citation.ref || "?"}]`;
   const popover = (
     <span ref={popRef} className="pf-pg-gen-cite-pop">
@@ -73,9 +90,40 @@ function GenCiteChip({ citation, query, roleLens }) {
     </span>
   );
 
+  useLayoutEffect(() => {
+    if (!citation.project_id && isOpen) align();
+  }, [citation.project_id, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) pinnedRef.current = false;
+    if (citation.project_id || !isOpen) return undefined;
+
+    const dismissOutside = (event) => {
+      if (!disclosureRef.current?.contains(event.target)) {
+        pinnedRef.current = false;
+        onDisclosureToggle(null);
+      }
+    };
+    const dismissEscape = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        pinnedRef.current = false;
+        onDisclosureToggle(null);
+        triggerRef.current?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", dismissOutside);
+    document.addEventListener("keydown", dismissEscape);
+    return () => {
+      document.removeEventListener("pointerdown", dismissOutside);
+      document.removeEventListener("keydown", dismissEscape);
+    };
+  }, [citation.project_id, isOpen, onDisclosureToggle]);
+
   if (citation.project_id) {
     return (
       <Link
+        ref={triggerRef}
         to={`/projects/${citation.project_id}`}
         state={{ from: EVIDENCE_ORIGIN.PLAYGROUND, q: query || "", roleLens }}
         className="pf-pg-gen-cite"
@@ -90,12 +138,62 @@ function GenCiteChip({ citation, query, roleLens }) {
 
   return (
     <span
-      className="pf-pg-gen-cite is-static"
-      onMouseEnter={align}
-      onFocus={align}
+      ref={disclosureRef}
+      className={`pf-pg-gen-cite-disclosure${isOpen ? " is-open" : ""}`}
+      onMouseEnter={() => {
+        if (!isOpen) {
+          align();
+          onDisclosureToggle(disclosureId);
+        }
+      }}
+      onMouseLeave={() => {
+        if (!pinnedRef.current) onDisclosureToggle(null);
+      }}
     >
-      {label}
-      {popover}
+      <button
+        ref={triggerRef}
+        type="button"
+        className="pf-pg-gen-cite is-static"
+        aria-expanded={isOpen}
+        aria-controls={popoverId}
+        onFocus={align}
+        onClick={() => {
+          if (isOpen && pinnedRef.current) {
+            pinnedRef.current = false;
+            onDisclosureToggle(null);
+            return;
+          }
+          align();
+          pinnedRef.current = true;
+          onDisclosureToggle(disclosureId);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            if (isOpen && pinnedRef.current) {
+              pinnedRef.current = false;
+              onDisclosureToggle(null);
+              return;
+            }
+            align();
+            pinnedRef.current = true;
+            onDisclosureToggle(disclosureId);
+          }
+        }}
+      >
+        {label}
+      </button>
+      <span
+        ref={popRef}
+        id={popoverId}
+        className="pf-pg-gen-cite-pop"
+        role="region"
+        aria-label={`Evidence ${label}`}
+        hidden={!isOpen}
+      >
+        <span className="pf-pg-gen-cite-pop-t">{citation.title}</span>
+        <span className="pf-pg-gen-cite-pop-s">{citation.snippet}</span>
+      </span>
     </span>
   );
 }
@@ -104,7 +202,17 @@ function GenCiteChip({ citation, query, roleLens }) {
  * Parse handoff prose mini-markup into React nodes for the playground page.
  * Ported from profile-handoff _renderProse (complete-string parsing only).
  */
-export function renderProse(text, citations, { query, roleLens, keyPrefix = "p" } = {}) {
+export function renderProse(
+  text,
+  citations,
+  {
+    query,
+    roleLens,
+    keyPrefix = "p",
+    openCitationId = null,
+    onCitationToggle = () => {},
+  } = {},
+) {
   let s = String(text ?? "");
   s = s.replace(/==([^=]*)$/, "$1");
   s = s.replace(/\[\[[^\]]*$/, "");
@@ -130,12 +238,16 @@ export function renderProse(text, citations, { query, roleLens, keyPrefix = "p" 
       const evidenceId = normalizeEvidenceId(match[2]);
       const citation = citeById.get(evidenceId);
       if (citation) {
+        const disclosureId = `${keyPrefix}c${ci}`;
         out.push(
           <GenCiteChip
-            key={`${keyPrefix}c${ci}`}
+            key={disclosureId}
             citation={citation}
             query={query}
             roleLens={roleLens}
+            disclosureId={disclosureId}
+            isOpen={openCitationId === disclosureId}
+            onDisclosureToggle={onCitationToggle}
           />
         );
       }

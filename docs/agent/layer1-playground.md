@@ -174,8 +174,12 @@ lands (never over-promise now).
   page surface (full `ev-doc`-style score-card list under the answer, `EvidenceResults.jsx` /
   `pf-pg-doc*`) was **removed** when the rag-reveal + retrieval inspector landed: selected
   evidence rows now live in the ledger inspector, and entity navigation happens via the
-  answer's citation chips (project-backed citations link to `/projects/:id`; others are
-  static). The modal keeps its compact `pf-ask-evdoc` cards, where only **project-backed**
+  answer's citation chips. Project-backed citations link to `/projects/:id`; profile and
+  markdown citations use one controlled disclosure at a time with hover preview, button,
+  keyboard, touch, Escape, and outside-pointer dismissal. Escape restores the trigger;
+  outside pointer focus follows the clicked target. Placement is recalculated when opened or
+  focused without a global resize/scroll listener, and open state resets when the answer or
+  query changes. The modal keeps its compact `pf-ask-evdoc` cards, where only **project-backed**
   entities (`project_id`) are links - markdown/profile entities render as static cards, not
   dead `#` links. Wire these to a dedicated passage-detail view when it exists (backend
   behaviour #4).

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Terminal, AlertTriangle, Info } from "lucide-react";
 import {
   HANDOFF_MODAL_UNAVAILABLE,
@@ -34,6 +35,11 @@ export function GroundedAnswer({
   onRetry,
 }) {
   const isModal = variant === "modal";
+  const [openCitationId, setOpenCitationId] = useState(null);
+
+  useEffect(() => {
+    setOpenCitationId(null);
+  }, [query, result.status, result.kind]);
 
   if (result.status === "idle") return null;
 
@@ -130,7 +136,14 @@ export function GroundedAnswer({
       ) : null}
       <div className="pf-pg-gen-node pf-pg-gen-node-in">
         <div className="pf-pg-gen-prose">
-          <p>{renderProse(answer, citations, { query, roleLens })}</p>
+          <p>
+            {renderProse(answer, citations, {
+              query,
+              roleLens,
+              openCitationId,
+              onCitationToggle: setOpenCitationId,
+            })}
+          </p>
         </div>
       </div>
     </div>
