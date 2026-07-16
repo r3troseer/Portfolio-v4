@@ -115,7 +115,7 @@ class GenerateAnswerProducerBoundaryTests(SimpleTestCase):
 
     def test_insufficient_evidence_with_selected_evidence_validates(self) -> None:
         provider = FakeProvider(
-            _fake_json("insufficient_evidence", "model prose ignored", [])
+            _fake_json("insufficient_evidence", "", [])
         )
         result = generate_answer({"query": MATCHING_QUERY}, provider=provider)
         self.assertEqual(result["status"], "insufficient_evidence")
@@ -123,7 +123,7 @@ class GenerateAnswerProducerBoundaryTests(SimpleTestCase):
         validate_served_answer(result)
 
     def test_refused_validates(self) -> None:
-        provider = FakeProvider(_fake_json("refused", "model prose ignored", []))
+        provider = FakeProvider(_fake_json("refused", "", []))
         result = generate_answer({"query": MATCHING_QUERY}, provider=provider)
         self.assertEqual(result["status"], "refused")
         self.assertEqual(result["answer"], REFUSED_MESSAGE)

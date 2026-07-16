@@ -64,7 +64,7 @@ Policy intent: [`layer-s-policy.md`](./layer-s-policy.md). Enforcement matrix de
 | `public_summary_only` redaction | Indexer (summary in, deep detail out) |
 | `private` / `blocked` exclusion | Index + UI/registry discipline |
 | Grounded-answer citation validation | `POST /api/answer/` fail-closed egress |
-| Refusal / insufficient-evidence as first-class states | Server-authored messages; model prose discarded |
+| Refusal / insufficient-evidence as first-class states | Server-authored messages; invalid non-answer prose/citations/headlines fail closed |
 | CORS allowlist | `apps/api` foundation |
 | Request-size cap | `apps/api` foundation |
 | Basic anon rate limiting | Exists as a foundation - **not** sufficient alone for production answer spend |

@@ -205,20 +205,64 @@ class ValidateModelOutputTests(unittest.TestCase):
         with self.assertRaises(AnswerOutputError):
             validate_model_output("", self.IDS)
 
-    def test_refused_drops_citations_and_prose(self) -> None:
-        out = validate_model_output(
-            _fake_json("refused", "some model prose", ["project:a"]), self.IDS
-        )
-        self.assertEqual(out.status, "refused")
-        self.assertEqual(out.citation_ids, ())
-        self.assertEqual(out.answer, "")
+    def test_valid_non_answer_outputs_pass(self) -> None:
+        for status in ("refused", "insufficient_evidence"):
+            with self.subTest(status=status):
+                out = validate_model_output(_fake_json(status, "   ", []), self.IDS)
+                self.assertEqual(out.status, status)
+                self.assertEqual(out.answer, "")
+                self.assertEqual(out.citation_ids, ())
 
-    def test_insufficient_drops_citations_and_prose(self) -> None:
-        out = validate_model_output(
-            _fake_json("insufficient_evidence", "prose", ["project:a"]), self.IDS
-        )
-        self.assertEqual(out.status, "insufficient_evidence")
-        self.assertEqual(out.citation_ids, ())
+    def test_non_answer_prose_fails_closed(self) -> None:
+        for status in ("refused", "insufficient_evidence"):
+            with self.subTest(status=status), self.assertRaises(AnswerOutputError):
+                validate_model_output(_fake_json(status, "model prose", []), self.IDS)
+
+    def test_non_answer_known_citation_fails_closed(self) -> None:
+        for status in ("refused", "insufficient_evidence"):
+            with self.subTest(status=status), self.assertRaises(AnswerOutputError):
+                validate_model_output(_fake_json(status, "", ["project:a"]), self.IDS)
+
+    def test_non_answer_unknown_citation_fails_closed(self) -> None:
+        for status in ("refused", "insufficient_evidence"):
+            with self.subTest(status=status), self.assertRaises(AnswerOutputError):
+                validate_model_output(_fake_json(status, "", ["project:ghost"]), self.IDS)
+
+    def test_non_answer_malformed_citation_list_fails_closed(self) -> None:
+        for status in ("refused", "insufficient_evidence"):
+            with self.subTest(status=status), self.assertRaises(AnswerOutputError):
+                validate_model_output(
+                    json.dumps(
+                        {"status": status, "answer": "", "citation_ids": "project:a"}
+                    ),
+                    self.IDS,
+                )
+
+    def test_non_answer_headline_content_fails_closed(self) -> None:
+        for status in ("refused", "insufficient_evidence"):
+            raw = json.dumps(
+                {
+                    "status": status,
+                    "answer": "",
+                    "citation_ids": [],
+                    "headline": {"title": "Generated lead", "sub": ""},
+                }
+            )
+            with self.subTest(status=status), self.assertRaises(AnswerOutputError):
+                validate_model_output(raw, self.IDS)
+
+    def test_non_answer_empty_headline_fields_pass(self) -> None:
+        for status in ("refused", "insufficient_evidence"):
+            raw = json.dumps(
+                {
+                    "status": status,
+                    "answer": "",
+                    "citation_ids": [],
+                    "headline": {"title": "   ", "sub": ""},
+                }
+            )
+            with self.subTest(status=status):
+                self.assertEqual(validate_model_output(raw, self.IDS).status, status)
 
     def test_answer_is_length_capped(self) -> None:
         long = f"[[project:a]] {'word ' * 400}"
@@ -347,7 +391,7 @@ class ParseHeadlineTests(unittest.TestCase):
         self.assertFalse(title.endswith(" "))
         self.assertTrue(title)
 
-    def test_non_answered_status_ignores_headline(self) -> None:
+    def test_non_answered_status_rejects_headline_and_prose(self) -> None:
         raw = json.dumps(
             {
                 "status": "refused",
@@ -356,8 +400,8 @@ class ParseHeadlineTests(unittest.TestCase):
                 "headline": {"title": "Should not survive", "sub": ""},
             }
         )
-        out = validate_model_output(raw, self.IDS)
-        self.assertEqual(out.headline_title, "")
+        with self.assertRaises(AnswerOutputError):
+            validate_model_output(raw, self.IDS)
 
 
 class GenerateAnswerServiceTests(SimpleTestCase):
@@ -514,7 +558,7 @@ class GenerateAnswerServiceTests(SimpleTestCase):
             generate_answer({"query": MATCHING_QUERY}, provider=provider)
 
     def test_refused_output_returns_server_message(self) -> None:
-        provider = FakeProvider(_fake_json("refused", "model prose ignored", []))
+        provider = FakeProvider(_fake_json("refused", "", []))
         result = generate_answer({"query": MATCHING_QUERY}, provider=provider)
         self.assertEqual(result["status"], "refused")
         self.assertEqual(result["answer"], REFUSED_MESSAGE)
@@ -526,7 +570,7 @@ class GenerateAnswerServiceTests(SimpleTestCase):
 
     def test_insufficient_output_returns_server_message(self) -> None:
         provider = FakeProvider(
-            _fake_json("insufficient_evidence", "model prose ignored", [])
+            _fake_json("insufficient_evidence", "", [])
         )
         result = generate_answer({"query": MATCHING_QUERY}, provider=provider)
         self.assertEqual(result["status"], "insufficient_evidence")
@@ -684,6 +728,19 @@ class AnswerEndpointTests(SimpleTestCase):
         ):
             response = self._post({"query": MATCHING_QUERY})
         self.assertEqual(response.status_code, 502)
+
+    def test_invalid_non_answer_returns_controlled_502_without_retry(self) -> None:
+        for answer_status in ("refused", "insufficient_evidence"):
+            provider = FakeProvider(_fake_json(answer_status, "model prose", []))
+            with self.subTest(status=answer_status), mock.patch(
+                "core.layer1.answering.service.get_provider", return_value=provider
+            ):
+                response = self._post({"query": MATCHING_QUERY})
+                self.assertEqual(response.status_code, 502)
+                self.assertEqual(
+                    response.json(), {"error": "answer could not be produced"}
+                )
+                self.assertEqual(provider.calls, 1)
 
     def test_get_is_not_allowed(self) -> None:
         self.assertEqual(self.client.get("/api/answer/").status_code, 405)

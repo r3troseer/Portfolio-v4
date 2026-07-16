@@ -6,8 +6,8 @@ Deliberately API-local, like ``core/layer1/records.py`` - extracted to
 The model is never trusted. ``validate_model_output`` fails closed: malformed
 JSON, an unsupported status, or a citation id that was not retrieved raises
 ``AnswerOutputError`` (mapped to HTTP 502 by the view). For ``refused`` and
-``insufficient_evidence`` the model's prose is discarded entirely - the service
-substitutes a fixed, server-authored message.
+``insufficient_evidence``, the model must return empty prose, citations, and
+headline fields before the service substitutes a fixed, server-authored message.
 """
 
 import json
@@ -150,6 +150,19 @@ def parse_headline(data: dict[str, Any]) -> tuple[str, str]:
     return _clip_plain(title, HEADLINE_TITLE_MAX), _clip_plain(sub, HEADLINE_SUB_MAX)
 
 
+def _validate_empty_non_answer_headline(data: dict[str, Any]) -> None:
+    """Require non-answer headline fields to be absent or empty."""
+    headline = data.get("headline")
+    if headline is None:
+        return
+    if not isinstance(headline, dict):
+        raise AnswerOutputError("a non-answer headline must be absent or empty")
+    for field in ("title", "sub"):
+        value = headline.get(field, "")
+        if not isinstance(value, str) or value.strip():
+            raise AnswerOutputError("a non-answer headline must be absent or empty")
+
+
 def truncate_answer_prose(answer: str, max_length: int = ANSWER_MAX_LENGTH) -> str:
     """Truncate at the latest whitespace/sentence boundary outside markup."""
     if len(answer) <= max_length:
@@ -200,9 +213,17 @@ def validate_model_output(
     ):
         raise AnswerOutputError("citation_ids must be a list of strings")
 
-    # refused / insufficient_evidence never invent citations, and their prose is
-    # replaced with a server message downstream - drop both here.
+    # Non-answer states are strict provider contracts. The server supplies the
+    # public message only after the model has returned no prose, citations, or
+    # generated headline content.
     if status != STATUS_ANSWERED:
+        if answer:
+            raise AnswerOutputError("a non-answer result requires an empty answer")
+        if citation_ids_raw:
+            raise AnswerOutputError(
+                "a non-answer result requires an empty citation_ids list"
+            )
+        _validate_empty_non_answer_headline(data)
         return ModelOutput(status=status, answer="", citation_ids=())
 
     if not answer:

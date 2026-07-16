@@ -99,8 +99,9 @@ answer egress, refusal, answer-pipeline budgets) remain future work.
 - **Served-answer response contract** (`packages/contracts`): shared JSON Schema + fixtures;
   web (`validate:answer-contract` / client validator) and API contract tests agree. Distinct from
   raw model-output validation and from semantic entailment.
-- **Refusal / insufficient-evidence as first-class responses** with server-authored messages
-  (the model's prose is discarded for those states) and an answer length cap.
+- **Refusal / insufficient-evidence as first-class responses** with server-authored messages;
+  non-answer model prose, citations, and headline content must be empty or fail closed, and
+  answered output has a length cap.
 - Runtime foundations: CORS allowlist, request-size cap, basic anon rate limiting (not yet
   sufficient for production answer spend - see [`roadmap-review.md`](./roadmap-review.md)
   pre-prod answer cost gates), server-side secrets only, model keys/config server-side only

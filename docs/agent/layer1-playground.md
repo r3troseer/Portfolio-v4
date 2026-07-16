@@ -123,7 +123,8 @@ Production re-authors the handoff page answer surface under **`pf-pg-gen-*`** (`
   (`ref` handoff display labels via `presentation.citation_display_ref`, `score`). Page
   renders inline `gen-cite` chips; modal strips markup for plain `pf-ask-answer` and shows
   title chips in `pf-ask-cites`. Refusal and insufficient-evidence are first-class statuses
-  with **server-authored messages** (model prose discarded for both). **No fake streaming**
+  with **server-authored messages** after strict empty non-answer output validation.
+  **No fake streaming**
   (single atomic response; no token-by-token UI, no trailing "composing..." loader). No chat memory or `blocks`
   yet. Prompt text: `apps/api/core/layer1/answering/prompts.py`.
 - **Reranking + expanded Retrieval Ledger** - `rag-reveal*` / `rag-insp*` (the pre->post rerank

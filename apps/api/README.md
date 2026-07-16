@@ -235,12 +235,12 @@ Statuses (all HTTP `200`):
   rerank score) for optional UI relevance display.
 - `insufficient_evidence` - not enough public evidence; a fixed server message, any
   selected `evidence`, and the `ledger`. Returned **without calling the model** when
-  retrieval finds nothing, or when the model selects this status (model prose is discarded
-  either way).
+  retrieval finds nothing, or when the model returns a valid empty non-answer payload.
 - `refused` - out of scope; a fixed server message, no citations, no evidence, and **no
   ledger** (a refusal serves no retrieval artifacts). For `refused` and
-  `insufficient_evidence` the model's prose is **discarded** and a server-authored message
-  is used instead.
+  `insufficient_evidence`, model prose, citations, and headline content must be empty;
+  otherwise the response fails closed as a controlled `502`. Valid states use a
+  server-authored public message.
 
 HTTP status codes: `200` for the three answer statuses; `400` invalid request; `429` when the
 answer throttle or a soft daily cap is exceeded; `503` if the endpoint is disabled, the corpus
