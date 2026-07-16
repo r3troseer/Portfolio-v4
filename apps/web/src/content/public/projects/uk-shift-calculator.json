@@ -3,37 +3,202 @@
   "visibility": "public",
   "status": "live",
   "sensitivity": "safe",
-  "repo": { "visibility": "public" },
+  "repo": {
+    "visibility": "public"
+  },
   "card": {
     "title": "UK Shift Calculator",
     "subtitle": "PWA for Shift Tracking & Pay Estimation",
     "summary": "Progressive Web App for UK shift workers to log hours, calculate pay with 2024/25 tax and NI rates, and export payroll data. Includes offline support, weekend double pay, and CSV/JSON export.",
-    "technologies": ["React", "PWA", "LocalStorage", "Vercel"],
-    "listTech": ["React", "PWA", "LocalStorage"]
+    "technologies": [
+      "React",
+      "PWA",
+      "LocalStorage",
+      "Vercel"
+    ],
+    "listTech": [
+      "React",
+      "PWA",
+      "LocalStorage"
+    ]
   },
   "detail": {
     "focus": "PWA · Productivity",
     "overview": "A React-based progressive web app that helps shift workers in the UK log hours, calculate pay, and estimate tax/NI deductions. Features a live time clock, weekend pay boost, common shift detection, and data export. Designed for portability and offline-first use.",
     "links": [
-      { "icon": "github", "text": "View Code", "href": "https://github.com/r3troseer/UK-Shift-Calculator" },
-      { "icon": "website", "text": "Live Demo", "href": "https://uk-shift-calculator.vercel.app/" }
+      {
+        "icon": "github",
+        "text": "View Code",
+        "href": "https://github.com/r3troseer/UK-Shift-Calculator"
+      },
+      {
+        "icon": "website",
+        "text": "Live Demo",
+        "href": "https://uk-shift-calculator.vercel.app/"
+      }
     ],
-    "badge": { "text": "Live", "type": "live", "size": "small" },
+    "badge": {
+      "text": "Live",
+      "type": "live",
+      "size": "small"
+    },
     "metrics": [
-      { "number": "1000+", "label": "Shifts logged in testing" },
-      { "number": "2x", "label": "Weekend Pay Multiplier" },
-      { "number": "2024/25", "label": "Tax Bands Supported" },
-      { "number": "100%", "label": "Offline Capability" }
+      {
+        "number": "1000+",
+        "label": "Shifts logged in testing"
+      },
+      {
+        "number": "2x",
+        "label": "Weekend Pay Multiplier"
+      },
+      {
+        "number": "2024/25",
+        "label": "Tax Bands Supported"
+      },
+      {
+        "number": "100%",
+        "label": "Offline Capability"
+      }
     ],
     "contentCards": [
       {
-        "markdown": "### Technical Architecture\n- **Frontend:** React with hooks, TailwindCSS for styling, Lucide icons.\n- **PWA:** Installable app with offline support and local data persistence.\n- **State Management:** LocalStorage with autosave for shifts and settings.\n- **Pay Engine:** Implements 2024/25 UK tax bands and NI contributions.\n- **Deployment:** Hosted on Vercel for scalability and accessibility.",
         "type": "Architecture",
-        "tags": ["React", "PWA", "TailwindCSS", "LocalStorage", "Vercel"]
+        "title": "Technical Architecture",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "text": "Frontend:",
+                    "bold": true
+                  },
+                  {
+                    "text": " React with hooks, TailwindCSS for styling, Lucide icons."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "PWA:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Installable app with offline support and local data persistence."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "State Management:",
+                    "bold": true
+                  },
+                  {
+                    "text": " LocalStorage with autosave for shifts and settings."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Pay Engine:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Implements 2024/25 UK tax bands and NI contributions."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Deployment:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Hosted on Vercel for scalability and accessibility."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tags": [
+          "React",
+          "PWA",
+          "TailwindCSS",
+          "LocalStorage",
+          "Vercel"
+        ]
       },
       {
-        "markdown": "### Features & User Experience\n- **Time Clock:** Clock in/out, start/end breaks, track elapsed hours.\n- **Common Shifts:** Automatically suggests frequent shift patterns.\n- **Weekend Pay:** Automatic 2x rate for Saturday and Sunday shifts.\n- **Export:** Download CSV/JSON summaries for payroll and records.\n- **Responsive UI:** Mobile-first design for workers on the go.",
         "type": "Features",
+        "title": "Features & User Experience",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "text": "Time Clock:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Clock in/out, start/end breaks, track elapsed hours."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Common Shifts:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Automatically suggests frequent shift patterns."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Weekend Pay:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Automatic 2x rate for Saturday and Sunday shifts."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Export:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Download CSV/JSON summaries for payroll and records."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Responsive UI:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Mobile-first design for workers on the go."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
         "tags": [
           "Shift Tracking",
           "Tax Calculation",
@@ -104,8 +269,14 @@
   },
   "ai": {
     "publicSummary": "Offline-first React PWA for UK shift workers to log hours, estimate pay using 2024/25 tax and NI rates, and export payroll data, with a live time clock and weekend pay handling.",
-    "roleLenses": ["fullstack"],
-    "evidenceSkills": ["React", "PWA", "Frontend"],
+    "roleLenses": [
+      "fullstack"
+    ],
+    "evidenceSkills": [
+      "React",
+      "PWA",
+      "Frontend"
+    ],
     "safeTalkingPoints": [],
     "sensitivity": "safe"
   }

@@ -24,7 +24,7 @@ const renderHeadline = (headline, highlight) => {
   );
 };
 
-export const Hero = () => {
+export const Hero = ({ headingRef } = {}) => {
   const { headline, headlineHighlight, role, intro, availability, facts } =
     getProfile();
   const links = getLinks();
@@ -54,7 +54,12 @@ export const Hero = () => {
                 <span className="dot" /> {availability}
               </div>
             )}
-            <h1 className="pf-hero-headline">
+            <h1
+              ref={headingRef}
+              className="pf-hero-headline"
+              data-route-focus="home"
+              tabIndex={-1}
+            >
               {renderHeadline(headline, headlineHighlight)}
             </h1>
             <div className="pf-hero-role">{role}</div>

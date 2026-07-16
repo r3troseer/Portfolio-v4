@@ -1,14 +1,14 @@
+import { useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Siren, SquareCheck } from "lucide-react";
 import { Icon } from "../components/Icon";
 import { getProjectById } from "../content/adapters/projectsAdapter";
 import { NotFound } from "./NotFound";
 import { Badge } from "../components/Badge";
 import { ContentCard } from "../components/ContentCard";
-import { ProblemSolutionCard } from "../components/ProblemSolutionCard";
-import { Timeline } from "../components/Timeline";
 import { EVIDENCE_ORIGIN, safeReturnPath } from "../lib/evidenceNavigation";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { useRouteDestination } from "../components/RouteCompletion";
 import "../styles/profile/detail.css";
 
 // Presentation-only mapping from a link icon key to a lucide icon name.
@@ -23,12 +23,14 @@ export const ProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const headingRef = useRef(null);
   const project = getProjectById(id);
   useDocumentTitle(
     project
       ? `${project.header.title} - Pius Agboola`
       : "Page not found - Pius Agboola"
   );
+  useRouteDestination(headingRef, "Project", Boolean(project));
 
   if (!project) {
     return <NotFound />;
@@ -91,7 +93,14 @@ export const ProjectDetail = () => {
             />
           </div>
         )}
-        <h1 className="pf-pd-title">{header.title}</h1>
+        <h1
+          ref={headingRef}
+          className="pf-pd-title"
+          data-route-focus="project"
+          tabIndex={-1}
+        >
+          {header.title}
+        </h1>
         <p className="pf-pd-subtitle">{header.subtitle}</p>
         <p className="pf-pd-overview">{header.overview}</p>
 
@@ -162,7 +171,32 @@ export const ProjectDetail = () => {
         <div className="pf-pd-section">
           <h2 className="pf-pd-h">Challenges &amp; Solutions</h2>
           {project.problemSolutions.map((ps, i) => (
-            <ProblemSolutionCard key={i} {...ps} />
+            <div className="pf-pd-ps" key={i}>
+              <div className="pf-pd-ps-card">
+                <span className="pf-pd-ps-tag">
+                  <Siren size={13} /> Problem
+                </span>
+                <h3 className="pf-pd-ps-title">{ps.problem.title}</h3>
+                <p>
+                  <strong>Issue:</strong> {ps.problem.issue}
+                </p>
+                <p>
+                  <strong>Impact:</strong> {ps.problem.impact}
+                </p>
+              </div>
+              <div className="pf-pd-ps-card pf-pd-solution">
+                <span className="pf-pd-ps-tag">
+                  <SquareCheck size={13} /> Solution
+                </span>
+                <h3 className="pf-pd-ps-title">{ps.solution.title}</h3>
+                <p>
+                  <strong>Implementation:</strong> {ps.solution.implementation}
+                </p>
+                <p>
+                  <strong>Result:</strong> {ps.solution.result}
+                </p>
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -171,14 +205,22 @@ export const ProjectDetail = () => {
       {project.timeline?.length > 0 && (
         <div className="pf-pd-section">
           <h2 className="pf-pd-h">Development Timeline</h2>
-          <Timeline items={project.timeline} />
+          <div className="pf-pd-timeline">
+            {project.timeline.map((item, index) => (
+              <div key={index} className="pf-pd-tl-item">
+                <span className="pf-pd-tl-dot" />
+                <h3 className="pf-pd-tl-title">{item.title}</h3>
+                <p>{item.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
       {/* CTA */}
       <div className="pf-pd-cta">
         <div>
-          <h3>Want the full story?</h3>
+          <p className="pf-pd-cta-title">Want the full story?</p>
           <p>The code and commit history go deeper than this case study.</p>
         </div>
         <div className="pf-pd-cta-actions">

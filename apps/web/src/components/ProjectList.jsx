@@ -7,7 +7,7 @@ export const ProjectList = ({ items }) => (
       <Link to={`/projects/${project.id}`} className="pf-list-row" key={project.id}>
         <span className="pf-list-idx">{project.idx}</span>
         <div className="pf-list-main">
-          <h4>{project.title}</h4>
+          <h3 className="pf-list-title">{project.title}</h3>
           <p>{project.subtitle}</p>
         </div>
         <span className="pf-list-tech">{project.techLine}</span>

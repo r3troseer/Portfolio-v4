@@ -10,6 +10,7 @@ import { RetrievalInspector } from "../components/RetrievalInspector";
 import { PRESETS, PRESET_BY_ID } from "../lib/playgroundPresets";
 import { getProfile } from "../content/adapters/profileAdapter";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { useRouteDestination } from "../components/RouteCompletion";
 import "../styles/profile/playground.css";
 
 // The Layer 1 evidence workspace, ported from the profile handoff's "Evidence"
@@ -97,8 +98,10 @@ export function Playground() {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const routeFocusRef = useRef(null);
   const { name } = getProfile();
   useDocumentTitle("Evidence Playground - Pius Agboola");
+  useRouteDestination(routeFocusRef, "Evidence playground");
 
   const { query: requestedQuery, roleLens: requestedLens, stage } = resolveRequest(
     location.state,
@@ -200,7 +203,13 @@ export function Playground() {
   );
 
   return (
-    <section className="pf-pg">
+    <section
+      ref={routeFocusRef}
+      className="pf-pg"
+      data-route-focus="playground"
+      tabIndex={-1}
+      aria-label="Evidence playground"
+    >
       <p className="pf-pg-sr" role="status" aria-live="polite">
         {answerLiveMessage(result)}
       </p>

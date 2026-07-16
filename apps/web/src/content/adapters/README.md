@@ -32,7 +32,22 @@ or computed values. Image base-URL resolution happens in the adapter, not in JSO
     "links": [{ "icon": "github", "text": "...", "href": "..." }],
     "badge": { "text": "Live", "type": "live", "size": "small" },   // optional
     "metrics": [{ "number": "...", "label": "..." }],
-    "contentCards": [{ "markdown": "...", "type": "Architecture|Features", "tags": [], "gallery": {} }],
+    "contentCards": [{
+      "type": "Architecture|Features",
+      "title": "Architecture & Backend",
+      "blocks": [
+        { "type": "paragraph", "spans": [{ "text": "..." }, { "text": "emphasized", "bold": true }] },
+        { "type": "list", "items": [
+          { "spans": [{ "text": "Label", "bold": true }, { "text": ": detail with " }, { "text": "code", "code": true }],
+            "items": [{ "spans": [{ "text": "nested item" }] }] }
+        ]},
+        { "type": "subsection", "title": "Core Capabilities:", "blocks": [
+          { "type": "list", "items": [{ "spans": [{ "text": "..." }] }] }
+        ]}
+      ],
+      "tags": [],
+      "gallery": {}
+    }],
     "problemSolutions": [{ "problem": {}, "solution": {} }],
     "timeline": [{ "title": "...", "description": "..." }]
   },
@@ -63,7 +78,7 @@ source of truth: presentation/order in `index.json`, content + governance per fi
 |---|---|
 | `getFeaturedProject()` | The single top project by `displayOrder` as `{ id, title, subtitle, description, technologies, metrics }` (home "featured showcase"). |
 | `getProjectListItems()` | The remaining projects as numbered rows `{ id, idx, title, subtitle, techLine }` (`idx` continues from the featured card at `02`; `techLine` prefers a curated `card.listTech`). |
-| `getProjectById(id)` | Detail object `{ id, header, focus, technologies, metrics, contentCards, problemSolutions, timeline }`, or `null` if unknown. Gallery image `src` values are base-URL resolved here. |
+| `getProjectById(id)` | Detail object `{ id, header, focus, technologies, metrics, contentCards, problemSolutions, timeline }`, or `null` if unknown. `contentCards` are structured (`title`, `type`, `blocks`, optional `tags`/`gallery`); gallery image `src` values are base-URL resolved here. |
 
 ### Image resolution
 `gallery.images[].src` rules (applied in the adapter):

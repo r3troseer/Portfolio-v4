@@ -1,13 +1,21 @@
-import { useRef } from "react";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import { Sparkles, Command } from "lucide-react";
 import { useDockFlight } from "../hooks/useDockFlight";
 
 // Motion-only: this component does not call the backend. Clicking - inline, in flight,
 // or docked - dispatches pf:open-assistant; AssistantShell opens the modal and runs
 // retrieval. See docs/ui/ask-launcher-flight.md.
-export const AskLauncher = () => {
-  const ref = useRef(null);
-  const { onHoverIn, onHoverOut, onPressIn, onPressOut } = useDockFlight(ref);
+export const AskLauncher = forwardRef(function AskLauncher(_props, ref) {
+  const launcherRef = useRef(null);
+  const {
+    prepareForRouteExit,
+    onHoverIn,
+    onHoverOut,
+    onPressIn,
+    onPressOut,
+  } = useDockFlight(launcherRef);
+
+  useImperativeHandle(ref, () => ({ prepareForRouteExit }), [prepareForRouteExit]);
 
   const openAssistant = () => {
     window.dispatchEvent(new CustomEvent("pf:open-assistant"));
@@ -15,7 +23,7 @@ export const AskLauncher = () => {
 
   return (
     <button
-      ref={ref}
+      ref={launcherRef}
       type="button"
       className="pf-ask-fly"
       onClick={openAssistant}
@@ -33,4 +41,4 @@ export const AskLauncher = () => {
       </span>
     </button>
   );
-};
+});

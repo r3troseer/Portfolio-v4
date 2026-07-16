@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Markdown from "react-markdown";
 import { GalleryItem } from "./GalleryItem";
 import { Modal } from "./Modal";
 import { PencilRuler, Lightbulb, Images } from "lucide-react";
@@ -9,7 +8,52 @@ const iconByType = {
   Features: <Lightbulb size={18} />,
 };
 
-export const ContentCard = ({ markdown, type, tags, gallery, children }) => {
+const renderSpans = (spans = []) =>
+  spans.map((span, i) => {
+    let node = span.text;
+    if (span.code) {
+      node = <code key={i}>{span.text}</code>;
+    } else if (span.bold) {
+      node = <strong key={i}>{span.text}</strong>;
+    } else if (span.italic) {
+      node = <em key={i}>{span.text}</em>;
+    } else {
+      node = <span key={i}>{span.text}</span>;
+    }
+    return node;
+  });
+
+const ListBlock = ({ items }) => (
+  <ul>
+    {items.map((item, i) => (
+      <li key={i}>
+        {renderSpans(item.spans)}
+        {item.items?.length > 0 && <ListBlock items={item.items} />}
+      </li>
+    ))}
+  </ul>
+);
+
+const renderBlocks = (blocks = []) =>
+  blocks.map((block, i) => {
+    if (block.type === "paragraph") {
+      return <p key={i}>{renderSpans(block.spans)}</p>;
+    }
+    if (block.type === "list") {
+      return <ListBlock key={i} items={block.items} />;
+    }
+    if (block.type === "subsection") {
+      return (
+        <div key={i} className="pf-pd-card-subsection">
+          <p className="pf-pd-card-subtitle">{block.title}</p>
+          {renderBlocks(block.blocks)}
+        </div>
+      );
+    }
+    return null;
+  });
+
+export const ContentCard = ({ title, type, blocks, tags, gallery, children }) => {
   const [modalData, setModalData] = useState(null);
   const [failedCount, setFailedCount] = useState(0);
   // Hide the whole media block (incl. its title) once every image has failed.
@@ -17,21 +61,15 @@ export const ContentCard = ({ markdown, type, tags, gallery, children }) => {
 
   return (
     <div className="pf-pd-card">
-      {markdown && (
-        <div className="md-render">
-          <Markdown
-            components={{
-              h3: ({ node, ...props }) => (
-                <h3 {...props}>
-                  {iconByType[type] || null}
-                  {props.children}
-                </h3>
-              ),
-            }}
-          >
-            {markdown}
-          </Markdown>
-        </div>
+      {title && (
+        <h2 className="pf-pd-card-title">
+          {iconByType[type] || null}
+          {title}
+        </h2>
+      )}
+
+      {blocks?.length > 0 && (
+        <div className="pf-pd-card-body">{renderBlocks(blocks)}</div>
       )}
 
       {tags && (

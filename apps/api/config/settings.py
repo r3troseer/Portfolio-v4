@@ -12,14 +12,85 @@ Answer-specific throttling and soft process-local daily limits protect paid call
 shared counters and fuller budgets remain later infrastructure.
 """
 
+from decouple import Undefined
+from django.core.exceptions import ImproperlyConfigured
+
 from config.env import Csv, config
 
 # --- Core / security -------------------------------------------------------
-# SECURITY WARNING: set DJANGO_SECRET_KEY in any non-local environment.
-SECRET_KEY = config("DJANGO_SECRET_KEY", default="django-insecure-dev-only-change-me")
+# Local development may use this named fallback when DJANGO_DEBUG=true and the key is
+# missing. Production startup (DJANGO_DEBUG=false) rejects missing, empty, whitespace-only,
+# fallback, short, and known-placeholder values before serving traffic.
+DEVELOPMENT_SECRET_KEY = "django-insecure-dev-only-change-me"
+MIN_PRODUCTION_SECRET_KEY_LENGTH = 50
+PRODUCTION_SECRET_KEY_DENYLIST: frozenset[str] = frozenset(
+    {
+        DEVELOPMENT_SECRET_KEY,
+        "changeme",
+        "change-me",
+        "django-insecure",
+        "insert-secret-key-here",
+        "password",
+        "replace-me",
+        "secret",
+        "your-secret-key",
+    }
+)
 
 # Fail-closed: defaults to False; set DJANGO_DEBUG=true for local development.
 DEBUG = config("DJANGO_DEBUG", default=False, cast=bool)
+
+
+def _resolve_secret_key(*, debug: bool, raw: str | None) -> str:
+    """Return a validated SECRET_KEY; raise ImproperlyConfigured in production when unsafe."""
+    if debug:
+        if raw is None or raw == "":
+            return DEVELOPMENT_SECRET_KEY
+        normalized = raw.strip()
+        return normalized or DEVELOPMENT_SECRET_KEY
+
+    if raw is None:
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY is required when DJANGO_DEBUG is false."
+        )
+    if raw == "":
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY is required when DJANGO_DEBUG is false."
+        )
+
+    secret_key = raw.strip()
+    if not secret_key:
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY must not be empty or whitespace-only when "
+            "DJANGO_DEBUG is false."
+        )
+    if secret_key == DEVELOPMENT_SECRET_KEY:
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY must not use the development fallback when "
+            "DJANGO_DEBUG is false."
+        )
+    lowered = secret_key.lower()
+    if any(lowered == entry.lower() for entry in PRODUCTION_SECRET_KEY_DENYLIST):
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY matches a known placeholder value and is not allowed "
+            "when DJANGO_DEBUG is false."
+        )
+    if len(secret_key) < MIN_PRODUCTION_SECRET_KEY_LENGTH:
+        raise ImproperlyConfigured(
+            f"DJANGO_SECRET_KEY must be at least {MIN_PRODUCTION_SECRET_KEY_LENGTH} "
+            "characters when DJANGO_DEBUG is false."
+        )
+    return secret_key
+
+
+if DEBUG:
+    _secret_key_raw: str | None = config("DJANGO_SECRET_KEY", default=DEVELOPMENT_SECRET_KEY)
+else:
+    _secret_key_raw = config("DJANGO_SECRET_KEY", default=Undefined)
+    if _secret_key_raw is Undefined:
+        _secret_key_raw = None
+
+SECRET_KEY = _resolve_secret_key(debug=DEBUG, raw=_secret_key_raw)
 
 ALLOWED_HOSTS = config("DJANGO_ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
 

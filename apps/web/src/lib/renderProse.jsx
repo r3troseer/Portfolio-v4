@@ -1,8 +1,11 @@
+import { useRef } from "react";
 import { Link } from "react-router";
 import { EVIDENCE_ORIGIN } from "./evidenceNavigation";
 
 const PROSE_RE = /==([^=]+)==|\[\[\s*([^\]]+?)\s*\]\]/gi;
 const EVIDENCE_ID_PREFIX_RE = /^evidence_id:\s*/i;
+const CITE_POP_MAX_WIDTH = 232;
+const CITE_POP_GUTTER = 10;
 
 function normalizeEvidenceId(raw) {
   return String(raw ?? "")
@@ -31,10 +34,40 @@ export function stripProseMarkup(text) {
   return s.trim();
 }
 
+/** Smallest horizontal correction so both popover edges clear the viewport gutters. */
+function citePopoverEdgeShift(rect, vw) {
+  if (rect.left < CITE_POP_GUTTER) {
+    return CITE_POP_GUTTER - rect.left;
+  }
+  if (rect.right > vw - CITE_POP_GUTTER) {
+    return vw - CITE_POP_GUTTER - rect.right;
+  }
+  return 0;
+}
+
+/** Keep the anchored popover within horizontal viewport gutters. */
+function alignCitePopover(popEl) {
+  if (!popEl) return;
+
+  const vw = window.innerWidth;
+  const width = Math.min(CITE_POP_MAX_WIDTH, Math.max(0, vw - CITE_POP_GUTTER * 2));
+
+  // Apply responsive width and clear any prior shift before measuring real bounds.
+  popEl.style.setProperty("--cite-pop-width", `${width}px`);
+  popEl.style.setProperty("--cite-pop-shift", "0px");
+
+  let shift = citePopoverEdgeShift(popEl.getBoundingClientRect(), vw);
+  if (shift === 0) return;
+
+  popEl.style.setProperty("--cite-pop-shift", `${shift}px`);
+}
+
 function GenCiteChip({ citation, query, roleLens }) {
+  const popRef = useRef(null);
+  const align = () => alignCitePopover(popRef.current);
   const label = `[${citation.ref || "?"}]`;
   const popover = (
-    <span className="pf-pg-gen-cite-pop">
+    <span ref={popRef} className="pf-pg-gen-cite-pop">
       <span className="pf-pg-gen-cite-pop-t">{citation.title}</span>
       <span className="pf-pg-gen-cite-pop-s">{citation.snippet}</span>
     </span>
@@ -46,6 +79,8 @@ function GenCiteChip({ citation, query, roleLens }) {
         to={`/projects/${citation.project_id}`}
         state={{ from: EVIDENCE_ORIGIN.PLAYGROUND, q: query || "", roleLens }}
         className="pf-pg-gen-cite"
+        onMouseEnter={align}
+        onFocus={align}
       >
         {label}
         {popover}
@@ -54,7 +89,11 @@ function GenCiteChip({ citation, query, roleLens }) {
   }
 
   return (
-    <span className="pf-pg-gen-cite is-static">
+    <span
+      className="pf-pg-gen-cite is-static"
+      onMouseEnter={align}
+      onFocus={align}
+    >
       {label}
       {popover}
     </span>
