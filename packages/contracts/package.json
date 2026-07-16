@@ -1,0 +1,16 @@
+{
+  "name": "@portfolio/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "answer-response.schema.json",
+    "invariants.json",
+    "fixtures"
+  ],
+  "exports": {
+    "./answer-response.schema.json": "./answer-response.schema.json",
+    "./invariants.json": "./invariants.json",
+    "./fixtures/*": "./fixtures/*"
+  }
+}

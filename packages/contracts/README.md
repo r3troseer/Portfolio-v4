@@ -1,8 +1,10 @@
 # packages/contracts
 
-Language-neutral JSON data shared by `apps/web` and `apps/api`. No JavaScript
-build system, no package manager, and no generated clients — validators in each
-app load these files directly from the monorepo.
+Language-neutral JSON data shared by `apps/web` and `apps/api`. The private
+`package.json` only declares the web app's monorepo dependency and exported data
+files; there is no JavaScript build system and there are no generated clients.
+The API validator continues to load the canonical files directly from the
+monorepo.
 
 ## Served answer response (`answer-response.schema.json`)
 
