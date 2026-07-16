@@ -24,4 +24,7 @@ export const getExperience = () => experience;
 
 export const getEducation = () => education;
 
-export const getLinks = () => links;
+export const getLinks = () => ({
+  ...links,
+  profiles: links.profiles.filter((profile) => profile.showInUi !== false),
+});

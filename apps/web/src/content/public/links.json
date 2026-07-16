@@ -20,6 +20,7 @@
       "value": "piusagboola.com",
       "href": "https://piusagboola.com",
       "external": true,
+      "showInUi": false,
       "showInContact": false
     }
   ]
