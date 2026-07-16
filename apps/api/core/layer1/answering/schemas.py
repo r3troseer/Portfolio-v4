@@ -151,14 +151,16 @@ def parse_headline(data: dict[str, Any]) -> tuple[str, str]:
 
 
 def _validate_empty_non_answer_headline(data: dict[str, Any]) -> None:
-    """Require non-answer headline fields to be absent or empty."""
-    headline = data.get("headline")
-    if headline is None:
+    """Require an omitted headline or an exact blank title/sub object."""
+    if "headline" not in data:
         return
+    headline = data["headline"]
     if not isinstance(headline, dict):
         raise AnswerOutputError("a non-answer headline must be absent or empty")
+    if set(headline) != {"title", "sub"}:
+        raise AnswerOutputError("a non-answer headline must be absent or empty")
     for field in ("title", "sub"):
-        value = headline.get(field, "")
+        value = headline[field]
         if not isinstance(value, str) or value.strip():
             raise AnswerOutputError("a non-answer headline must be absent or empty")
 

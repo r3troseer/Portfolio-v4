@@ -264,6 +264,30 @@ class ValidateModelOutputTests(unittest.TestCase):
             with self.subTest(status=status):
                 self.assertEqual(validate_model_output(raw, self.IDS).status, status)
 
+    def test_non_answer_malformed_empty_headline_shape_fails_closed(self) -> None:
+        invalid_headlines = (
+            None,
+            {},
+            {"title": ""},
+            {"sub": ""},
+            {"title": "", "sub": "", "unexpected": ""},
+            {"title": 0, "sub": ""},
+        )
+        for status in ("refused", "insufficient_evidence"):
+            for headline in invalid_headlines:
+                raw = json.dumps(
+                    {
+                        "status": status,
+                        "answer": "",
+                        "citation_ids": [],
+                        "headline": headline,
+                    }
+                )
+                with self.subTest(
+                    status=status, headline=headline
+                ), self.assertRaises(AnswerOutputError):
+                    validate_model_output(raw, self.IDS)
+
     def test_answer_is_length_capped(self) -> None:
         long = f"[[project:a]] {'word ' * 400}"
         out = validate_model_output(

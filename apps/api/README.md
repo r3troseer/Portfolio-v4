@@ -238,9 +238,9 @@ Statuses (all HTTP `200`):
   retrieval finds nothing, or when the model returns a valid empty non-answer payload.
 - `refused` - out of scope; a fixed server message, no citations, no evidence, and **no
   ledger** (a refusal serves no retrieval artifacts). For `refused` and
-  `insufficient_evidence`, model prose, citations, and headline content must be empty;
-  otherwise the response fails closed as a controlled `502`. Valid states use a
-  server-authored public message.
+  `insufficient_evidence`, model prose and citations must be empty. The headline must be
+  omitted or be an exact `title`/`sub` object containing blank strings; all other headline
+  shapes fail closed as a controlled `502`. Valid states use a server-authored public message.
 
 HTTP status codes: `200` for the three answer statuses; `400` invalid request; `429` when the
 answer throttle or a soft daily cap is exceeded; `503` if the endpoint is disabled, the corpus
