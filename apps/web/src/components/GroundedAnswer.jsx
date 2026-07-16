@@ -64,7 +64,9 @@ export function GroundedAnswer({
   if (result.status !== "done") return null;
 
   if (result.kind !== "ok") {
-    const retry = ["unavailable", "error"].includes(result.kind) ? onRetry : undefined;
+    const retry = ["unavailable", "malformed", "error"].includes(result.kind)
+      ? onRetry
+      : undefined;
     if (isModal) {
       return (
         <div className="pf-ask-error">
