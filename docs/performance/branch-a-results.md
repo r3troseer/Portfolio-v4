@@ -102,3 +102,82 @@ in PA3/PA4; do not expand PA2 with unrelated execution changes.
 - PA3 assistant-dialog deferral and later programme units
 - Canonical project JSON edits, routes, CSS, dependencies, lockfiles, deployment, backend, CI
 - Fabricated performance numbers in this document
+
+## PA3 checkpoint - defer assistant dialog and answer machinery
+
+### Implementation summary (worker)
+
+| Field | Value |
+| --- | --- |
+| Atomic unit | PA3.1 |
+| Change | Keep AskLauncher, dock flight, shortcut/open listeners, and minimal load/open state eager; move AssistantDialog body, GroundedAnswer, retrieval hook, presets, answer client/validator/Ajv, and modal-only icons behind one idempotent `preloadAssistantDialog` boundary with adaptive idle preload plus intent preload; split modal CSS into `assistant-dialog.css` |
+| Expected commit message | `perf(web): defer the assistant dialog` |
+| Worker verification | `validate:content` + production `build` only; no Lighthouse / browser / bundle claims |
+
+### Build output (controller-owned)
+
+| Field | Slot |
+| --- | --- |
+| Report path | `dist/performance/build-report.json` |
+| Total assets raw bytes | `1,015,479` (`+16,171` vs PA2) |
+| Total assets gzip bytes | `543,795` (`+7,705` vs PA2) |
+| Homepage critical-path raw bytes | `326,079` (`-21,218`, `-6.1%` vs PA2) |
+| Homepage critical-path gzip bytes | `101,448` (`-5,372`, `-5.0%` vs PA2) |
+| Entry JS chunk (file + gzip) | `assets/index-M1qhV3oh.js` - `93,291` gzip bytes (`-4,015`, `-4.1%` vs PA2 entry JS) |
+| Entry CSS (file + gzip) | `assets/index--_zarol1.css` - `6,507` gzip bytes (`-1,355`, `-17.2%` vs PA2 entry CSS) |
+| Homepage critical JS/CSS inventory | Entry JS, entry CSS, `index.html` (`1,146` gzip bytes), and `assets/rolldown-runtime-CNC7AqOf.js` (`504` gzip bytes) |
+| Deferred assistant-dialog chunk inventory | Three bounded retry facade chunks (`1,989` to `1,991` gzip bytes each), shared dialog module (`311`), modal CSS (`2,090`), presets (`3,862`), evidence navigation (`166`), dialog accessibility hook (`641`), and answer validator/Ajv (`36,251`) |
+| Homepage critical graph contains dialog / GroundedAnswer / Ajv / presets / answer client? | No. Those implementations are emitted only in deferred assistant/shared chunks; the entry contains module URLs and the minimal loader/open state. |
+| Playground route still independently lazy and functional? | Yes. `Playground-RNb_rdKj.js` remains deferred; direct Playground and assistant-to-Playground automated journeys passed against the production build. |
+| Delta vs PA2 homepage critical-path gzip | `-5,372` bytes (`-5.0%`) |
+
+### Lighthouse five-run series (controller-owned)
+
+Target URL used: `http://127.0.0.1:5199/` (`LIGHTHOUSE_URL`)
+
+| Run | Performance score | LCP (ms) | CLS | TBT (ms) | Speed Index (ms) | Request count |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 84 | 2,328.11 | 0 | 526 | 2,263.86 | 17 |
+| 2 | 87 | 2,292.00 | 0 | 429 | 2,191.74 | 17 |
+| 3 | 87 | 2,279.23 | 0 | 430 | 2,168.95 | 17 |
+| 4 | 83 | 2,370.28 | 0 | 553.5 | 2,414.06 | 17 |
+| 5 | 86 | 2,295.66 | 0 | 454 | 2,165.22 | 17 |
+
+### Aggregates (controller-owned)
+
+| Field | Median | Worst |
+| --- | --- | --- |
+| Performance score | 86 (PA2: 90) | 83 (PA2: 79) |
+| LCP (ms) | 2,295.66 (`+12.29` vs PA2 median) | 2,370.28 (`-179.60` vs PA2 worst) |
+| CLS | 0 | 0 |
+| TBT (ms) | 454 (`+122` vs PA2 median) | 553.5 (`-130.5` vs PA2 worst) |
+| Speed Index (ms) | 2,191.74 (`+213.30` vs PA2 median) | 2,414.06 (`-159.90` vs PA2 worst) |
+| Request count | 17 (6 post-LCP assistant requests) | 17 |
+
+### Behaviour / visual (controller- or human-owned)
+
+| Field | Slot |
+| --- | --- |
+| Launcher DOM/classes/flight/geometry/hover/press/mobile/reduced-motion unchanged | Desktop/mobile dock-flight and reduced-motion drivers passed with zero errors. Human visual comparison remains pending. |
+| Cmd/Ctrl+K, click, Escape, overlay close, focus trap/restore, scroll lock | Passed in production Chromium; broad transition journeys also passed in Chromium/WebKit desktop/mobile. |
+| Input + resume query preserved while dialog chunk loads | Passed for immediate first intent and assistant-to-Playground/project-return journeys. |
+| Chunk-import failure accessible retry (no page reload; distinct from answer failure) | Passed: first boundary request was network-aborted, an alert and focused Retry appeared, Retry made a second request, and the dialog opened without reload/navigation. |
+| Preset/typed query, loading, answer, insufficient evidence, refusal, malformed, unavailable, retry, evidence/source links, Open in Playground, resume | Preset/typed answered and navigation/resume journeys passed against the fake API. Existing answer-contract fixtures passed; subjective rendering and the complete status matrix remain human/targeted-review owned. |
+| Idle preload skipped on save-data / heavily constrained / hidden; intent-only otherwise | Save-data, missing idle signal, normal visible idle, and intent override passed. Source inspection confirms hidden/2g gates. In all five Lighthouse runs, all 6 assistant requests began after observed LCP. |
+| Visible spinner / skeleton / styled loading modal / minimum delay introduced? | No. First intent exposes only the visually hidden accessible `Loading assistant.` status while retaining the launcher geometry. Human flash/feel confirmation remains pending. |
+
+### Measurement note
+
+An initial idle implementation loaded the six deferred assistant resources before the final hero
+paint because the browser emits early LCP candidates while the one-second entrance animation is
+still running. The accepted implementation waits for finite initial document animations, then two
+animation frames and a real idle callback; infinite decorative animation is excluded. Across the
+accepted five-run series, observed LCP occurred at 1,498-1,610 ms and the first assistant request at
+1,725-1,831 ms, with zero assistant requests before observed LCP. The higher request count is the
+intentional post-LCP warm-up, not critical-path competition.
+
+### Out of scope for PA3
+
+- PA4 particle / analytics / Speed Insights / below-the-fold scheduling and later programme units
+- Dependency, lockfile, route, canonical content, backend, deployment, CI, or PA1/PA2 baseline edits
+- Fabricated performance numbers in this document
