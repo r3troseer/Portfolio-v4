@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from "rea
 import { Navigation } from "./components/Navigation";
 import { Footer } from "./components/Footer";
 import { ParticleEffect } from "./components/ParticleEffect";
+import { DeferredTelemetry } from "./components/DeferredTelemetry";
 import { AssistantShell } from "./components/AssistantShell";
 import { Home } from "./pages/Home";
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -77,6 +78,7 @@ function Layout() {
           <AssistantShell />
         </>
       )}
+      <DeferredTelemetry />
     </>
   );
 }

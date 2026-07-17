@@ -181,3 +181,73 @@ intentional post-LCP warm-up, not critical-path competition.
 - PA4 particle / analytics / Speed Insights / below-the-fold scheduling and later programme units
 - Dependency, lockfile, route, canonical content, backend, deployment, CI, or PA1/PA2 baseline edits
 - Fabricated performance numbers in this document
+
+## PA4 checkpoint - defer non-critical particle and telemetry execution
+
+### Implementation summary (worker)
+
+| Field | Value |
+| --- | --- |
+| Atomic unit | PA4.1 |
+| Change | Keep ParticleEffect canvas mounted; arm setup/first rAF after buffered FCP (`scheduleAfterFirstPaint`) with load+frame fallback; resize updates backing store + DPR only (no pixel-locked CSS size); remove eager `@vercel/analytics` / `@vercel/speed-insights` from `main.jsx`; mount them globally via failure-isolated `DeferredTelemetry` after LCP + finite document animations + two frames + idle (`scheduleAfterCriticalIdle`); `content-visibility` left as an explicit no-op |
+| Expected commit message | `perf(web): defer non-critical execution` |
+| Worker verification | `validate:content` + production `build` only; no Lighthouse / browser / request-timing claims |
+| content-visibility decision | **No-op.** About / Projects / Experience / Contact all use Home `fade-in` IntersectionObserver targets and in-page `#` anchors; Projects also changes height on disclose; nav scroll-spy reads section geometry. Without controller browser proof of safe intrinsic sizes and no fade-in/anchor/launcher regression, containment was not applied. |
+
+### Build output (controller-owned)
+
+| Field | Slot |
+| --- | --- |
+| Report path | `dist/performance/build-report.json` |
+| Total assets raw bytes | `1,020,764` (`+5,285`, `+0.5%` vs PA3) |
+| Total assets gzip bytes | `546,724` (`+2,929`, `+0.5%` vs PA3) |
+| Homepage critical-path raw bytes | `325,472` (`-607`, `-0.2%` vs PA3) |
+| Homepage critical-path gzip bytes | `101,636` (`+188`, `+0.2%` vs PA3) |
+| Entry JS chunk (file + gzip) | `assets/index-CbUasfVB.js` - `90,580` gzip bytes (`-2,711`, `-2.9%` vs PA3 entry JS) |
+| Entry CSS (file + gzip) | `assets/index--_zarol1.css` - `6,507` gzip bytes (unchanged) |
+| Homepage critical JS/CSS inventory | Entry JS, entry CSS, shared React runtime (`2,886` gzip bytes), `index.html` (`1,159`), and Rolldown runtime (`504`) |
+| Deferred telemetry chunk inventory | Analytics `react-nYARLLm7.js` (`1,365` gzip bytes) and Speed Insights `react-Vku9SFTR.js` (`1,276` gzip bytes) |
+| Homepage critical graph contains Analytics / SpeedInsights implementation? | No. Their implementations are emitted only in the two deferred telemetry chunks; the entry contains the deferred module references and scheduler. |
+| Delta vs PA3 homepage critical-path gzip | `+188` bytes (`+0.2%`); entry JS fell `2,711` gzip bytes, but Vite exposed the shared React runtime as a `2,886`-byte critical modulepreload. |
+
+### Lighthouse five-run series (controller-owned)
+
+Target URL used: `http://127.0.0.1:5199/` (`LIGHTHOUSE_URL`)
+
+| Run | Performance score | LCP (ms) | CLS | TBT (ms) | Speed Index (ms) | Request count |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 92 | 2,139.91 | 0 | 287 | 1,941.03 | 20 |
+| 2 | 88 | 2,122.81 | 0 | 404 | 2,154.93 | 20 |
+| 3 | 85 | 2,163.88 | 0 | 530 | 2,256.61 | 20 |
+| 4 | 86 | 2,145.70 | 0 | 482 | 2,211.83 | 20 |
+| 5 | 93 | 2,025.05 | 0 | 269 | 1,899.39 | 20 |
+
+### Aggregates (controller-owned)
+
+| Field | Median | Worst |
+| --- | --- | --- |
+| Performance score | 88 (`+2` vs PA3) | 85 (`+2` vs PA3) |
+| LCP (ms) | 2,139.91 (`-155.75` vs PA3) | 2,163.88 (`-206.40` vs PA3) |
+| CLS | 0 | 0 |
+| TBT (ms) | 404 (`-50` vs PA3) | 530 (`-23.5` vs PA3) |
+| Speed Index (ms) | 2,154.93 (`-36.81` vs PA3) | 2,256.61 (`-157.45` vs PA3) |
+| Request count | 20 (`+3` vs PA3) | 20 (`+3` vs PA3) |
+
+### Behaviour / visual (controller- or human-owned)
+
+| Field | Slot |
+| --- | --- |
+| Particle canvas/config/appearance unchanged; loop starts only after commit + paint | Automated timing passed: first canvas clear at 603.5 ms, after FCP at 472 ms; first drawn particle at 926.7 ms. Appearance remains human-owned. |
+| Reduced-motion blank canvas; hidden-tab pause/resume; resize; one loop under StrictMode | Passed the focused production-browser matrix. Resize also repairs the pre-existing pixel-locked canvas: 900x700 updated to 760x620. |
+| Analytics / Speed Insights absent from critical path; load after critical paint/idle | Passed: both implementations are deferred chunks and began at 1,890.9-1,891.3 ms, after observed LCP at 1,640 ms. |
+| Telemetry import/component/network failure does not block portfolio render | Passed by aborting both telemetry chunks; the portfolio hero remained rendered and usable. |
+| Playground remains without particles and launcher; deferred telemetry retains prior all-route coverage | Passed: Playground retained its chromeless surface and requested both deferred telemetry chunks after critical rendering. |
+| Home content, fade-in, anchors, section order, desktop/mobile unchanged | Anchor/fade-in automation and the existing desktop/mobile/reduced-motion launcher driver passed. Human visual confirmation passed on the local production preview. |
+| content-visibility applied? | No (explicit worker no-op; see implementation summary) |
+| Launcher / CLS regression from PA4 scheduling? | Existing launcher regression driver passed desktop rest/dock/return, Cmd/Ctrl+K, Escape/click modal, detail fallback, reduced motion, and mobile rest/dock. Five Lighthouse runs report CLS 0. |
+
+### Out of scope for PA4
+
+- PA5 assets/caching, PA6 CI budgets, and later programme units
+- Dependency, lockfile, route, canonical content, backend, deployment, CI, navigation styling, or PA1-PA3 baseline edits
+- Fabricated performance numbers in this document
