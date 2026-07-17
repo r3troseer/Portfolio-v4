@@ -251,3 +251,80 @@ Target URL used: `http://127.0.0.1:5199/` (`LIGHTHOUSE_URL`)
 - PA5 assets/caching, PA6 CI budgets, and later programme units
 - Dependency, lockfile, route, canonical content, backend, deployment, CI, navigation styling, or PA1-PA3 baseline edits
 - Fabricated performance numbers in this document
+
+## PA5 checkpoint - optimize gallery image delivery and static asset caching
+
+### Implementation summary (worker)
+
+| Field | Value |
+| --- | --- |
+| Atomic unit | PA5.1 |
+| Change | Gallery thumbs get intrinsic 16:10 hints (`width`/`height` 640x400), `loading="lazy"`, `decoding="async"`, and Cloudinary responsive candidates (`f_auto,q_auto,c_fill,ar_16:10,w_*`) via `imageDelivery.js` while `src` stays the untransformed resolved original for the lightbox; thumbnail `src`/`srcset` attach only after a component-local IntersectionObserver (`rootMargin: 200px 0px`) so native lazy distance cannot fetch at route entry; `vercel.json` adds long-lived immutable cache headers for `/assets/*` and versioned WOFF2 fonts plus long-lived (non-immutable) icon/manifest caching; HTML/SPA fallback unchanged |
+| Expected commit message | `perf(web): optimize asset delivery` |
+| Worker verification | `validate:content` + production `build` only; no Lighthouse / CDN / browser claims |
+| Homepage gallery images | None introduced; delivery helpers are only used from project detail gallery resolution |
+
+### Build output (controller-owned)
+
+| Field | Slot |
+| --- | --- |
+| Report path | `apps/web/dist/performance/build-report.json` (ignored local artifact) |
+| Total assets raw bytes | `1,022,047` (`+1,283`, `+0.13%` vs PA4) |
+| Total assets gzip bytes | `547,322` (`+598`, `+0.11%` vs PA4) |
+| Homepage critical-path gzip bytes | `101,640` |
+| Homepage requests project gallery images? | No. Five Lighthouse runs and direct homepage request capture contained no project gallery image request. |
+| Delta vs PA4 homepage critical-path gzip | `+4` bytes (`+0.004%`); PA5 image delivery code remains in the deferred ProjectDetail chunk. |
+
+### Cache headers (controller-owned)
+
+| Field | Slot |
+| --- | --- |
+| `/assets/*` Cache-Control | Vercel config: `public, max-age=31536000, immutable` |
+| `/fonts/*.woff2` Cache-Control | Vercel config: `public, max-age=31536000, immutable` |
+| Favicon / manifest icon Cache-Control | Vercel config: icons `public, max-age=2592000`; manifest `public, max-age=86400` |
+| HTML / SPA fallback not immutable | Confirmed: no HTML or catch-all immutable header rule was added. Actual Vercel response-header proof remains a PR-preview check. |
+
+### Gallery behaviour (controller- or human-owned)
+
+| Field | Slot |
+| --- | --- |
+| Thumb 16:10 box + intrinsic hints; CLS | 390x844 runtime: 276x172.5 rendered box, 640x400 attributes, thumbnail lifecycle CLS `0`. |
+| Below-fold thumbs lazy; no route-entry gallery requests before approach | EPrep and real StudyBud runs recorded zero gallery requests at route entry; requests began after `scrollIntoViewIfNeeded`. Native lazy alone failed this check and was repaired with the component-local 200px observer gate. |
+| Responsive Cloudinary candidates + f_auto/q_auto; crop/composition preserved | Browser selected the 480w transformed StudyBud candidate. Real CDN returned transformed assets successfully (5,099 bytes vs 26,623-byte StudyBud original; 41,585 bytes vs 1,813,616-byte TicketSage original). Mobile gallery and lightbox screenshots preserved center crop and composition. |
+| Lightbox requests untransformed original only on open | Confirmed: no original before interaction; opening System Workflow requested `.../upload/studybud_architecture.png`. |
+| Missing-image removal, all-failed hide, labels, hover, focus, Escape/outside/close, focus restore | All-failed EPrep gallery hid after attempted delivery; real labels and existing hover CSS were unchanged; Escape restored the System Workflow trigger; mobile close control and modal bounds passed screenshot inspection. Outside-click and close-button code paths are unchanged. Human parity review remains required before merge. |
+
+### Lighthouse five-run series (controller-owned)
+
+Target URL used: `http://127.0.0.1:5199/` (`LIGHTHOUSE_URL`)
+
+| Run | Performance score | LCP (ms) | CLS | TBT (ms) | Speed Index (ms) | Request count |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 81 | 2,256.57 | 0 | 661.0 | 2,458.36 | 20 |
+| 2 | 87 | 2,144.55 | 0 | 458.0 | 2,264.22 | 20 |
+| 3 | 81 | 2,199.19 | 0 | 552.5 | 4,047.02 | 20 |
+| 4 | 88 | 2,216.41 | 0 | 406.0 | 2,105.51 | 20 |
+| 5 | 87 | 2,146.41 | 0 | 459.0 | 2,194.57 | 20 |
+
+### Aggregates and interpretation (controller-owned)
+
+| Field | Median | Worst |
+| --- | --- | --- |
+| Performance score | 87 (PA4: 88) | 81 (PA4: 85) |
+| LCP (ms) | 2,199.19 (`+59.28` vs PA4) | 2,256.57 (`+92.69` vs PA4) |
+| CLS | 0 | 0 |
+| TBT (ms) | 459 (`+55` vs PA4) | 661 (`+131` vs PA4) |
+| Speed Index (ms) | 2,264.22 (`+109.29` vs PA4) | 4,047.02 (one run outlier) |
+| Request count | 20 | 20 |
+
+PA5 adds only four gzip bytes to the homepage critical graph and executes its image logic only in
+the deferred ProjectDetail chunk. The homepage variance, including one Speed Index outlier and the
+post-critical assistant/telemetry requests, has no PA5 image execution path and is retained as
+measurement variance rather than hidden. PA6 treats LCP, TBT, Speed Index, JavaScript size, and
+performance score as advisory while freezing deterministic structural budgets.
+
+### Out of scope for PA5
+
+- PA6 CI budgets and later programme units
+- Font preloads, service worker, dependency/lockfile, canonical content, image-source JSON edits, backend, CI
+- Fabricated performance numbers in this document

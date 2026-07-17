@@ -8,8 +8,7 @@
 import { use } from "react";
 import manifest from "../generated/project-manifest.json";
 import { projectDetailLoaders } from "../generated/project-detail-loaders.js";
-
-const baseUrl = import.meta.env.VITE_IMAGE_BASE;
+import { toGalleryImageDelivery } from "../../lib/imageDelivery";
 
 const knownIds = new Set(manifest.projects.map((entry) => entry.id));
 
@@ -23,12 +22,6 @@ for (const id of knownIds) {
   }
 }
 
-const resolveImageSrc = (src) => {
-  if (!src) return src;
-  if (src.startsWith("http") || src.startsWith("/")) return src;
-  return `${baseUrl}/${src}`;
-};
-
 const resolveContentCards = (contentCards = []) =>
   contentCards.map((card) =>
     card.gallery
@@ -36,10 +29,8 @@ const resolveContentCards = (contentCards = []) =>
           ...card,
           gallery: {
             ...card.gallery,
-            images: card.gallery.images.map((img) => ({
-              ...img,
-              src: resolveImageSrc(img.src),
-            })),
+            // src = untransformed original (lightbox); thumb* = responsive delivery.
+            images: card.gallery.images.map((img) => toGalleryImageDelivery(img)),
           },
         }
       : card
