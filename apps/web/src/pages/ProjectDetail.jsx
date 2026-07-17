@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router";
 import { ArrowLeft, ArrowUpRight, Siren, SquareCheck } from "lucide-react";
 import { Icon } from "../components/Icon";
-import { getProjectById } from "../content/adapters/projectsAdapter";
+import { useProjectDetail } from "../content/adapters/projectDetailLoader";
 import { NotFound } from "./NotFound";
 import { Badge } from "../components/Badge";
 import { ContentCard } from "../components/ContentCard";
@@ -24,7 +24,10 @@ export const ProjectDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const headingRef = useRef(null);
-  const project = getProjectById(id);
+  // Suspends on the route-level Suspense (fallback={null}) until this project's
+  // detail chunk resolves. Unknown ids resolve immediately to null -> NotFound.
+  // Cached promises keep Back/Forward from refetching or showing stale content.
+  const project = useProjectDetail(id);
   useDocumentTitle(
     project
       ? `${project.header.title} - Pius Agboola`

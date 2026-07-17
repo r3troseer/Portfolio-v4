@@ -24,8 +24,9 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "build:analyze": "vite build",
+    "generate:project-manifest": "node content/generate-project-manifest.mjs",
+    "build": "npm run generate:project-manifest && vite build",
+    "build:analyze": "npm run generate:project-manifest && vite build",
     "preview": "vite preview",
     "perf:lighthouse": "node performance/run-lighthouse.mjs",
     "perf:report": "node performance/report-build.mjs",

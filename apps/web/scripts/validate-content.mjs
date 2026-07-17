@@ -4,19 +4,36 @@
 // docs/agent/pre-layer1-validation-plan.md). Exit non-zero on any violation so CI
 // fails the build.
 //
-// Also enforces the FE-B12 structured content-card schema (no markdown fields)
-// and checks that projectsAdapter.js registration matches index.json.
+// Also enforces the FE-B12 structured content-card schema (no markdown fields),
+// verifies the generated Home project manifest is fresh, and checks that the
+// Home adapter imports only that manifest (detail loads via projectDetailLoader).
 //
 // Run: npm run validate:content  (from apps/web)
 
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join, basename } from "node:path";
+import {
+  buildApprovedProjects,
+  buildProjectManifest,
+  serializeManifest,
+  serializeDetailLoaders,
+  MANIFEST_PATH,
+  LOADERS_PATH,
+} from "../content/generate-project-manifest.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(here, "..", "src", "content", "public");
 const projectsDir = join(publicDir, "projects");
 const adapterPath = join(here, "..", "src", "content", "adapters", "projectsAdapter.js");
+const detailLoaderPath = join(
+  here,
+  "..",
+  "src",
+  "content",
+  "adapters",
+  "projectDetailLoader.js"
+);
 const fixturesDir = join(here, "fixtures", "project-content");
 
 // Controlled vocabularies (single source for the validator). Keep in step with
@@ -322,13 +339,19 @@ if (registry) {
         continue;
       }
 
-      // Index gating: a surfaced project must be publicly indexable.
+      // Index gating: a surfaced project must be publicly indexable and safe.
       if (!INDEXABLE.has(project.data.visibility)) {
         err(
           label,
           `registered project is "${project.data.visibility}"; only ${[...INDEXABLE].join(
             " / "
           )} may be surfaced`
+        );
+      }
+      if (project.data.sensitivity !== "safe") {
+        err(
+          label,
+          `registered project is sensitivity "${project.data.sensitivity}"; only safe may be surfaced`
         );
       }
 
@@ -341,55 +364,193 @@ if (registry) {
   }
 }
 
-// Present-but-unregistered files are allowed by design (e.g. esg-greenwashing);
-// report them as information, not failure.
+// Present-but-unregistered files are allowed by design (kept on disk but not
+// surfaced); report them as information, not failure.
 for (const [id, { file }] of byId) {
   if (!registeredIds.has(id)) {
     infos.push(`${file}: present but unregistered (not surfaced) - visibility "${byId.get(id).data.visibility}"`);
   }
 }
 
-// --- Adapter registration must match the registry ---------------------------
+// --- Generated Home manifest + detail loaders must match (no drift) ---------
 try {
-  const adapterSrc = readFileSync(adapterPath, "utf8");
-  const byIdMatch = adapterSrc.match(/const projectsById = \{([\s\S]*?)\n\};/);
-  if (!byIdMatch) {
-    err("projectsAdapter.js", "could not find projectsById registration object");
+  const approved = buildApprovedProjects();
+  const expectedManifest = serializeManifest(buildProjectManifest(approved));
+  const expectedLoaders = serializeDetailLoaders(approved);
+  const approvedIds = approved.map((p) => p.id);
+
+  if (!existsSync(MANIFEST_PATH)) {
+    err(
+      "project-manifest.json",
+      "missing generated manifest; run npm run generate:project-manifest"
+    );
   } else {
-    const body = byIdMatch[1];
-    const adapterIds = new Set();
-    // Matches "id-with-dashes": ref  OR  bareIdentifier,
-    for (const m of body.matchAll(/["']([a-z0-9-]+)["']\s*:/g)) {
-      adapterIds.add(m[1]);
-    }
-    for (const m of body.matchAll(/^\s*([A-Za-z][A-Za-z0-9]*)\s*,?\s*$/gm)) {
-      // bare shorthand keys (mealsync, studybud, ...) — id equals import binding
-      // when the JSON id has no dashes. Map known camelCase imports below.
-      const name = m[1];
-      const dashed = name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
-      // Only accept if it matches a known project file id.
-      if (byId.has(name)) adapterIds.add(name);
-      else if (byId.has(dashed)) adapterIds.add(dashed);
-    }
-    for (const id of registeredIds) {
-      if (!adapterIds.has(id)) {
+    const actualManifest = readFileSync(MANIFEST_PATH, "utf8");
+    if (actualManifest !== expectedManifest) {
+      err(
+        "project-manifest.json",
+        "stale generated manifest; run npm run generate:project-manifest"
+      );
+    } else {
+      const manifest = JSON.parse(actualManifest);
+      const manifestIds = Array.isArray(manifest.projects)
+        ? manifest.projects.map((p) => p && p.id).filter(Boolean)
+        : [];
+
+      if (manifestIds.join("\0") !== approvedIds.join("\0")) {
         err(
-          "projectsAdapter.js",
-          `stale adapter registration: registry id "${id}" missing from projectsById`
+          "project-manifest.json",
+          "manifest id order does not match approved registry order"
         );
       }
+
+      for (const id of registeredIds) {
+        if (!manifestIds.includes(id)) {
+          err(
+            "project-manifest.json",
+            `registered id "${id}" missing from generated manifest`
+          );
+        }
+      }
+      for (const id of manifestIds) {
+        if (!registeredIds.has(id)) {
+          err(
+            "project-manifest.json",
+            `manifest id "${id}" is not in index.json (unsafe or unregistered)`
+          );
+        }
+      }
+
+      // Metrics only on the Home featured showcase (ordered index 0).
+      if (Array.isArray(manifest.projects)) {
+        manifest.projects.forEach((entry, index) => {
+          if (!entry || typeof entry !== "object") return;
+          if (index === 0) {
+            if (!Array.isArray(entry.metrics)) {
+              err(
+                "project-manifest.json",
+                "top featured showcase must include metrics (max four)"
+              );
+            } else if (entry.metrics.length > 4) {
+              err(
+                "project-manifest.json",
+                "featured showcase metrics must be at most four"
+              );
+            }
+          } else if (Object.prototype.hasOwnProperty.call(entry, "metrics")) {
+            err(
+              "project-manifest.json",
+              `list-only entry "${entry.id}" must omit metrics`
+            );
+          }
+        });
+      }
     }
-    for (const id of adapterIds) {
-      if (!registeredIds.has(id)) {
+  }
+
+  if (!existsSync(LOADERS_PATH)) {
+    err(
+      "project-detail-loaders.js",
+      "missing generated detail loaders; run npm run generate:project-manifest"
+    );
+  } else {
+    const actualLoaders = readFileSync(LOADERS_PATH, "utf8");
+    if (actualLoaders !== expectedLoaders) {
+      err(
+        "project-detail-loaders.js",
+        "stale generated detail loaders; run npm run generate:project-manifest"
+      );
+    } else {
+      const loaderIds = [];
+      for (const m of actualLoaders.matchAll(
+        /^\s*"([a-z0-9-]+)":\s*\(\)\s*=>\s*import\("\.\.\/public\/projects\/([a-z0-9-]+)\.json"\),?\s*$/gm
+      )) {
+        if (m[1] !== m[2]) {
+          err(
+            "project-detail-loaders.js",
+            `loader key "${m[1]}" does not match import path id "${m[2]}"`
+          );
+        }
+        loaderIds.push(m[1]);
+      }
+      if (loaderIds.join("\0") !== approvedIds.join("\0")) {
         err(
-          "projectsAdapter.js",
-          `stale adapter registration: projectsById id "${id}" not in index.json`
+          "project-detail-loaders.js",
+          "loader id order does not match approved manifest/registry order"
         );
+      }
+      // Fail closed: every import path id must be registered (already gated).
+      for (const id of loaderIds) {
+        if (!registeredIds.has(id)) {
+          err(
+            "project-detail-loaders.js",
+            `loader id "${id}" is not in index.json (unsafe or unregistered)`
+          );
+        }
       }
     }
   }
 } catch (e) {
+  err(
+    "generated-project-outputs",
+    `could not verify generated manifest/loaders (${e.message})`
+  );
+}
+
+// --- Home adapter imports only the summary manifest; detail uses generated map
+try {
+  const adapterSrc = readFileSync(adapterPath, "utf8");
+  if (!adapterSrc.includes("project-manifest.json")) {
+    err(
+      "projectsAdapter.js",
+      "Home adapter must import the generated project-manifest.json"
+    );
+  }
+  if (/from\s+["']\.\.\/public\/projects\/[^"']+\.json["']/.test(adapterSrc)) {
+    err(
+      "projectsAdapter.js",
+      "Home adapter must not import canonical project JSON; use the generated manifest"
+    );
+  }
+  if (/projectsById/.test(adapterSrc) || /getProjectById/.test(adapterSrc)) {
+    err(
+      "projectsAdapter.js",
+      "Home adapter must not retain static projectsById / getProjectById detail loading"
+    );
+  }
+} catch (e) {
   err("projectsAdapter.js", `could not read adapter (${e.message})`);
+}
+
+try {
+  if (!existsSync(detailLoaderPath)) {
+    err(
+      "projectDetailLoader.js",
+      "missing on-demand detail loader; ProjectDetail must load one project chunk at a time"
+    );
+  } else {
+    const loaderSrc = readFileSync(detailLoaderPath, "utf8");
+    if (loaderSrc.includes("import.meta.glob")) {
+      err(
+        "projectDetailLoader.js",
+        "detail loader must not use import.meta.glob; import generated project-detail-loaders.js"
+      );
+    }
+    if (!loaderSrc.includes("project-detail-loaders.js")) {
+      err(
+        "projectDetailLoader.js",
+        "detail loader must import the generated project-detail-loaders.js map"
+      );
+    }
+    if (!loaderSrc.includes("project-manifest.json")) {
+      err(
+        "projectDetailLoader.js",
+        "detail loader must validate ids against the generated project manifest"
+      );
+    }
+  }
+} catch (e) {
+  err("projectDetailLoader.js", `could not read detail loader (${e.message})`);
 }
 
 // --- Embedded reject/pass card checks (fixtures dir may be gitignored) ------
@@ -559,5 +720,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `\nContent validation passed: ${files.length} project file(s), ${registeredIds.size} registered, ${SILO_FILES.length} profile silo(s).`
+  `\nContent validation passed: ${files.length} project file(s), ${registeredIds.size} registered, ${SILO_FILES.length} profile silo(s), generated Home manifest and detail loaders fresh.`
 );
