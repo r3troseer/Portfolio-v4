@@ -19,7 +19,6 @@ const MOBILE_MENU_ID = "mobile-nav-menu";
 const SPY_OFFSET = 120;
 
 export const Navigation = () => {
-  const [navBackground, setNavBackground] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -30,15 +29,14 @@ export const Navigation = () => {
   const restoreFocusRef = useRef(false);
   const previousLocationKeyRef = useRef(location.key);
 
-  // One rAF-throttled scroll handler: nav background + scroll-spy. The active
-  // link's underline (CSS .active) follows the section currently in view.
+  // One rAF-throttled scroll-spy handler. The active link's underline (CSS
+  // .active) follows the section currently in view.
   useEffect(() => {
+    if (!isHomePage) return undefined;
+
     let ticking = false;
 
     const compute = () => {
-      setNavBackground(window.scrollY > 100);
-
-      if (!isHomePage) return;
       const offset = window.scrollY + SPY_OFFSET;
       let current = SECTIONS[0].id;
       for (const { id } of SECTIONS) {
@@ -191,7 +189,7 @@ export const Navigation = () => {
     ));
 
   return (
-    <nav className={`nav ${navBackground ? "nav-scrolled" : ""}`}>
+    <nav className="nav">
       <div className="nav-container">
         <Link to="/" className="logo">
           {name}
