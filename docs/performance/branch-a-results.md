@@ -328,3 +328,84 @@ performance score as advisory while freezing deterministic structural budgets.
 - PA6 CI budgets and later programme units
 - Font preloads, service worker, dependency/lockfile, canonical content, image-source JSON edits, backend, CI
 - Fabricated performance numbers in this document
+
+## PA6 checkpoint - freeze Branch A budgets and enforce in CI
+
+### Implementation summary (worker)
+
+| Field | Value |
+| --- | --- |
+| Atomic unit | PA6.1 |
+| Change | Keep `lighthouse@12.6.1` five-run explicit-URL runner; extend summary capture for accessibility + structural audits; add `budgets.json` with PA5 hard ceilings and advisory speed/size bounds; add fail-closed `assert-budgets.mjs` + fixture tests; add cross-platform `run-ci-audit.mjs` owning preview port 5398 with reject-occupied, wait, lighthouse, assert, always-cleanup, and bounded known-route status smoke; wire into existing web CI after `perf:report` |
+| Expected commit message | `ci(web): enforce measured performance budgets` |
+| Worker verification | `validate:content` + production `build` + `perf:assert-budgets:test`; no claimed live Lighthouse/CI runtime |
+| Tooling decision | No `@lhci/cli`, upload service, dashboard, or second browser stack |
+
+### Frozen hard ceilings (configuration)
+
+| Field | Value |
+| --- | --- |
+| Homepage critical-path gzip max | `101640` |
+| CLS max (every run) | `0.010` |
+| Accessibility min (every run) | `100` |
+| Structural audits (every run) | `viewport`, `document-title`, `meta-description`, `http-status-code`, `errors-in-console` |
+
+The local Vite preview cannot serve Vercel's deployment-owned
+`/_vercel/insights/script.js` and `/_vercel/speed-insights/script.js`. The runner ignores only those
+two exact same-origin 404 network entries when the target is loopback, records the ignored count,
+and continues to hard-fail every other console error. Production/Vercel targets receive no such
+exception.
+
+### Advisory bounds (warn only)
+
+| Field | Value |
+| --- | --- |
+| Performance score median min | `87` |
+| LCP median max (ms) | `2200` |
+| TBT median max (ms) | `460` |
+| Speed Index median max (ms) | `2275` |
+| Total JavaScript gzip max | `175000` |
+| ProjectDetail gzip max | `4500` |
+
+### Link coverage boundary
+
+| Field | Value |
+| --- | --- |
+| Hard | Homepage Lighthouse `http-status-code` + status checks for Home, Playground, and every generated public project route on the owned preview (`status < 400`) |
+| Non-gating | External portfolio link availability |
+| Residual | SPA destinations checked as same-origin HTML shell responses, not rendered route DOM; no rendered-DOM link traversal or second browser stack |
+
+### Controller evidence slots
+
+| Field | Slot |
+| --- | --- |
+| Fixture suite (`perf:assert-budgets:test`) | Passed all 13 fixture/CLI checks, including malformed or missing evidence, hard failures, and advisory-only exits |
+| Owned-preview CI audit (`perf:ci-audit`) | Passed five Lighthouse runs and all 11 known-route status checks after the route-smoke correction |
+| Exact child process cleanup confirmed | Passed; the wrapper terminated its exact preview process tree and confirmed port 5398 closed |
+| Occupied-port rejection confirmed | Passed; exited 1 without attaching to or stopping the existing listener, then the test listener was removed and port 5398 was clear |
+| Hard vs advisory classification on live PA5-shaped run | Passed with zero hard failures and zero advisory warnings |
+
+### Controller PA6 live evidence
+
+| Measurement | Five-run result |
+| --- | --- |
+| Performance score | median `88`, worst `84` |
+| Accessibility | median `100`, worst `100` |
+| LCP | median `2127.8320 ms`, worst `2177.9398 ms` |
+| CLS | median `0`, worst `0` |
+| TBT | median `420 ms`, worst `564 ms` |
+| Speed Index | median `2101.3848 ms`, worst `2274.3818 ms` |
+| Request count | median `20`, worst `20` |
+| Homepage critical-path gzip | `101581 bytes` |
+| Total JavaScript gzip | `174343 bytes` |
+| ProjectDetail gzip | `4389 bytes` |
+
+The first live hard-gate run also found a real pre-existing skip-link defect: the link targeted
+`#main` while the `<main>` element had no matching id. That repair is isolated in the preceding
+atomic commit `fix(web): restore skip link target`; PA6 does not lower the accessibility floor.
+
+### Out of scope for PA6
+
+- LHCI, upload/dashboard services, lockfile/dependency changes, product UI/runtime, Vercel behavior changes
+- Turning noisy LCP/FCP/SI/TBT/score/request-count worst values into hard gates
+- Fabricated runtime CI or Lighthouse results in this document

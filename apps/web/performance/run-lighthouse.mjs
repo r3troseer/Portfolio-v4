@@ -1,5 +1,7 @@
-// Repeatable five-run Lighthouse measurement for the homepage baseline.
+// Repeatable five-run Lighthouse measurement for Branch A budgets.
 // Requires an explicit LIGHTHOUSE_URL and writes only ignored dist artifacts.
+// Captures performance metrics plus accessibility and deterministic structural
+// audit evidence used by assert-budgets.mjs.
 
 import {
   existsSync,
@@ -13,6 +15,14 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import lighthouse from "lighthouse";
 
 const RUN_COUNT = 5;
+const STRUCTURAL_AUDIT_IDS = [
+  "viewport",
+  "document-title",
+  "meta-description",
+  "http-status-code",
+  "errors-in-console",
+];
+
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, "..");
 const outputDir = join(webRoot, "dist", "performance", "lighthouse");
@@ -61,6 +71,59 @@ function delay(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
+function isExpectedLoopbackTelemetryError(item, targetUrl) {
+  const target = new URL(targetUrl);
+  if (target.hostname !== "127.0.0.1" && target.hostname !== "localhost") {
+    return false;
+  }
+  const sourceUrl = item?.sourceLocation?.url;
+  if (typeof sourceUrl !== "string") return false;
+  let source;
+  try {
+    source = new URL(sourceUrl);
+  } catch {
+    return false;
+  }
+  const expectedPaths = new Set([
+    "/_vercel/insights/script.js",
+    "/_vercel/speed-insights/script.js",
+  ]);
+  return (
+    item.source === "network" &&
+    source.origin === target.origin &&
+    expectedPaths.has(source.pathname) &&
+    /status of 404/i.test(item.description ?? "")
+  );
+}
+
+function structuralAuditResult(audits, auditId, runNumber, targetUrl) {
+  const audit = audits[auditId];
+  if (!audit) {
+    throw new Error(`Run ${runNumber} is missing required audit "${auditId}".`);
+  }
+  const score = audit.score;
+  if (score !== null && !Number.isFinite(score)) {
+    throw new Error(
+      `Run ${runNumber} audit "${auditId}" produced a non-finite score.`
+    );
+  }
+  const items = Array.isArray(audit.details?.items) ? audit.details.items : [];
+  const ignoredKnownPreviewErrors =
+    auditId === "errors-in-console" &&
+    items.length > 0 &&
+    items.every((item) => isExpectedLoopbackTelemetryError(item, targetUrl));
+  return {
+    id: auditId,
+    score,
+    scoreDisplayMode: audit.scoreDisplayMode ?? null,
+    title: audit.title ?? auditId,
+    // Hard budgets require an explicit pass (score === 1). null/informative
+    // without a pass score is treated as missing evidence by assert-budgets.
+    passed: score === 1 || ignoredKnownPreviewErrors,
+    ignoredKnownPreviewErrors: ignoredKnownPreviewErrors ? items.length : 0,
+  };
+}
+
 async function collectRun(targetUrl, runNumber, launchChrome) {
   const runBase = join(outputDir, `run-${String(runNumber).padStart(2, "0")}`);
   const jsonPath = `${runBase}.report.json`;
@@ -79,7 +142,8 @@ async function collectRun(targetUrl, runNumber, launchChrome) {
     });
     runnerResult = await lighthouse(targetUrl, {
       logLevel: "silent",
-      onlyCategories: ["performance"],
+      // performance + a11y + SEO/best-practices structural audits used as hard gates
+      onlyCategories: ["performance", "accessibility", "best-practices", "seo"],
       output: ["json", "html"],
       port: chrome.port,
     });
@@ -113,6 +177,18 @@ async function collectRun(targetUrl, runNumber, launchChrome) {
   const audits = report.audits ?? {};
   const requests = audits["network-requests"]?.details?.items ?? [];
   const performanceScore = (report.categories?.performance?.score ?? Number.NaN) * 100;
+  const accessibilityScore =
+    (report.categories?.accessibility?.score ?? Number.NaN) * 100;
+
+  const structuralAudits = {};
+  for (const auditId of STRUCTURAL_AUDIT_IDS) {
+    structuralAudits[auditId] = structuralAuditResult(
+      audits,
+      auditId,
+      runNumber,
+      targetUrl
+    );
+  }
 
   return {
     run: runNumber,
@@ -120,6 +196,11 @@ async function collectRun(targetUrl, runNumber, launchChrome) {
     finalUrl: report.finalUrl,
     fetchTime: report.fetchTime,
     performanceScore: finiteMetric(performanceScore, "a performance score", runNumber),
+    accessibilityScore: finiteMetric(
+      accessibilityScore,
+      "an accessibility score",
+      runNumber
+    ),
     lcpMs: finiteMetric(
       audits["largest-contentful-paint"]?.numericValue,
       "LCP",
@@ -141,6 +222,7 @@ async function collectRun(targetUrl, runNumber, launchChrome) {
       runNumber
     ),
     requestCount: requests.length,
+    structuralAudits,
     reports: {
       json: jsonPath.slice(webRoot.length + 1).replace(/\\/g, "/"),
       html: htmlPath.slice(webRoot.length + 1).replace(/\\/g, "/"),
@@ -169,18 +251,21 @@ async function main() {
   }
 
   const summary = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     tool: "lighthouse@12.6.1",
     methodology: {
       runCount: RUN_COUNT,
       formFactor: "Lighthouse default simulated mobile",
       aggregation: "Median is the middle of five sorted values.",
-      budgetEnforcement: "Deferred to PA6 after the PA1 baseline is frozen.",
+      categories: ["performance", "accessibility", "best-practices", "seo"],
+      structuralAudits: STRUCTURAL_AUDIT_IDS,
+      budgetEnforcement: "assert-budgets.mjs (hard vs advisory Branch A ceilings).",
     },
     targetUrl,
     runs,
     aggregates: {
       performanceScore: metricSummary(runs, "performanceScore", false),
+      accessibilityScore: metricSummary(runs, "accessibilityScore", false),
       lcpMs: metricSummary(runs, "lcpMs", true),
       cls: metricSummary(runs, "cls", true),
       tbtMs: metricSummary(runs, "tbtMs", true),

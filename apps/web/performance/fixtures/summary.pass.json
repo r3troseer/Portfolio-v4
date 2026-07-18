@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 2,
+  "tool": "lighthouse@12.6.1",
+  "methodology": {
+    "runCount": 5,
+    "formFactor": "fixture",
+    "structuralAudits": [
+      "viewport",
+      "document-title",
+      "meta-description",
+      "http-status-code",
+      "errors-in-console"
+    ]
+  },
+  "targetUrl": "http://127.0.0.1:5398/",
+  "runs": [
+    {
+      "run": 1,
+      "performanceScore": 81,
+      "accessibilityScore": 100,
+      "lcpMs": 2256.57,
+      "cls": 0,
+      "tbtMs": 661,
+      "speedIndexMs": 2458.36,
+      "requestCount": 20,
+      "structuralAudits": {
+        "viewport": { "id": "viewport", "score": 1, "passed": true },
+        "document-title": { "id": "document-title", "score": 1, "passed": true },
+        "meta-description": { "id": "meta-description", "score": 1, "passed": true },
+        "http-status-code": { "id": "http-status-code", "score": 1, "passed": true },
+        "errors-in-console": { "id": "errors-in-console", "score": 1, "passed": true }
+      }
+    },
+    {
+      "run": 2,
+      "performanceScore": 87,
+      "accessibilityScore": 100,
+      "lcpMs": 2144.55,
+      "cls": 0,
+      "tbtMs": 458,
+      "speedIndexMs": 2264.22,
+      "requestCount": 20,
+      "structuralAudits": {
+        "viewport": { "id": "viewport", "score": 1, "passed": true },
+        "document-title": { "id": "document-title", "score": 1, "passed": true },
+        "meta-description": { "id": "meta-description", "score": 1, "passed": true },
+        "http-status-code": { "id": "http-status-code", "score": 1, "passed": true },
+        "errors-in-console": { "id": "errors-in-console", "score": 1, "passed": true }
+      }
+    },
+    {
+      "run": 3,
+      "performanceScore": 81,
+      "accessibilityScore": 100,
+      "lcpMs": 2199.19,
+      "cls": 0,
+      "tbtMs": 552.5,
+      "speedIndexMs": 4047.02,
+      "requestCount": 20,
+      "structuralAudits": {
+        "viewport": { "id": "viewport", "score": 1, "passed": true },
+        "document-title": { "id": "document-title", "score": 1, "passed": true },
+        "meta-description": { "id": "meta-description", "score": 1, "passed": true },
+        "http-status-code": { "id": "http-status-code", "score": 1, "passed": true },
+        "errors-in-console": { "id": "errors-in-console", "score": 1, "passed": true }
+      }
+    },
+    {
+      "run": 4,
+      "performanceScore": 88,
+      "accessibilityScore": 100,
+      "lcpMs": 2216.41,
+      "cls": 0,
+      "tbtMs": 406,
+      "speedIndexMs": 2105.51,
+      "requestCount": 20,
+      "structuralAudits": {
+        "viewport": { "id": "viewport", "score": 1, "passed": true },
+        "document-title": { "id": "document-title", "score": 1, "passed": true },
+        "meta-description": { "id": "meta-description", "score": 1, "passed": true },
+        "http-status-code": { "id": "http-status-code", "score": 1, "passed": true },
+        "errors-in-console": { "id": "errors-in-console", "score": 1, "passed": true }
+      }
+    },
+    {
+      "run": 5,
+      "performanceScore": 87,
+      "accessibilityScore": 100,
+      "lcpMs": 2146.41,
+      "cls": 0,
+      "tbtMs": 459,
+      "speedIndexMs": 2194.57,
+      "requestCount": 20,
+      "structuralAudits": {
+        "viewport": { "id": "viewport", "score": 1, "passed": true },
+        "document-title": { "id": "document-title", "score": 1, "passed": true },
+        "meta-description": { "id": "meta-description", "score": 1, "passed": true },
+        "http-status-code": { "id": "http-status-code", "score": 1, "passed": true },
+        "errors-in-console": { "id": "errors-in-console", "score": 1, "passed": true }
+      }
+    }
+  ],
+  "aggregates": {
+    "performanceScore": { "median": 87, "worst": 81 },
+    "accessibilityScore": { "median": 100, "worst": 100 },
+    "lcpMs": { "median": 2199.19, "worst": 2256.57 },
+    "cls": { "median": 0, "worst": 0 },
+    "tbtMs": { "median": 459, "worst": 661 },
+    "speedIndexMs": { "median": 2264.22, "worst": 4047.02 },
+    "requestCount": { "median": 20, "worst": 20 }
+  }
+}
