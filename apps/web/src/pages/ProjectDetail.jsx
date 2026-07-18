@@ -1,8 +1,7 @@
 import { useRef } from "react";
-import { useParams, useNavigate, useLocation } from "react-router";
+import { useLoaderData, useNavigate, useLocation } from "react-router";
 import { ArrowLeft, ArrowUpRight, Siren, SquareCheck } from "lucide-react";
 import { Icon } from "../components/Icon";
-import { useProjectDetail } from "../content/adapters/projectDetailLoader";
 import { NotFound } from "./NotFound";
 import { Badge } from "../components/Badge";
 import { ContentCard } from "../components/ContentCard";
@@ -20,14 +19,12 @@ const linkIconMap = {
 };
 
 export const ProjectDetail = () => {
-  const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const headingRef = useRef(null);
-  // Suspends on the route-level Suspense (fallback={null}) until this project's
-  // detail chunk resolves. Unknown ids resolve immediately to null -> NotFound.
-  // Cached promises keep Back/Forward from refetching or showing stale content.
-  const project = useProjectDetail(id);
+  // Route loader supplies one public-safe project (or null). Prerender serializes
+  // only this route's payload; unknown ids fail closed to NotFound.
+  const project = useLoaderData();
   useDocumentTitle(
     project
       ? `${project.header.title} - Pius Agboola`

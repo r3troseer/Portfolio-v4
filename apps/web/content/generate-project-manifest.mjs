@@ -133,8 +133,9 @@ export function buildProjectManifest(approved = buildApprovedProjects()) {
   });
 
   return {
-    // Routing / prerender discovery: ordered public project ids for Home and
-    // known-id validation in the detail loader. No overview, content cards,
+    // Routing / prerender discovery: ordered public project ids for Home,
+    // known-id validation in the detail loader, and react-router.config.js
+    // canonical public-safe prerender paths. No overview, content cards,
     // galleries, problem/solution, timeline, or ai metadata.
     projects: summaries,
   };

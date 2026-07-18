@@ -1,5 +1,12 @@
-import { route } from "@react-router/dev/routes";
+import { index, layout, route } from "@react-router/dev/routes";
 
-// Compatibility boundary: one optional catch-all Framework Mode route renders
-// the existing component-route App. Individual route modules are deferred.
-export default [route("*?", "routes/spa.jsx")];
+// Explicit Framework Mode routes for the public portfolio. No PB1 catch-all
+// compatibility boundary - each surface owns its route module.
+export default [
+  layout("routes/site-layout.jsx", [
+    index("routes/home.jsx"),
+    route("playground", "routes/playground.jsx"),
+    route("projects/:id", "routes/project-detail.jsx"),
+    route("*", "routes/not-found.jsx"),
+  ]),
+];

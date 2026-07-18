@@ -65,7 +65,9 @@ const UNKNOWN_DETAIL = Promise.resolve(null);
 
 /**
  * Returns a promise of the presentation-ready detail object, or null when the
- * id is unknown / not in the public-safe manifest.
+ * id is unknown / not in the public-safe manifest. Used by the Framework Mode
+ * project-detail route loader so prerender and client navigation load one
+ * approved payload at a time (never the full catalog into Home).
  */
 export function loadProjectDetail(id) {
   if (typeof id !== "string" || !loadersById.has(id)) {
