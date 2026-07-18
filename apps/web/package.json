@@ -8,25 +8,28 @@
   },
   "dependencies": {
     "@portfolio/contracts": "file:../../packages/contracts",
+    "@react-router/node": "7.18.1",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^2.0.0",
     "ajv": "^8.17.1",
     "lucide-react": "^0.542.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router": "^7.6.3"
+    "react-router": "7.18.1",
+    "isbot": "5.1.32"
   },
   "devDependencies": {
+    "@react-router/dev": "7.18.1",
     "@vitejs/plugin-react": "^6.0.3",
     "lighthouse": "12.6.1",
     "rollup-plugin-visualizer": "^7.0.1",
     "vite": "^8.1.0"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "react-router dev",
     "generate:project-manifest": "node content/generate-project-manifest.mjs",
-    "build": "npm run generate:project-manifest && vite build",
-    "build:analyze": "npm run generate:project-manifest && vite build",
+    "build": "npm run generate:project-manifest && react-router build",
+    "build:analyze": "npm run generate:project-manifest && react-router build",
     "preview": "vite preview",
     "perf:lighthouse": "node performance/run-lighthouse.mjs",
     "perf:report": "node performance/report-build.mjs",

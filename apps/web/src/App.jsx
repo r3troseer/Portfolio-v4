@@ -1,5 +1,5 @@
 import { lazy, Suspense, useRef } from "react";
-import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from "react-router";
+import { Routes, Route, Outlet, useLocation } from "react-router";
 import { Navigation } from "./components/Navigation";
 import { Footer } from "./components/Footer";
 import { ParticleEffect } from "./components/ParticleEffect";
@@ -72,7 +72,7 @@ function Layout() {
 
 function App() {
   return (
-    <Router>
+    <>
       <ScrollToTop />
       <RouteCompletion />
       <Routes>
@@ -83,7 +83,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
-    </Router>
+    </>
   );
 }
 

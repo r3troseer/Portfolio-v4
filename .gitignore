@@ -12,6 +12,9 @@ node_modules
 dist
 build
 
+# React Router Framework Mode cache
+.react-router/
+
 # python / backend (apps/api) - uv.lock and .python-version ARE committed
 .venv/
 __pycache__/
