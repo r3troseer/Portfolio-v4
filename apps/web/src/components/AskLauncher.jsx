@@ -5,7 +5,7 @@ import { useDockFlight } from "../hooks/useDockFlight";
 // Motion-only: this component does not call the backend. Clicking - inline, in flight,
 // or docked - dispatches pf:open-assistant; AssistantShell opens the modal and runs
 // retrieval. See docs/ui/ask-launcher-flight.md.
-export const AskLauncher = forwardRef(function AskLauncher(_props, ref) {
+export const AskLauncher = forwardRef(function AskLauncher({ onIntentPreload }, ref) {
   const launcherRef = useRef(null);
   const {
     prepareForRouteExit,
@@ -17,7 +17,12 @@ export const AskLauncher = forwardRef(function AskLauncher(_props, ref) {
 
   useImperativeHandle(ref, () => ({ prepareForRouteExit }), [prepareForRouteExit]);
 
+  const warm = () => {
+    onIntentPreload?.();
+  };
+
   const openAssistant = () => {
+    warm();
     window.dispatchEvent(new CustomEvent("pf:open-assistant"));
   };
 
@@ -27,8 +32,13 @@ export const AskLauncher = forwardRef(function AskLauncher(_props, ref) {
       type="button"
       className="pf-ask-fly"
       onClick={openAssistant}
-      onMouseEnter={onHoverIn}
+      onMouseEnter={() => {
+        warm();
+        onHoverIn();
+      }}
       onMouseLeave={onHoverOut}
+      onFocus={warm}
+      onPointerDown={warm}
       onMouseDown={onPressIn}
       onMouseUp={onPressOut}
       aria-label="Ask about Pius (Command or Control + K)"

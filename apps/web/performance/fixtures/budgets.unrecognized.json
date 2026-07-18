@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "programme": "branch-a",
+  "hard": {
+    "homepageCriticalPathGzipBytes": { "max": 101640 },
+    "cls": { "max": 0.01, "everyRun": true },
+    "accessibilityScore": { "min": 100, "everyRun": true },
+    "structuralAudits": {
+      "everyRun": true,
+      "required": [
+        "viewport",
+        "document-title",
+        "meta-description",
+        "http-status-code",
+        "errors-in-console"
+      ]
+    }
+  },
+  "advisory": {
+    "performanceScoreMedian": { "min": 87 },
+    "lcpMsMedian": { "max": 2200 },
+    "tbtMsMedian": { "max": 460 },
+    "speedIndexMsMedian": { "max": 2275 },
+    "totalJavaScriptGzipBytes": { "max": 175000 },
+    "projectDetailGzipBytes": { "max": 4500 }
+  },
+  "unexpectedCeiling": { "max": 1 }
+}

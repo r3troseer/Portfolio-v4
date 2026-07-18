@@ -1,0 +1,575 @@
+/*
+ * Profile - assistant dialog (Cmd/Ctrl+K modal).
+ * Overlay, panel, input row, grounded-answer surfaces, evidence, sources, and
+ * footer CTAs. Loaded with the deferred AssistantDialog chunk so launcher
+ * geometry in assistant.css is unaffected. See docs/ui/ask-launcher-flight.md.
+ */
+
+/* --- Overlay + modal ----------------------------------------------------- */
+.pf-assistant-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 10vh 20px 20px;
+  background: rgba(4, 7, 13, 0.66);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  font-family: "Inter", system-ui, sans-serif;
+  animation: pfAskFade 0.2s ease;
+}
+
+@keyframes pfAskFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.pf-assistant-panel {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--pf-ask-panel);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  animation: pfAskSettle 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes pfAskSettle {
+  from { transform: translateY(-12px) scale(0.98); }
+  to { transform: translateY(0) scale(1); }
+}
+
+/* Visually hidden but available to assistive tech (the input's label). */
+.pf-ask-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- Input row ----------------------------------------------------------- */
+.pf-ask-inputrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  border-bottom: 1px solid var(--pf-hairline);
+}
+
+.pf-ask-inputicon {
+  color: var(--primary-accent);
+  flex-shrink: 0;
+  display: flex;
+}
+
+.pf-assistant-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--slate-100);
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.pf-assistant-input::placeholder {
+  color: #5b687a;
+}
+
+/* Cyan submit affordance. */
+.pf-ask-submit {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: var(--primary-accent);
+  color: var(--slate-900);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.pf-ask-submit:disabled {
+  opacity: 0.75;
+  cursor: default;
+}
+
+.pf-assistant-close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--slate-500);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pf-assistant-close:hover {
+  background: var(--pf-kbd-bg);
+  color: var(--slate-300);
+}
+
+/* --- Body ---------------------------------------------------------------- */
+.pf-ask-body {
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  /* Scrollbar styled to the teal system (ported from the handoff). */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 255, 218, 0.28) transparent;
+  overscroll-behavior: contain;
+}
+
+.pf-ask-body::-webkit-scrollbar {
+  width: 9px;
+}
+
+.pf-ask-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pf-ask-body::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.pf-ask-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 255, 218, 0.4);
+  background-clip: padding-box;
+}
+
+/* Intro (before any query): label + suggestion buttons. */
+.pf-ask-intro-label {
+  font-size: 0.78rem;
+  color: var(--slate-500);
+  margin-bottom: 10px;
+}
+
+.pf-ask-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pf-ask-suggestion {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  text-align: left;
+  padding: 11px 14px;
+  border-radius: 10px;
+  background: var(--pf-card-faint);
+  border: 1px solid var(--pf-hairline);
+  color: var(--slate-300);
+  font-size: 0.88rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.pf-ask-suggestion:hover {
+  background: rgba(100, 255, 218, 0.07);
+  border-color: rgba(100, 255, 218, 0.3);
+  color: var(--slate-100);
+}
+
+.pf-ask-suggestion svg {
+  color: var(--primary-accent);
+  flex-shrink: 0;
+}
+
+/* --- Inline evidence results (the modal's own compact cards, from handoff) - */
+.pf-ask-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  color: var(--slate-400);
+  font-size: 0.86rem;
+}
+
+.pf-ask-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary-accent);
+  opacity: 0.4;
+  animation: pfAskDot 1.2s infinite ease-in-out;
+}
+
+.pf-ask-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.pf-ask-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.pf-ask-loading-text {
+  margin-left: 4px;
+}
+
+@keyframes pfAskDot {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-ask-dot {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+.pf-ask-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+}
+
+.pf-ask-error svg {
+  flex-shrink: 0;
+}
+
+.pf-ask-error > span {
+  flex: 1;
+}
+
+.pf-ask-retry {
+  flex-shrink: 0;
+  border: 1px solid rgba(252, 165, 165, 0.4);
+  border-radius: 7px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #fecaca;
+  padding: 5px 9px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pf-ask-retry:hover {
+  background: rgba(239, 68, 68, 0.16);
+}
+
+.pf-ask-empty {
+  color: var(--slate-400);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  padding: 4px 0;
+}
+
+/* --- Grounded answer (ported verbatim from the handoff pf-ask-* surfaces) --- */
+.pf-ask-answer {
+  color: #e2e8f0;
+  font-size: 0.98rem;
+  line-height: 1.62;
+  margin: 0;
+}
+
+.pf-ask-refusal {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.pf-ask-refusal svg {
+  color: #7dd3fc;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pf-ask-cites {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-top: 6px;
+}
+
+.pf-ask-cites-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.pf-ask-cite {
+  font-size: 0.78rem;
+  color: #7dd3fc;
+  text-decoration: none;
+  background: rgba(125, 211, 252, 0.08);
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  border-radius: 6px;
+  padding: 3px 9px;
+  transition: all 0.15s ease;
+}
+
+a.pf-ask-cite:hover {
+  background: rgba(125, 211, 252, 0.16);
+}
+
+.pf-ask-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Compact entity card - distinct from the page's ev-doc (handoff pf-ask-evdoc).
+   Only project-backed entities are links; the rest are static cards. */
+.pf-ask-evdoc {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  transition: all 0.16s ease;
+}
+
+a.pf-ask-evdoc:hover {
+  border-color: rgba(100, 255, 218, 0.35);
+  background: rgba(100, 255, 218, 0.04);
+  transform: translateY(-2px);
+}
+
+.pf-ask-evdoc-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--slate-500);
+}
+
+.pf-ask-evdoc-head svg {
+  flex-shrink: 0;
+}
+
+.pf-ask-evdoc-id {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.pf-ask-evdoc-score {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--primary-accent);
+  background: rgba(100, 255, 218, 0.1);
+  border-radius: 5px;
+  padding: 2px 8px;
+}
+
+.pf-ask-evdoc h4 {
+  font-size: 1.02rem;
+  color: #f1f5f9;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.pf-ask-evdoc p {
+  font-size: 0.84rem;
+  color: var(--slate-400);
+  line-height: 1.55;
+  /* Compact: clamp the summary in the modal (the page shows it in full). */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* --- Footer --------------------------------------------------------------- */
+.pf-ask-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px 10px 16px;
+  border-top: 1px solid var(--pf-hairline);
+  font-size: 0.72rem;
+  color: #5b687a;
+}
+
+.pf-ask-foot svg {
+  flex-shrink: 0;
+  color: #5b687a;
+}
+
+.pf-ask-foot-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.pf-ask-foot-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(100, 255, 218, 0.28);
+  background: rgba(100, 255, 218, 0.08);
+  color: var(--primary-accent);
+  font-size: 0.74rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.14s, border-color 0.14s;
+}
+
+.pf-ask-foot-btn:hover {
+  background: rgba(100, 255, 218, 0.16);
+  border-color: rgba(100, 255, 218, 0.5);
+}
+
+.pf-ask-foot-btn svg {
+  color: var(--primary-accent);
+}
+
+/* Rich "Open in Playground" CTA shown when there are results (pf-ask-footcta). */
+.pf-ask-footwrap {
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--pf-hairline);
+}
+
+.pf-ask-footcta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 15px;
+  border-radius: 11px;
+  border: 1px solid rgba(100, 255, 218, 0.26);
+  background: linear-gradient(
+    180deg,
+    rgba(100, 255, 218, 0.08),
+    rgba(100, 255, 218, 0.03)
+  );
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.pf-ask-footcta:hover {
+  border-color: rgba(100, 255, 218, 0.5);
+  background: linear-gradient(
+    180deg,
+    rgba(100, 255, 218, 0.13),
+    rgba(100, 255, 218, 0.05)
+  );
+}
+
+.pf-ask-footcta-l {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.pf-ask-footcta-l > svg {
+  color: var(--primary-accent);
+  flex-shrink: 0;
+}
+
+.pf-ask-footcta-tx {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pf-ask-footcta-tx strong {
+  font-size: 0.9rem;
+  color: #e8edf2;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.pf-ask-footcta-tx span {
+  font-size: 0.72rem;
+  color: #8b97a8;
+  line-height: 1.3;
+}
+
+.pf-ask-footcta-ar {
+  color: var(--primary-accent);
+  flex-shrink: 0;
+}
+
+/* --- Responsive ---------------------------------------------------------- */
+/* Mobile modal: more room, no backdrop blur (GPU cost on phones - a darker
+   scrim compensates), dvh so the collapsing URL bar can't clip the panel, and
+   comfortable touch targets. Same layout and behaviour, lighter to composite. */
+@media (max-width: 600px) {
+  .pf-assistant-overlay {
+    padding: 4dvh 10px 10px;
+    background: rgba(4, 7, 13, 0.78);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .pf-assistant-panel {
+    max-height: 92dvh;
+  }
+
+  .pf-ask-inputrow {
+    padding: 12px;
+  }
+
+  .pf-ask-submit,
+  .pf-assistant-close {
+    width: 36px;
+    height: 36px;
+  }
+
+  .pf-ask-body {
+    padding: 14px;
+  }
+}

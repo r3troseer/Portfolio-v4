@@ -29,6 +29,25 @@ jobs:
         env:
           # Public build config, not a secret. Production uses the Railway origin.
           VITE_API_BASE_URL: https://api.example.invalid
+      # Deterministic asset raw/gzip size reporting for initial-load baselining.
+      - run: npm run perf:report
+      # Repository-owned budget fixture checks (no browser / preview required).
+      - run: npm run perf:assert-budgets:test
+      # Owned loopback preview + five-run Lighthouse + hard/advisory budget assertion.
+      # Dedicated port 5398 avoids local verify/dev ports 5173/5199/8000/8123.
+      - run: npm run perf:ci-audit
+        env:
+          PERF_PREVIEW_PORT: "5398"
+      # Separate analyze build so the normal production build never pays analyzer cost.
+      - run: npm run build:analyze
+        env:
+          VITE_API_BASE_URL: https://api.example.invalid
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-bundle-analysis
+          path: apps/web/dist/performance/bundle-analysis.html
+          retention-days: 7
+          if-no-files-found: error
 
   api:
     name: API check

@@ -1,0 +1,195 @@
+{
+  "projects": [
+    {
+      "id": "gfa-exchange",
+      "displayOrder": 1,
+      "featured": true,
+      "title": "GFA Exchange",
+      "subtitle": "Inclusive AI Loan Reallocation Engine",
+      "summary": "AI-driven loan reallocation sandbox for UK SME lending. Multi-agent system with privacy-preserving marketplace, LLM-powered explainability, and financial inclusion as a first-class metric. Honourable Mention at UKFinnovator by Ukfin+.",
+      "technologies": [
+        "FastAPI",
+        "React",
+        "TypeScript",
+        "Multi-Agent AI",
+        "SQLAlchemy",
+        "Zustand"
+      ],
+      "metrics": [
+        {
+          "number": "6",
+          "label": "AI Agents"
+        },
+        {
+          "number": "4",
+          "label": "Lender Archetypes"
+        },
+        {
+          "number": "~70%",
+          "label": "Implemented"
+        },
+        {
+          "number": "1",
+          "label": "Hackathon Award"
+        }
+      ]
+    },
+    {
+      "id": "pactguard",
+      "displayOrder": 2,
+      "featured": true,
+      "title": "PACTGuard",
+      "subtitle": "Pre-Release Compliance Middleware for AI-Era Financial Communications",
+      "summary": "RegTech middleware that reviews AI-generated financial communications and robo-advice before release. Compares three independent engines (deterministic rules, semantic retrieval, and a Gemini AI judge), then applies a Pass / Adjust / Check / Terminate decision with an evidence-bound explanation. Built for the Cambridge Spark 'Financial Regulation in an AI-Driven World' challenge.",
+      "technologies": [
+        "Django",
+        "DRF",
+        "React",
+        "Gemini",
+        "Sentence-Transformers",
+        "RegTech"
+      ],
+      "listTech": [
+        "Sentence-Transformers",
+        "LLM Judge",
+        "NLI / Evidence"
+      ]
+    },
+    {
+      "id": "studybud",
+      "displayOrder": 3,
+      "featured": true,
+      "title": "StudyBud",
+      "subtitle": "AI-Powered Document Analysis & Quiz Generation",
+      "summary": "AI-powered tool for generating summaries and quizzes from documents. Features advanced NLP techniques for text extraction from PDF and DOCX files, integrated with OpenAI's language models.",
+      "technologies": [
+        "Django",
+        "NLP",
+        "OpenAI",
+        "PDF Processing"
+      ],
+      "listTech": [
+        "NLP",
+        "OpenAI",
+        "PDF Processing"
+      ]
+    },
+    {
+      "id": "train-booking",
+      "displayOrder": 4,
+      "featured": true,
+      "title": "Train Booking System",
+      "subtitle": "A Clean Architecture .NET 8 train seat booking system",
+      "summary": ".NET 8 backend for booking train tickets, with seat availability checks, category-based pricing, and trip schedule management.",
+      "technologies": [
+        ".NET",
+        "C#",
+        "MariaDB",
+        "CQRS",
+        "Clean Architecture"
+      ],
+      "listTech": [
+        "C#",
+        "CQRS",
+        "Clean Architecture"
+      ]
+    },
+    {
+      "id": "mealsync",
+      "displayOrder": 5,
+      "featured": false,
+      "title": "MealSync",
+      "subtitle": "AI-Assisted Household Meal Planning Platform",
+      "summary": "AI-assisted household meal planning platform. Collaborative meal scheduling, recipe management, and automated grocery lists powered by Google Gemini. 77 automated tests, 93% AI service coverage. Built with FastAPI, React, and PostgreSQL.",
+      "technologies": [
+        "FastAPI",
+        "React",
+        "TypeScript",
+        "Google Gemini AI",
+        "PostgreSQL",
+        "Pytest"
+      ],
+      "listTech": [
+        "FastAPI",
+        "Google Gemini",
+        "PostgreSQL"
+      ]
+    },
+    {
+      "id": "ticketsage",
+      "displayOrder": 6,
+      "featured": false,
+      "title": "TicketSage",
+      "subtitle": "Movie Ticket Booking Platform",
+      "summary": "Django movie booking platform (TMDB, auth, showtimes) - group software engineering course competition winner at University of Ilorin; backend-led.",
+      "technologies": [
+        "Django",
+        "TMDB API",
+        "Authentication",
+        "PythonAnywhere"
+      ],
+      "listTech": [
+        "Django",
+        "TMDB API",
+        "Auth"
+      ]
+    },
+    {
+      "id": "eprep",
+      "displayOrder": 7,
+      "featured": false,
+      "title": "EPrep",
+      "subtitle": "API-Driven Exam Preparation Platform",
+      "summary": "Student study app backend with parent-child management system, OTP-based phone verification, and structured learning content organization using Django REST Framework.",
+      "technologies": [
+        "Django REST",
+        "OTP Verification",
+        "User Management",
+        "Mobile Backend"
+      ],
+      "listTech": [
+        "Django REST",
+        "OTP Auth",
+        "Mobile Backend"
+      ]
+    },
+    {
+      "id": "printing-service",
+      "displayOrder": 8,
+      "featured": false,
+      "title": "Online Printing Service",
+      "subtitle": "Clean Architecture .NET Backend + Blazor Frontend",
+      "summary": "Document printing platform with .NET backend and Blazor frontend. Users upload files, pay online, receive a unique code, and retrieve their prints at a connected printing station.",
+      "technologies": [
+        ".NET",
+        "Blazor",
+        "Cloud Storage",
+        "Payments"
+      ],
+      "listTech": [
+        "Blazor",
+        ".NET",
+        "Payments"
+      ]
+    },
+    {
+      "id": "uk-shift-calculator",
+      "displayOrder": 9,
+      "featured": false,
+      "title": "UK Shift Calculator",
+      "subtitle": "PWA for Shift Tracking & Pay Estimation",
+      "summary": "Progressive Web App for UK shift workers to log hours, calculate pay with 2024/25 tax and NI rates, and export payroll data. Includes offline support, weekend double pay, and CSV/JSON export.",
+      "technologies": [
+        "React",
+        "PWA",
+        "LocalStorage",
+        "Vercel"
+      ],
+      "listTech": [
+        "React",
+        "PWA",
+        "LocalStorage"
+      ]
+    }
+  ]
+}

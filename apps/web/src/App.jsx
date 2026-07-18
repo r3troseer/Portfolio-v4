@@ -1,8 +1,9 @@
-import { lazy, Suspense, useLayoutEffect, useRef } from "react";
+import { lazy, Suspense, useRef } from "react";
 import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from "react-router";
 import { Navigation } from "./components/Navigation";
 import { Footer } from "./components/Footer";
 import { ParticleEffect } from "./components/ParticleEffect";
+import { DeferredTelemetry } from "./components/DeferredTelemetry";
 import { AssistantShell } from "./components/AssistantShell";
 import { Home } from "./pages/Home";
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -25,7 +26,6 @@ function SkipLink({ mainRef }) {
     event.preventDefault();
     const main = mainRef.current;
     if (!main) return;
-    main.id = "main";
     main.focus();
     const { pathname, search } = window.location;
     window.history.replaceState(
@@ -49,23 +49,11 @@ function Layout() {
   // site chrome and renders its own results-only footer and navigation strip.
   const evidenceMode = location.pathname.startsWith("/playground");
 
-  // #main exists only after deliberate skip-link activation or an explicit
-  // #main hash journey. Generic route completion never creates or focuses it.
-  useLayoutEffect(() => {
-    const main = mainRef.current;
-    if (!main) return;
-    if (location.hash === "#main") {
-      main.id = "main";
-    } else if (main.id === "main") {
-      main.removeAttribute("id");
-    }
-  }, [location.pathname, location.search, location.hash, location.key]);
-
   return (
     <>
       {!evidenceMode && <SkipLink mainRef={mainRef} />}
       {!evidenceMode && <Navigation />}
-      <main ref={mainRef} tabIndex={-1}>
+      <main id="main" ref={mainRef} tabIndex={-1}>
         <Suspense fallback={null}>
           <Outlet />
         </Suspense>
@@ -77,6 +65,7 @@ function Layout() {
           <AssistantShell />
         </>
       )}
+      <DeferredTelemetry />
     </>
   );
 }

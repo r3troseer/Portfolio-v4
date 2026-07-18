@@ -4,7 +4,8 @@ Adapters translate the **canonical Layer 0 content** (`src/content/public/...`) 
 shapes each consumer needs. Canonical files are the single source of truth; consumers never
 read them directly. UI and AI concerns use **separate adapters** over the same files.
 
-Currently implemented: **`projectsAdapter.js`** and **`profileAdapter.js`** (UI adapters).
+Currently implemented: **`projectsAdapter.js`** (Home summaries), **`projectDetailLoader.js`**
+(on-demand detail), and **`profileAdapter.js`** (UI adapters).
 
 ## Canonical project shape (`public/projects/<id>.json`)
 
@@ -72,24 +73,80 @@ source of truth: presentation/order in `index.json`, content + governance per fi
   `data-pipelines`, `fintech`, `fullstack`.
 - `status` (display only, never a privacy signal): see list above.
 
-## `projectsAdapter.js` API
+## Generated outputs (`generated/`)
+
+Build-time script `content/generate-project-manifest.mjs` reads the registry plus each
+registered canonical file and writes two deterministic public-safe outputs:
+
+1. **`project-manifest.json`** - Home summary + routing discovery. Only
+   `visibility: public | public_summary_only` with `sensitivity: safe` projects are
+   included. Order and featured registry flags are preserved. Excludes overview prose,
+   content cards, galleries, problem/solution data, timelines, AI metadata, and any
+   limited / private / blocked / sensitive / unregistered project (registry membership
+   and governance fields drive inclusion; no hardcoded project-id deny list).
+2. **`project-detail-loaders.js`** - fail-closed ID-to-`import()` map containing
+   **exactly** those same approved ids in the same order. Each literal dynamic import
+   becomes its own deferred Vite chunk. Unregistered or unsafe files never appear, so
+   they cannot become downloadable detail chunks.
+
+`npm run generate:project-manifest` writes both files. `npm run validate:content`
+regenerates the expected outputs in memory and fails on stale committed drift,
+manifest/loader id-order mismatch, missing registered files, duplicate registry
+ids/orders, or unsafe surfaced projects. Production `npm run build` regenerates before
+Vite so committed outputs stay aligned.
+
+Manifest entry fields (Home + routing discovery only):
+
+| Field | Use |
+|---|---|
+| `id`, `displayOrder`, `featured` | Registry order, featured selection, known-id routing |
+| `title`, `subtitle`, `summary`, `technologies` | Featured showcase + selected-work rows |
+| `listTech` (optional) | Curated tech line for list rows when present |
+| `metrics` (max 4, top showcase only) | Present only on the single top ordered Home featured entry; omitted from list-only entries |
+
+## `projectsAdapter.js` API (Home only)
+
+Imports **only** `generated/project-manifest.json`. Never imports canonical per-project JSON.
 
 | Function | Returns |
 |---|---|
 | `getFeaturedProject()` | The single top project by `displayOrder` as `{ id, title, subtitle, description, technologies, metrics }` (home "featured showcase"). |
-| `getProjectListItems()` | The remaining projects as numbered rows `{ id, idx, title, subtitle, techLine }` (`idx` continues from the featured card at `02`; `techLine` prefers a curated `card.listTech`). |
-| `getProjectById(id)` | Detail object `{ id, header, focus, technologies, metrics, contentCards, problemSolutions, timeline }`, or `null` if unknown. `contentCards` are structured (`title`, `type`, `blocks`, optional `tags`/`gallery`); gallery image `src` values are base-URL resolved here. |
+| `getProjectListItems()` | The remaining projects as numbered rows `{ id, idx, title, subtitle, techLine }` (`idx` continues from the featured card at `02`; `techLine` prefers a curated `listTech`). |
+
+## `projectDetailLoader.js` API (detail route)
+
+Loads **one** canonical `public/projects/<id>.json` on demand through the generated
+`project-detail-loaders.js` map. Ids are validated against the generated manifest before
+lookup; unknown ids resolve to `null` without arbitrary path construction. Each approved
+project JSON is its own deferred Vite chunk by construction of the literal `import()`
+entries. Promises are cached so browser Back/Forward reuses the payload.
+
+| Function | Returns |
+|---|---|
+| `loadProjectDetail(id)` | Promise of the presentation-ready detail object, or `null` if unknown. |
+| `useProjectDetail(id)` | Same payload via React `use()` (suspends on the route-level Suspense boundary). |
+| `isKnownProjectId(id)` | Whether `id` is a public-safe manifest project with a generated importer. |
+
+Presentation shape matches the former `getProjectById` contract:
+`{ id, header, focus, technologies, metrics, contentCards, problemSolutions, timeline }`.
+`contentCards` keep structured blocks; gallery image `src` values are base-URL resolved here.
 
 ### Image resolution
-`gallery.images[].src` rules (applied in the adapter):
+`gallery.images[].src` rules (applied in the detail loader):
 - starts with `http`: used as-is;
 - starts with `/`: used as-is (e.g. `/images/...` in `public/`);
 - otherwise: prefixed with `import.meta.env.VITE_IMAGE_BASE` + `/`.
 
 ## Adding a project
 1. Add a strict-JSON file under `public/projects/<id>.json` using the shape above.
-2. Add a registry entry to `public/projects/index.json`.
-3. Register the import in `projectsAdapter.js` (`projectsById`).
+2. Add a registry entry to `public/projects/index.json` (and ensure visibility/sensitivity
+   allow surfacing).
+3. Run `npm run generate:project-manifest` (and `npm run validate:content`) so both the
+   Home manifest and the detail loader map include the new public-safe project. Do **not**
+   hand-edit either generated file or maintain a separate id map.
+
+Omit step 2 to keep a file on disk but out of the UI. Unregistered files are excluded from
+both generated outputs by construction and never become deferred detail chunks.
 
 ## Markdown layer (`public/markdown/`, AI-facing)
 

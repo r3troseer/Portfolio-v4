@@ -43,7 +43,6 @@
     var(--slate-750)
   );
   --bg-nav: color-mix(in oklch, var(--slate-900) 95%, transparent);
-  --bg-nav-scrolled: color-mix(in oklch, var(--slate-900) 98%, transparent);
   --bg-card: rgba(255, 255, 255, 0.03);
   --bg-card-hover: rgba(255, 255, 255, 0.06);
   --bg-footer: color-mix(in oklch, var(--slate-900) 80%, transparent);
