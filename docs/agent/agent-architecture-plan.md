@@ -24,7 +24,8 @@ sets the target shape and the migration sequence so each step stays small and re
 ## 1. Current baseline
 
 - **Frontend:** Vite + React SPA, deployed directly on **Vercel** (`vercel.json` handles the
-  Cloudinary `/images/*` rewrite and the SPA fallback). A live Layer 1 **evidence UI** (Cmd+K +
+  SPA fallback; `imageDelivery.js` builds direct public Cloudinary gallery URLs consistently
+  across environments). A live Layer 1 **evidence UI** (Cmd+K +
   `/playground`) now composes **grounded answers** via `POST /api/answer/` (answer card,
   citations, refusal/insufficient states) and shows the raw evidence ledger underneath. A full
   chat surface (memory, streaming, tools) is not implemented yet.

@@ -231,12 +231,12 @@
           "title": "OPS Screenshots",
           "images": [
             {
-              "src": "/images/ops-upload.png",
+              "src": "ops-upload.png",
               "title": "Upload Document",
               "description": "Blazor component for uploading and managing documents."
             },
             {
-              "src": "/images/ops-payment.png",
+              "src": "ops-payment.png",
               "title": "Payment Confirmation",
               "description": "Payment workflow integrated with backend services."
             }
