@@ -104,12 +104,12 @@ selection, and any answer/retrieval generation in the SPA.
 
 ## Media note
 
-Per-project detail JSONs reference provider-neutral Cloudinary public IDs such as
-`studybud_architecture.png`. Those files are **not committed to the repo**;
-`apps/web/src/lib/imageDelivery.js` builds the direct public Cloudinary original and transformed
-thumbnail URLs in local, preview, and production builds. **Implemented** (see Outcomes): the
-detail page surfaces these in a media grid + lightbox where an uploaded asset exists, and degrades
-gracefully (failed `<img>`s hide via `onError`; the media block hides entirely when all fail). No
+Per-project detail JSONs reference gallery images such as `/images/eprep-login.png`. Those files
+are **not committed to the repo**; `apps/web/vercel.json` rewrites `/images/:path*` to Cloudinary
+(`res.cloudinary.com/dyzzyrfdq/...`), so they resolve **in production**, not locally. Image `src`
+resolution already lives in `projectsAdapter.js`. **Implemented** (see Outcomes): the detail page
+surfaces these in a media grid + lightbox where they resolve, and degrades gracefully (failed
+`<img>`s hide via `onError`; the media block hides entirely when all fail) where they don't. No
 images are imported into the repo.
 
 ## Content & governance boundaries

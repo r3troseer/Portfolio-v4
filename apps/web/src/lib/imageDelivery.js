@@ -1,8 +1,8 @@
 // Gallery image delivery helpers for project detail.
 // Thumbnails use Cloudinary transforms (responsive width + f_auto/q_auto + 16:10
 // fill). The untransformed resolved URL is kept for the lightbox only.
-// Canonical project content stores provider-neutral public IDs. This module owns
-// their public Cloudinary delivery URLs in every environment.
+// Handles /images/... rewrite paths and absolute Cloudinary URLs; does not invent
+// a new image service or fetch dimensions at runtime.
 
 /** Intrinsic 16:10 hints matching .pf-pd-shot aspect-ratio (CLS reservation). */
 export const GALLERY_THUMB_WIDTH = 640;
@@ -18,22 +18,26 @@ export const GALLERY_THUMB_WIDTHS = [320, 480, 640, 800, 960];
 export const GALLERY_THUMB_SIZES =
   "(max-width: 640px) 92vw, (max-width: 960px) 45vw, 30vw";
 
-export const CLOUDINARY_UPLOAD_BASE =
-  "https://res.cloudinary.com/dyzzyrfdq/image/upload";
+const IMAGES_PREFIX = "/images/";
 const CLOUDINARY_UPLOAD_RE =
   /^(https?:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(.+)$/i;
+
+function trimTrailingSlash(value) {
+  return value.replace(/\/+$/, "");
+}
 
 /**
  * Resolve the untransformed delivery URL used by the lightbox.
  * - http(s) absolute: unchanged
- * - root-relative application assets: unchanged
- * - bare public id: delivered from the portfolio's public Cloudinary cloud
+ * - root-relative (e.g. /images/...): unchanged
+ * - bare public id: prefix with VITE_IMAGE_BASE when set
  */
-export function resolveOriginalSrc(src) {
+export function resolveOriginalSrc(src, imageBase = import.meta.env.VITE_IMAGE_BASE) {
   if (!src) return src;
   if (src.startsWith("http://") || src.startsWith("https://")) return src;
   if (src.startsWith("/")) return src;
-  return `${CLOUDINARY_UPLOAD_BASE}/${src}`;
+  if (!imageBase) return src;
+  return `${trimTrailingSlash(imageBase)}/${src}`;
 }
 
 function thumbTransform(width) {
@@ -43,10 +47,17 @@ function thumbTransform(width) {
 
 /**
  * Insert Cloudinary delivery transforms ahead of the public id.
- * Absolute Cloudinary upload URLs are transformed; anything else is unchanged.
+ * Only /images/... (Vercel rewrite) and res.cloudinary.com upload URLs are
+ * rewritten; anything else is returned unchanged.
  */
 export function withCloudinaryTransforms(originalSrc, transforms) {
   if (!originalSrc || !transforms) return originalSrc;
+
+  if (originalSrc.startsWith(IMAGES_PREFIX)) {
+    const publicId = originalSrc.slice(IMAGES_PREFIX.length);
+    if (!publicId) return originalSrc;
+    return `${IMAGES_PREFIX}${transforms}/${publicId}`;
+  }
 
   const match = originalSrc.match(CLOUDINARY_UPLOAD_RE);
   if (match) {
@@ -68,8 +79,8 @@ export function buildGalleryThumbSrcSet(originalSrc) {
 }
 
 /** Enrich a gallery image record: src stays the untransformed original. */
-export function toGalleryImageDelivery(img) {
-  const originalSrc = resolveOriginalSrc(img.src);
+export function toGalleryImageDelivery(img, imageBase = import.meta.env.VITE_IMAGE_BASE) {
+  const originalSrc = resolveOriginalSrc(img.src, imageBase);
   return {
     ...img,
     src: originalSrc,

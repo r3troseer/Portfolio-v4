@@ -248,12 +248,12 @@
           "title": "EPrep (Figma UI)",
           "images": [
             {
-              "src": "eprep-login.png",
+              "src": "/images/eprep-login.png",
               "title": "Login UI (Figma)",
               "description": "Secure login and OTP verification flow."
             },
             {
-              "src": "eprep-dashboard.png",
+              "src": "/images/eprep-dashboard.png",
               "title": "Dashboard (Figma)",
               "description": "Planned exam/practice dashboard for students."
             }

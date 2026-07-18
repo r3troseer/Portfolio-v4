@@ -134,13 +134,8 @@ Presentation shape matches the former `getProjectById` contract:
 ### Image resolution
 `gallery.images[].src` rules (applied in the detail loader):
 - starts with `http`: used as-is;
-- starts with `/`: treated as an application-root asset and used as-is;
-- otherwise: treated as a provider-neutral Cloudinary public ID and resolved by
-  `src/lib/imageDelivery.js` to the portfolio's public Cloudinary delivery URL.
-
-Canonical project JSON should store provider-neutral public IDs for gallery media. Cloudinary
-delivery configuration and responsive transformations belong only in `imageDelivery.js`, so local,
-preview, and production builds use the same URLs without an environment variable or host rewrite.
+- starts with `/`: used as-is (e.g. `/images/...` in `public/`);
+- otherwise: prefixed with `import.meta.env.VITE_IMAGE_BASE` + `/`.
 
 ## Adding a project
 1. Add a strict-JSON file under `public/projects/<id>.json` using the shape above.
