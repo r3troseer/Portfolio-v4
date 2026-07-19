@@ -1,30 +1,14 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import { homeMetaDescriptors } from "./lib/routeMetadata";
 import "./index.css";
 import "./styles/fonts.css";
 import "./styles/profile/base.css";
 
-const SITE_DESCRIPTION =
-  "Backend engineer based in London. I build robust systems in Python (Django, FastAPI) and C# (.NET). MSc Computer Science, UEL. Previously at Touch and Pay Technologies (YC W22).";
-
-const TWITTER_DESCRIPTION =
-  "Backend engineer based in London. Python, Django, FastAPI, C#, .NET. MSc CS at UEL. Previously at Touch and Pay Technologies (YC W22).";
-
-const PERSON_JSON_LD = JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "Person",
-  name: "Pius Agboola",
-  jobTitle: "Backend Engineer",
-  url: "https://piusagboola.com",
-  address: {
-    "@type": "PostalAddress",
-    addressLocality: "London",
-    addressCountry: "GB",
-  },
-  sameAs: [
-    "https://linkedin.com/in/pius-agboola",
-    "https://github.com/r3troseer",
-  ],
-});
+// SPA fallback / unmatched shell uses the homepage identity so raw fallback
+// HTML never retains stale project metadata. Leaf routes replace this list.
+export function meta() {
+  return homeMetaDescriptors();
+}
 
 export function Layout({ children }) {
   return (
@@ -48,36 +32,6 @@ export function Layout({ children }) {
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#0a0f1e" />
-
-        <title>{"Pius Agboola \u2014 Backend Engineer"}</title>
-        <meta name="description" content={SITE_DESCRIPTION} />
-        <meta name="author" content="Pius Agboola" />
-        <meta
-          name="keywords"
-          content="backend engineer, Python, Django, FastAPI, C#, .NET, London, software engineer, fintech"
-        />
-
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:title"
-          content={"Pius Agboola \u2014 Backend Engineer"}
-        />
-        <meta property="og:description" content={SITE_DESCRIPTION} />
-        <meta property="og:url" content="https://piusagboola.com" />
-        <meta property="og:site_name" content="Pius Agboola" />
-        <meta property="og:locale" content="en_GB" />
-
-        <meta name="twitter:card" content="summary" />
-        <meta
-          name="twitter:title"
-          content={"Pius Agboola \u2014 Backend Engineer"}
-        />
-        <meta name="twitter:description" content={TWITTER_DESCRIPTION} />
-
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: PERSON_JSON_LD }}
-        />
 
         <Meta />
         <Links />

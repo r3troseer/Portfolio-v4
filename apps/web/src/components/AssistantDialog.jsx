@@ -1,5 +1,10 @@
 import { useRef } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
+import {
+  Link,
+  PrefetchPageLinks,
+  useLocation,
+  useNavigate,
+} from "react-router";
 import {
   Sparkles,
   X,
@@ -15,6 +20,10 @@ import { useDialogA11y } from "../hooks/useDialogA11y";
 import { useGroundedAnswer, answerLiveMessage } from "../lib/useGroundedAnswer";
 import { EVIDENCE_ORIGIN } from "../lib/evidenceNavigation";
 import { PRESETS } from "../lib/playgroundPresets";
+import {
+  useIntentLinkPrefetch,
+  usePlaygroundIntentPrefetch,
+} from "../lib/routePrefetch";
 import "../styles/profile/assistant-dialog.css";
 
 // Lazy-loaded assistant dialog body: input, presets, GroundedAnswer, evidence,
@@ -31,6 +40,7 @@ export function AssistantDialog({
   const navigate = useNavigate();
   const location = useLocation();
   const returnTo = `${location.pathname}${location.search}${location.hash}`;
+  const playgroundPrefetch = usePlaygroundIntentPrefetch();
 
   const { result, retry } = useGroundedAnswer(ran.query, ran.lens);
   const hasQueried = ran.query !== "";
@@ -188,6 +198,8 @@ export function AssistantDialog({
             <button
               type="button"
               className="pf-ask-footcta"
+              onMouseEnter={playgroundPrefetch.onMouseEnter}
+              onFocus={playgroundPrefetch.onFocus}
               onClick={openInPlayground}
             >
               <span className="pf-ask-footcta-l">
@@ -212,12 +224,17 @@ export function AssistantDialog({
             <button
               type="button"
               className="pf-ask-foot-btn"
+              onMouseEnter={playgroundPrefetch.onMouseEnter}
+              onFocus={playgroundPrefetch.onFocus}
               onClick={openInPlayground}
             >
               <Layers size={13} aria-hidden="true" /> Open in Playground
             </button>
           </div>
         )}
+        {playgroundPrefetch.enabled ? (
+          <PrefetchPageLinks page={playgroundPrefetch.page} />
+        ) : null}
       </div>
     </div>
   );
@@ -241,11 +258,13 @@ function ModalSources({ citations, query, roleLens, returnTo }) {
 }
 
 function ModalCiteChip({ citation, query, roleLens, returnTo }) {
+  const prefetch = useIntentLinkPrefetch();
   const label = citation.title || citation.evidence_id;
   if (citation.project_id) {
     return (
       <Link
         to={`/projects/${citation.project_id}`}
+        prefetch={prefetch}
         state={{
           from: EVIDENCE_ORIGIN.ASSISTANT,
           q: query || "",
@@ -288,6 +307,7 @@ function ModalEvidence({ matches, query, roleLens, returnTo }) {
 }
 
 function ModalDoc({ match, maxScore, query, roleLens, returnTo }) {
+  const prefetch = useIntentLinkPrefetch();
   const pct = maxScore > 0 ? Math.round(((match.score ?? 0) / maxScore) * 100) : 0;
   const entityId = match.entity_id || match.project_id || match.source_id;
   const snippet = match.snippet || match.text || "";
@@ -313,6 +333,7 @@ function ModalDoc({ match, maxScore, query, roleLens, returnTo }) {
     return (
       <Link
         to={`/projects/${match.project_id}`}
+        prefetch={prefetch}
         state={{
           from: EVIDENCE_ORIGIN.ASSISTANT,
           q: query || "",
