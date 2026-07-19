@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router";
 import { Navigation } from "./Navigation";
 import { Footer } from "./Footer";
@@ -7,6 +7,21 @@ import { DeferredTelemetry } from "./DeferredTelemetry";
 import { AssistantShell } from "./AssistantShell";
 import { ScrollToTop } from "./ScrollToTop";
 import { RouteCompletion } from "./RouteCompletion";
+
+const MarkRouteHydratedContext = createContext(null);
+
+/**
+ * Non-blocking signal rendered by every direct route module. Marks the initial
+ * matched route as client-hydrated so AssistantShell can mount. Does not wrap
+ * route content in Suspense (keeps prerendered HTML visible inside main).
+ */
+export function RouteHydrationSignal() {
+  const setRouteHydrated = useContext(MarkRouteHydratedContext);
+  useEffect(() => {
+    setRouteHydrated?.(true);
+  }, [setRouteHydrated]);
+  return null;
+}
 
 function SkipLink({ mainRef }) {
   const activate = (event) => {
@@ -29,14 +44,6 @@ function SkipLink({ mainRef }) {
   );
 }
 
-function RouteHydrationMarker({ setRouteHydrated }) {
-  useEffect(() => {
-    setRouteHydrated(true);
-  }, [setRouteHydrated]);
-
-  return null;
-}
-
 /**
  * Shared site chrome for Framework Mode routes. Playground stays chromeless:
  * no skip link, nav, footer, particles, or Ask launcher. DeferredTelemetry
@@ -49,16 +56,13 @@ export function SiteLayout() {
   const evidenceMode = location.pathname.startsWith("/playground");
 
   return (
-    <>
+    <MarkRouteHydratedContext.Provider value={setRouteHydrated}>
       <ScrollToTop />
       <RouteCompletion />
       {!evidenceMode && <SkipLink mainRef={mainRef} />}
       {!evidenceMode && <Navigation />}
       <main id="main" ref={mainRef} tabIndex={-1}>
-        <Suspense fallback={null}>
-          <Outlet />
-          <RouteHydrationMarker setRouteHydrated={setRouteHydrated} />
-        </Suspense>
+        <Outlet />
       </main>
       {!evidenceMode && (
         <>
@@ -68,6 +72,6 @@ export function SiteLayout() {
         </>
       )}
       <DeferredTelemetry />
-    </>
+    </MarkRouteHydratedContext.Provider>
   );
 }

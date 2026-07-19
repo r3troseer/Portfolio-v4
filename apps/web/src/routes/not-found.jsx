@@ -1,3 +1,11 @@
 import { NotFound } from "../pages/NotFound";
+import { RouteHydrationSignal } from "../components/SiteLayout";
 
-export default NotFound;
+export default function NotFoundRoute() {
+  return (
+    <>
+      <NotFound />
+      <RouteHydrationSignal />
+    </>
+  );
+}

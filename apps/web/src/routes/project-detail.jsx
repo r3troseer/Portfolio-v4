@@ -1,4 +1,5 @@
 import { ProjectDetail } from "../pages/ProjectDetail";
+import { RouteHydrationSignal } from "../components/SiteLayout";
 import { loadProjectDetail } from "../content/adapters/projectDetailLoader";
 
 /**
@@ -10,4 +11,11 @@ export async function loader({ params }) {
   return loadProjectDetail(params.id);
 }
 
-export default ProjectDetail;
+export default function ProjectDetailRoute() {
+  return (
+    <>
+      <ProjectDetail />
+      <RouteHydrationSignal />
+    </>
+  );
+}
