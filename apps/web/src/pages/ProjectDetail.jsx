@@ -9,6 +9,7 @@ import { ContentCard } from "../components/ContentCard";
 import { EVIDENCE_ORIGIN, safeReturnPath } from "../lib/evidenceNavigation";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRouteDestination } from "../components/RouteCompletion";
+import { beginSpaRouteTransition } from "../lib/spaRouteTransition";
 import "../styles/profile/detail.css";
 
 // Presentation-only mapping from a link icon key to a lucide icon name.
@@ -47,7 +48,10 @@ export const ProjectDetail = () => {
   const fromAssistant = evidenceOrigin === EVIDENCE_ORIGIN.ASSISTANT;
 
   let backLabel = "Back to work";
-  let goBack = () => navigate("/", { state: { scrollTo: "projects" } });
+  let goBack = () => {
+    beginSpaRouteTransition("/");
+    navigate("/", { state: { scrollTo: "projects" } });
+  };
 
   if (fromPlayground) {
     const query = typeof location.state?.q === "string" ? location.state.q.trim() : "";
@@ -57,10 +61,12 @@ export const ProjectDetail = () => {
         : undefined;
 
     backLabel = "Back to playground";
-    goBack = () =>
+    goBack = () => {
+      beginSpaRouteTransition("/playground");
       navigate("/playground", {
         state: query ? { q: query, roleLens } : undefined,
       });
+    };
   } else if (fromAssistant) {
     const returnTo = safeReturnPath(location.state?.returnTo);
     const query = typeof location.state?.q === "string" ? location.state.q.trim() : "";
@@ -70,13 +76,15 @@ export const ProjectDetail = () => {
         : undefined;
 
     backLabel = "Back to assistant";
-    goBack = () =>
+    goBack = () => {
+      beginSpaRouteTransition(returnTo);
       navigate(returnTo, {
         replace: true,
         state: query
           ? { resumeAssistant: { query, roleLens } }
           : undefined,
       });
+    };
   }
 
   return (

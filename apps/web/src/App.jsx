@@ -1,4 +1,4 @@
-import { lazy, Suspense, useRef } from "react";
+import { lazy, Suspense, useLayoutEffect, useRef, useSyncExternalStore } from "react";
 import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from "react-router";
 import { Navigation } from "./components/Navigation";
 import { Footer } from "./components/Footer";
@@ -8,6 +8,17 @@ import { AssistantShell } from "./components/AssistantShell";
 import { Home } from "./pages/Home";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { RouteCompletion } from "./components/RouteCompletion";
+import { SpaRouteTransition } from "./components/SpaRouteTransition";
+import {
+  RouteModuleErrorBoundary,
+  SpaRouteRecovery,
+} from "./components/SpaRouteRecovery";
+import {
+  dismissSpaRouteRecovery,
+  getSpaRouteRecoveryState,
+  subscribeSpaRouteRecovery,
+} from "./lib/spaRouteRecovery";
+import { normalizePathname } from "./lib/spaRouteTransition";
 
 // Route-split: lazy-load the project detail and 404 routes to keep their
 // weight off the home bundle.
@@ -45,6 +56,24 @@ function SkipLink({ mainRef }) {
 function Layout() {
   const location = useLocation();
   const mainRef = useRef(null);
+  const recovery = useSyncExternalStore(
+    subscribeSpaRouteRecovery,
+    getSpaRouteRecoveryState,
+    getSpaRouteRecoveryState
+  );
+  const destinationPath = normalizePathname(location.pathname);
+  const showRecovery =
+    recovery.status === "failed" &&
+    recovery.destinationPath === destinationPath;
+
+  // Leave the failed URL only after the location changes so Outlet does not
+  // remount the rejected module before navigation commits.
+  useLayoutEffect(() => {
+    if (recovery.status === "idle" || !recovery.destinationPath) return;
+    if (recovery.destinationPath === destinationPath) return;
+    dismissSpaRouteRecovery();
+  }, [destinationPath, recovery.status, recovery.destinationPath]);
+
   // The evidence playground is a distinct full-screen mode: it hides the shared
   // site chrome and renders its own results-only footer and navigation strip.
   const evidenceMode = location.pathname.startsWith("/playground");
@@ -54,9 +83,15 @@ function Layout() {
       {!evidenceMode && <SkipLink mainRef={mainRef} />}
       {!evidenceMode && <Navigation />}
       <main id="main" ref={mainRef} tabIndex={-1}>
-        <Suspense fallback={null}>
-          <Outlet />
-        </Suspense>
+        <RouteModuleErrorBoundary
+          key={destinationPath}
+          destinationPath={destinationPath}
+          fallback={<SpaRouteRecovery />}
+        >
+          <Suspense fallback={null}>
+            {showRecovery ? <SpaRouteRecovery /> : <Outlet />}
+          </Suspense>
+        </RouteModuleErrorBoundary>
       </main>
       {!evidenceMode && (
         <>
@@ -75,6 +110,7 @@ function App() {
     <Router>
       <ScrollToTop />
       <RouteCompletion />
+      <SpaRouteTransition />
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />

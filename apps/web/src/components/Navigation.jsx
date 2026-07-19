@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation, useNavigate } from "react-router";
 import { getProfile } from "../content/adapters/profileAdapter";
+import { beginSpaRouteTransition } from "../lib/spaRouteTransition";
 import "../styles/navigation.css";
 
 const SECTIONS = [
@@ -166,6 +167,7 @@ export const Navigation = () => {
     } else {
       // Route navigation owns the next focus target; do not restore to the toggle.
       closeMobileMenu({ restoreFocus: false });
+      beginSpaRouteTransition("/");
       navigate("/", { state: { scrollTo: sectionId } });
     }
   };

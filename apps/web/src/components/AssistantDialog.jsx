@@ -15,6 +15,7 @@ import { useDialogA11y } from "../hooks/useDialogA11y";
 import { useGroundedAnswer, answerLiveMessage } from "../lib/useGroundedAnswer";
 import { EVIDENCE_ORIGIN } from "../lib/evidenceNavigation";
 import { PRESETS } from "../lib/playgroundPresets";
+import { beginSpaRouteTransition } from "../lib/spaRouteTransition";
 import "../styles/profile/assistant-dialog.css";
 
 // Lazy-loaded assistant dialog body: input, presets, GroundedAnswer, evidence,
@@ -74,6 +75,7 @@ export function AssistantDialog({
     onPrepareRouteExit?.();
     const typed = inputValue.trim();
     const answered = hasQueried && result.status === "done";
+    beginSpaRouteTransition("/playground");
     if (answered && (!typed || typed === ran.query)) {
       navigate("/playground", {
         state: { q: ran.query, roleLens: ran.lens },

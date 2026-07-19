@@ -1,0 +1,100 @@
+/* Adaptive SPA route-transition feedback (PC1). Fixed, non-layout-affecting. */
+
+.pf-spa-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 2px;
+  z-index: 1100;
+  pointer-events: none;
+  overflow: hidden;
+  background: transparent;
+  opacity: 0;
+}
+
+.pf-spa-progress.is-visible {
+  opacity: 1;
+}
+
+.pf-spa-progress__bar {
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: var(--primary-accent);
+  transform: translateX(-100%);
+  transform-origin: left center;
+  will-change: transform;
+  animation: pf-route-progress-slide 1.1s ease-in-out infinite;
+}
+
+@keyframes pf-route-progress-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(160%);
+  }
+  100% {
+    transform: translateX(280%);
+  }
+}
+
+.pf-spa-status {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  z-index: 1100;
+  pointer-events: none;
+  transform: translate3d(-50%, 0, 0);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--pf-hairline);
+  background: color-mix(in oklch, var(--slate-900) 88%, transparent);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  opacity: 0;
+}
+
+.pf-spa-status.is-visible {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-spa-progress__bar {
+    width: 100%;
+    animation: none;
+    transform: none;
+    opacity: 0.85;
+  }
+}
+
+@media (forced-colors: active) {
+  .pf-spa-progress__bar {
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+
+  .pf-spa-status {
+    border: 1px solid ButtonText;
+    background: Canvas;
+    color: CanvasText;
+    forced-color-adjust: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .pf-spa-status {
+    top: var(--spacing-xs);
+    left: calc(50% + var(--spacing-lg));
+    max-width: calc(100vw - var(--spacing-4xl));
+    padding: 4px 8px;
+    overflow: hidden;
+    font-size: 0.75rem;
+    text-overflow: ellipsis;
+  }
+}

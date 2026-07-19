@@ -11,6 +11,7 @@ import { PRESETS, PRESET_BY_ID } from "../lib/playgroundPresets";
 import { getProfile } from "../content/adapters/profileAdapter";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useRouteDestination } from "../components/RouteCompletion";
+import { beginSpaRouteTransition } from "../lib/spaRouteTransition";
 import "../styles/profile/playground.css";
 
 // The Layer 1 evidence workspace, ported from the profile handoff's "Evidence"
@@ -155,7 +156,11 @@ export function Playground() {
     }
     navigate(`/playground?p=${id}`);
   };
-  const goPortfolio = () => navigate("/");
+  const goPortfolio = () => {
+    beginSpaRouteTransition("/");
+    navigate("/");
+  };
+  // Same-route query/state operations stay outside the SPA pending lifecycle.
   const newQuery = () => navigate("/playground");
 
   const isHero = !requestedQuery.trim();
