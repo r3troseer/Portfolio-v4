@@ -63,6 +63,7 @@ export function SpaRouteRecovery() {
     getSpaRouteRecoveryState
   );
   const previousPath = recovery.previousPath;
+  const showGoBack = Boolean(previousPath && previousPath !== "/");
   const copy = SPA_ROUTE_RECOVERY_COPY;
 
   useDocumentTitle(`${copy.title} - Pius Agboola`);
@@ -109,7 +110,7 @@ export function SpaRouteRecovery() {
         <button type="button" className="pf-btn-primary" onClick={onTryAgain}>
           {copy.tryAgain}
         </button>
-        {previousPath ? (
+        {showGoBack ? (
           <button type="button" className="pf-btn-ghost" onClick={onGoBack}>
             {copy.goBack}
           </button>
