@@ -1,4 +1,5 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import { FrameworkRouteErrorBoundaryRecovery } from "./components/FrameworkRouteRecovery";
 import { homeMetaDescriptors } from "./lib/routeMetadata";
 import "./index.css";
 import "./styles/fonts.css";
@@ -56,4 +57,13 @@ export function Layout({ children }) {
 
 export default function Root() {
   return <Outlet />;
+}
+
+/**
+ * Terminal Framework loader / .data failures that commit through the router
+ * error lifecycle. SPA route-module chunk failures are handled in-layout via
+ * loadRouteModule reload conversion (see frameworkRouteRecovery.js).
+ */
+export function ErrorBoundary() {
+  return <FrameworkRouteErrorBoundaryRecovery />;
 }

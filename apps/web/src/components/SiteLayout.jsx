@@ -7,6 +7,9 @@ import { DeferredTelemetry } from "./DeferredTelemetry";
 import { AssistantShell } from "./AssistantShell";
 import { ScrollToTop } from "./ScrollToTop";
 import { RouteCompletion } from "./RouteCompletion";
+import { FrameworkRouteTransition } from "./FrameworkRouteTransition";
+import { FrameworkRouteRecovery } from "./FrameworkRouteRecovery";
+import { subscribeModuleRecovery } from "../lib/frameworkRouteRecovery";
 
 const MarkRouteHydratedContext = createContext(null);
 
@@ -53,16 +56,24 @@ export function SiteLayout() {
   const location = useLocation();
   const mainRef = useRef(null);
   const [routeHydrated, setRouteHydrated] = useState(false);
+  const [moduleRecovery, setModuleRecovery] = useState(false);
   const evidenceMode = location.pathname.startsWith("/playground");
+
+  useEffect(() => subscribeModuleRecovery(setModuleRecovery), []);
 
   return (
     <MarkRouteHydratedContext.Provider value={setRouteHydrated}>
       <ScrollToTop />
       <RouteCompletion />
+      <FrameworkRouteTransition mainRef={mainRef} />
       {!evidenceMode && <SkipLink mainRef={mainRef} />}
       {!evidenceMode && <Navigation />}
       <main id="main" ref={mainRef} tabIndex={-1}>
-        <Outlet />
+        {moduleRecovery ? (
+          <FrameworkRouteRecovery variant="module" />
+        ) : (
+          <Outlet />
+        )}
       </main>
       {!evidenceMode && (
         <>

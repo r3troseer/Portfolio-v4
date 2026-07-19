@@ -1,0 +1,47 @@
+/* Bounded Framework route-recovery surface (PC2). Compact main content only. */
+
+.pf-route-recovery {
+  flex: 1;
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-2xl);
+}
+
+.pf-route-recovery__title {
+  margin: 0;
+  font-size: var(--font-size-4xl);
+  color: var(--slate-50);
+  font-weight: 600;
+}
+
+.pf-route-recovery__body {
+  margin: 0;
+  max-width: 36rem;
+  color: var(--text-secondary);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-base);
+}
+
+.pf-route-recovery__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+@media (forced-colors: active) {
+  .pf-route-recovery__title {
+    color: CanvasText;
+  }
+
+  .pf-route-recovery__body {
+    color: CanvasText;
+  }
+}
