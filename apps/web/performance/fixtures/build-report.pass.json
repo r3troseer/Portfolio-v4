@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "purpose": "Fixture build report shaped like PA5 production report for budget tests.",
-  "distDir": "dist",
+  "distDir": "build/client",
   "assetCount": 4,
   "totals": { "rawBytes": 500000, "gzipBytes": 200000 },
   "homepageCriticalPath": {

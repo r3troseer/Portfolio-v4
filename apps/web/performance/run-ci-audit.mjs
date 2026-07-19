@@ -5,7 +5,7 @@
 // and rendered-DOM link traversal are non-gating).
 
 import { spawn, spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { createServer } from "node:net";
 import { dirname, join } from "node:path";
@@ -13,6 +13,7 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, "..");
+const clientDir = join(webRoot, "build", "client");
 const requireFromWeb = createRequire(join(webRoot, "package.json"));
 const vitePackageDir = dirname(requireFromWeb.resolve("vite/package.json"));
 const viteCli = join(vitePackageDir, "bin", "vite.js");
@@ -111,6 +112,8 @@ async function confirmPortClosed(port, host = "127.0.0.1", attempts = 40) {
 function startPreview(port) {
   const args = [
     "preview",
+    "--outDir",
+    "build/client",
     "--host",
     "127.0.0.1",
     "--port",
@@ -195,6 +198,12 @@ function runNodeScript(scriptRelative, env = {}) {
 async function main() {
   const port = resolvePort();
   const baseUrl = `http://127.0.0.1:${port}/`;
+
+  if (!existsSync(clientDir) || !existsSync(join(clientDir, "index.html"))) {
+    throw new Error(
+      "build/client/index.html not found. Run a production build before npm run perf:ci-audit."
+    );
+  }
 
   if (!(await isPortFree(port))) {
     throw new Error(

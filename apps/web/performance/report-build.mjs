@@ -1,6 +1,6 @@
 // Deterministic production-build size reporter for initial-load measurement.
-// Reads apps/web/dist after a production build and writes:
-//   dist/performance/build-report.json
+// Reads apps/web/build/client after a production build and writes:
+//   build/client/performance/build-report.json
 // Also prints a concise size summary for CI logs.
 //
 // Run: npm run perf:report  (from apps/web)
@@ -18,8 +18,8 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, "..");
-const distDir = join(webRoot, "dist");
-const outDir = join(distDir, "performance");
+const clientDir = join(webRoot, "build", "client");
+const outDir = join(clientDir, "performance");
 const outFile = join(outDir, "build-report.json");
 
 function gzipSize(buffer) {
@@ -112,26 +112,28 @@ function formatBytes(n) {
 }
 
 function main() {
-  if (!existsSync(distDir)) {
+  if (!existsSync(clientDir)) {
     throw new Error(
-      "dist/ not found. Run a production build before npm run perf:report."
+      "build/client/ not found. Run a production build before npm run perf:report."
     );
   }
 
-  const indexPath = join(distDir, "index.html");
+  const indexPath = join(clientDir, "index.html");
   if (!existsSync(indexPath)) {
-    throw new Error("dist/index.html not found. Production build looks incomplete.");
+    throw new Error(
+      "build/client/index.html not found. Production build looks incomplete."
+    );
   }
 
-  const files = walkFiles(distDir).filter((filePath) => {
-    const rel = relative(distDir, filePath).replace(/\\/g, "/");
+  const files = walkFiles(clientDir).filter((filePath) => {
+    const rel = relative(clientDir, filePath).replace(/\\/g, "/");
     // Keep the report focused on shipped assets; skip prior report/analysis outputs.
     return !rel.startsWith("performance/");
   });
 
   const assets = [];
   for (const filePath of files) {
-    const rel = relative(distDir, filePath).replace(/\\/g, "/");
+    const rel = relative(clientDir, filePath).replace(/\\/g, "/");
     const buffer = readFileSync(filePath);
     const rawBytes = buffer.byteLength;
     assets.push({
@@ -156,7 +158,7 @@ function main() {
 
   const jsChunks = [];
   for (const asset of assets.filter((a) => a.type === "js")) {
-    const source = readFileSync(join(distDir, asset.file), "utf8");
+    const source = readFileSync(join(clientDir, asset.file), "utf8");
     jsChunks.push({
       file: asset.file,
       rawBytes: asset.rawBytes,
@@ -188,7 +190,7 @@ function main() {
   const report = {
     schemaVersion: 1,
     purpose: "Deterministic production build-output sizes for initial-load baselining.",
-    distDir: "dist",
+    distDir: "build/client",
     assetCount: assets.length,
     totals,
     homepageCriticalPath: {

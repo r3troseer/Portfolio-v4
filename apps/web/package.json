@@ -20,7 +20,6 @@
   },
   "devDependencies": {
     "@react-router/dev": "7.18.1",
-    "@vitejs/plugin-react": "^6.0.3",
     "lighthouse": "12.6.1",
     "rollup-plugin-visualizer": "^7.0.1",
     "vite": "^8.1.0"
@@ -30,7 +29,7 @@
     "generate:project-manifest": "node content/generate-project-manifest.mjs",
     "build": "npm run generate:project-manifest && react-router build",
     "build:analyze": "npm run generate:project-manifest && react-router build",
-    "preview": "vite preview",
+    "preview": "vite preview --outDir build/client",
     "perf:lighthouse": "node performance/run-lighthouse.mjs",
     "perf:report": "node performance/report-build.mjs",
     "perf:assert-budgets": "node performance/assert-budgets.mjs",

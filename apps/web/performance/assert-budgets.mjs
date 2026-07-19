@@ -1,7 +1,7 @@
 // Fail-closed Branch A budget assertion.
-// Consumes dist/performance/build-report.json and lighthouse/summary.json plus
-// performance/budgets.json. Hard breaches and malformed evidence exit nonzero;
-// advisory breaches print warnings and exit zero.
+// Consumes build/client/performance/build-report.json and lighthouse/summary.json
+// plus performance/budgets.json. Hard breaches and malformed evidence exit
+// nonzero; advisory breaches print warnings and exit zero.
 
 import {
   existsSync,
@@ -15,13 +15,15 @@ const webRoot = join(here, "..");
 
 const DEFAULT_BUILD_REPORT = join(
   webRoot,
-  "dist",
+  "build",
+  "client",
   "performance",
   "build-report.json"
 );
 const DEFAULT_SUMMARY = join(
   webRoot,
-  "dist",
+  "build",
+  "client",
   "performance",
   "lighthouse",
   "summary.json"

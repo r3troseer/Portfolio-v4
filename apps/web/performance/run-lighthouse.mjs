@@ -1,7 +1,7 @@
 // Repeatable five-run Lighthouse measurement for Branch A budgets.
-// Requires an explicit LIGHTHOUSE_URL and writes only ignored dist artifacts.
-// Captures performance metrics plus accessibility and deterministic structural
-// audit evidence used by assert-budgets.mjs.
+// Requires an explicit LIGHTHOUSE_URL and writes only ignored build/client
+// artifacts. Captures performance metrics plus accessibility and deterministic
+// structural audit evidence used by assert-budgets.mjs.
 
 import {
   existsSync,
@@ -25,7 +25,7 @@ const STRUCTURAL_AUDIT_IDS = [
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, "..");
-const outputDir = join(webRoot, "dist", "performance", "lighthouse");
+const outputDir = join(webRoot, "build", "client", "performance", "lighthouse");
 const lighthousePackage = join(
   webRoot,
   "node_modules",
