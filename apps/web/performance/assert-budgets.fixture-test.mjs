@@ -55,6 +55,26 @@ check(
   JSON.stringify(passResult.hardFailures)
 );
 
+const frameworkBuildPass = structuredClone(buildPass);
+const projectDetailChunk = frameworkBuildPass.jsChunks.find((chunk) =>
+  /ProjectDetail/i.test(chunk.file)
+);
+projectDetailChunk.file = projectDetailChunk.file.replace(
+  /ProjectDetail/i,
+  "project-detail"
+);
+const frameworkPassResult = assertBudgets({
+  buildReport: frameworkBuildPass,
+  summary: summaryPass,
+  budgets,
+});
+check(
+  "Framework project-detail chunk is measured",
+  frameworkPassResult.measurements.projectDetailGzipBytes ===
+    passResult.measurements.projectDetailGzipBytes,
+  JSON.stringify(frameworkPassResult.measurements)
+);
+
 const clsResult = assertBudgets({
   buildReport: buildPass,
   summary: summaryClsFail,

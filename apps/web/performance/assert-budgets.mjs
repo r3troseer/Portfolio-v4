@@ -82,11 +82,12 @@ function projectDetailGzipBytes(buildReport) {
     throw new Error("build-report.jsChunks must be an array.");
   }
   const matches = chunks.filter((chunk) =>
-    typeof chunk?.file === "string" && /ProjectDetail/i.test(chunk.file)
+    typeof chunk?.file === "string" &&
+    /(?:ProjectDetail|project-detail)/i.test(chunk.file)
   );
   if (matches.length === 0) {
     throw new Error(
-      "build-report.jsChunks contains no ProjectDetail chunk to assert against."
+      "build-report.jsChunks contains no project-detail chunk to assert against."
     );
   }
   // Prefer the route shell chunk (smallest matching file when several exist).
