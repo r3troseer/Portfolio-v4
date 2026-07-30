@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import sys
 import unittest
 from dataclasses import replace
 from unittest import mock
@@ -66,6 +67,14 @@ _SAFE_KEYS = frozenset(
     {"outcome", "correlation_id", "endpoint", "status_code", "duration_ms"}
 )
 _HEX_ID = re.compile(r"^[0-9a-f]{32}$")
+
+
+class TelemetryLoggingConfigurationTests(SimpleTestCase):
+    def test_telemetry_handler_writes_to_stdout(self) -> None:
+        handlers = logging.getLogger("core.telemetry").handlers
+
+        self.assertEqual(len(handlers), 1)
+        self.assertIs(handlers[0].stream, sys.stdout)
 
 
 def _fake_json(status: str, answer: str, citation_ids: list[str]) -> str:
