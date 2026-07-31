@@ -1,0 +1,30 @@
+# Railway config-as-code for the portfolio API.
+#
+# Dashboard wiring (not encoded here - see docs/deployment/layer1-runtime.md):
+# - Root Directory: / (monorepo root so Layer 0 content is present for the index build)
+# - Config file path: /apps/api/railway.toml
+# - Wait for CI: enabled (gates on .github/workflows/ci.yml)
+# - Branch -> environment: dev -> staging/dev, main -> production
+#
+# Build is a Dockerfile (apps/api/Dockerfile), not Railpack: Railpack/Mise
+# installed Python only on the build image, so the deps venv's shebangs broke
+# on the runtime image. The Dockerfile owns build and runtime in one image.
+#
+# No migrate / preDeployCommand: this backend is DB-less.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "apps/api/Dockerfile"
+watchPatterns = [
+  "/apps/api/**",
+  "/apps/web/src/content/public/**",
+]
+
+[deploy]
+# No startCommand: the Dockerfile CMD (sh -c gunicorn) is the start command.
+# Railway runs a custom start command on Docker images *without* a shell, so
+# ${PORT:-8000} would reach gunicorn unexpanded ("'${PORT' is not a valid port
+# number"). The dashboard Start Command field must stay empty for the same
+# reason - CMD is the only shell-wrapped option.
+healthcheckPath = "/health/"
+restartPolicyType = "ON_FAILURE"

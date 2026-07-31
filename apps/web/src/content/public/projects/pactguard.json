@@ -3,43 +3,293 @@
   "visibility": "public",
   "status": "prototype",
   "sensitivity": "safe",
-  "repo": { "visibility": "public" },
+  "repo": {
+    "visibility": "public"
+  },
   "card": {
     "title": "PACTGuard",
     "subtitle": "Pre-Release Compliance Middleware for AI-Era Financial Communications",
     "summary": "RegTech middleware that reviews AI-generated financial communications and robo-advice before release. Compares three independent engines (deterministic rules, semantic retrieval, and a Gemini AI judge), then applies a Pass / Adjust / Check / Terminate decision with an evidence-bound explanation. Built for the Cambridge Spark 'Financial Regulation in an AI-Driven World' challenge.",
-    "technologies": ["Django", "DRF", "React", "Gemini 2.0 Flash", "Sentence-Transformers", "RegTech"]
+    "technologies": [
+      "Django",
+      "DRF",
+      "React",
+      "Gemini",
+      "Sentence-Transformers",
+      "RegTech"
+    ],
+    "listTech": [
+      "Sentence-Transformers",
+      "LLM Judge",
+      "NLI / Evidence"
+    ]
   },
   "detail": {
+    "focus": "RegTech · AI Compliance",
     "overview": "PACTGuard is pre-release compliance middleware and a regulatory sandbox for customer-facing financial communications. It checks AI-generated, AI-assisted, and human-written promotional, chatbot, CRM, and robo-advice outputs before they reach customers, applies a Pass / Adjust / Check / Terminate release decision, and produces an evidence-bound Evidence Pack for firms and regulator-style reviewers. Built by team PACTful for the Cambridge Spark 'Financial Regulation in an AI-Driven World' challenge, it is FCA-aligned, not FCA-certified, and does not provide financial or legal advice or imply regulatory approval.",
     "links": [
-      { "icon": "github", "text": "View Code", "href": "https://github.com/r3troseer/PACTGuard" }
+      {
+        "icon": "github",
+        "text": "View Code",
+        "href": "https://github.com/r3troseer/PACTGuard"
+      }
     ],
-    "badge": { "text": "Hackathon MVP", "type": "secondary", "size": "small" },
+    "badge": {
+      "text": "Hackathon MVP",
+      "type": "secondary",
+      "size": "small"
+    },
     "metrics": [
-      { "number": "4", "label": "Independent Engines" },
-      { "number": "18", "label": "FCA-Aligned Controls" },
-      { "number": "PACT", "label": "Pass / Adjust / Check / Terminate" },
-      { "number": "31", "label": "Gold Test Cases" }
+      {
+        "number": "4",
+        "label": "Independent Engines"
+      },
+      {
+        "number": "18",
+        "label": "FCA-Aligned Controls"
+      },
+      {
+        "number": "PACT",
+        "label": "Pass / Adjust / Check / Terminate"
+      },
+      {
+        "number": "31",
+        "label": "Gold Test Cases"
+      }
     ],
     "contentCards": [
       {
-        "markdown": "### Architecture\n- **Three independent engines, compared:** deterministic keyword/context rules, semantic xRAG reference retrieval (`sentence-transformers` `all-MiniLM-L6-v2` + cosine similarity), and a Gemini 2.0 Flash AI judge, with a deterministic *simulated* fallback when no API key is present.\n- **Hybrid PACT release gate** combines scoring, severe-risk overrides, session escalation, and engine disagreement into a final Pass / Adjust / Check / Terminate decision.\n- **Backend:** Django + Django REST Framework, SQLite, a metadata-wrapped control library (`controls.json`), and a service layer (`risk_engine`, `retrieval`, `scoring`, `pact_gate`, `evidence_pack`, `xai`, `sandbox`, `audit`).\n- **Frontend:** React + Vite single-page app for review, sandbox comparison, and dashboards.\n- **Version-controlled middleware:** every decision is stamped with the control-library version; publishing a new version flags prior decisions as needing reassessment.",
         "type": "Architecture",
+        "title": "Architecture",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "text": "Three independent engines, compared:",
+                    "bold": true
+                  },
+                  {
+                    "text": " deterministic keyword/context rules, semantic xRAG reference retrieval ("
+                  },
+                  {
+                    "text": "sentence-transformers",
+                    "code": true
+                  },
+                  {
+                    "text": " "
+                  },
+                  {
+                    "text": "all-MiniLM-L6-v2",
+                    "code": true
+                  },
+                  {
+                    "text": " + cosine similarity), and a Gemini AI judge, with a deterministic "
+                  },
+                  {
+                    "text": "simulated",
+                    "italic": true
+                  },
+                  {
+                    "text": " fallback when no API key is present."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Hybrid PACT release gate",
+                    "bold": true
+                  },
+                  {
+                    "text": " combines scoring, severe-risk overrides, session escalation, and engine disagreement into a final Pass / Adjust / Check / Terminate decision."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Backend:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Django + Django REST Framework, SQLite, a metadata-wrapped control library ("
+                  },
+                  {
+                    "text": "controls.json",
+                    "code": true
+                  },
+                  {
+                    "text": "), and a service layer ("
+                  },
+                  {
+                    "text": "risk_engine",
+                    "code": true
+                  },
+                  {
+                    "text": ", "
+                  },
+                  {
+                    "text": "retrieval",
+                    "code": true
+                  },
+                  {
+                    "text": ", "
+                  },
+                  {
+                    "text": "scoring",
+                    "code": true
+                  },
+                  {
+                    "text": ", "
+                  },
+                  {
+                    "text": "pact_gate",
+                    "code": true
+                  },
+                  {
+                    "text": ", "
+                  },
+                  {
+                    "text": "evidence_pack",
+                    "code": true
+                  },
+                  {
+                    "text": ", "
+                  },
+                  {
+                    "text": "xai",
+                    "code": true
+                  },
+                  {
+                    "text": ", "
+                  },
+                  {
+                    "text": "sandbox",
+                    "code": true
+                  },
+                  {
+                    "text": ", "
+                  },
+                  {
+                    "text": "audit",
+                    "code": true
+                  },
+                  {
+                    "text": ")."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Frontend:",
+                    "bold": true
+                  },
+                  {
+                    "text": " React + Vite single-page app for review, sandbox comparison, and dashboards."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Version-controlled middleware:",
+                    "bold": true
+                  },
+                  {
+                    "text": " every decision is stamped with the control-library version; publishing a new version flags prior decisions as needing reassessment."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
         "tags": [
           "Django",
           "DRF",
           "React",
           "Vite",
-          "Gemini 2.0 Flash",
+          "Gemini",
           "Sentence-Transformers",
           "Semantic Retrieval",
           "SQLite"
         ]
       },
       {
-        "markdown": "### Features\n- **Evidence Packs:** every finding links a flagged phrase (or absent disclosure) to a control ID, the regulation reference, why it matters, and a remediation hint. No explanation without evidence.\n- **Safe failure:** when required context is missing or the engines materially disagree on consumer-harm risk, PACTGuard defaults to **Check** for human review rather than silently releasing content.\n- **Session & customer risk:** optional session and customer tracking so repeated risky outputs escalate instead of disappearing as isolated events.\n- **Robo-advice controls:** distinguishes controlled, well-evidenced personalised advice from unsuitable recommendations (suitability evidence, customer-interest alignment, reviewable rationale).\n- **Governance & regulator dashboards:** decision distribution, top triggered controls, engine-disagreement rate, explanation quality, and audit completeness.",
         "type": "Features",
+        "title": "Features",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "text": "Evidence Packs:",
+                    "bold": true
+                  },
+                  {
+                    "text": " every finding links a flagged phrase (or absent disclosure) to a control ID, the regulation reference, why it matters, and a remediation hint. No explanation without evidence."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Safe failure:",
+                    "bold": true
+                  },
+                  {
+                    "text": " when required context is missing or the engines materially disagree on consumer-harm risk, PACTGuard defaults to "
+                  },
+                  {
+                    "text": "Check",
+                    "bold": true
+                  },
+                  {
+                    "text": " for human review rather than silently releasing content."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Session & customer risk:",
+                    "bold": true
+                  },
+                  {
+                    "text": " optional session and customer tracking so repeated risky outputs escalate instead of disappearing as isolated events."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Robo-advice controls:",
+                    "bold": true
+                  },
+                  {
+                    "text": " distinguishes controlled, well-evidenced personalised advice from unsuitable recommendations (suitability evidence, customer-interest alignment, reviewable rationale)."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Governance & regulator dashboards:",
+                    "bold": true
+                  },
+                  {
+                    "text": " decision distribution, top triggered controls, engine-disagreement rate, explanation quality, and audit completeness."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
         "tags": [
           "Evidence-Bound XAI",
           "Consumer Duty",
@@ -97,9 +347,23 @@
   },
   "ai": {
     "publicSummary": "PACTGuard is RegTech pre-release compliance middleware for AI-era financial communications: it compares deterministic rules, semantic retrieval, and a Gemini AI judge, then applies a Pass / Adjust / Check / Terminate decision with an evidence-bound explanation. FCA-aligned, not FCA-certified; it supports compliance decision-making and does not provide advice or regulatory approval.",
-    "roleLenses": ["backend", "python-django", "ai-nlp", "fintech", "fullstack"],
-    "evidenceSkills": ["Django REST", "Semantic Retrieval", "Explainable AI"],
-    "safeTalkingPoints": [],
+    "roleLenses": [
+      "backend",
+      "python-django",
+      "ai-nlp",
+      "fintech",
+      "fullstack"
+    ],
+    "evidenceSkills": [
+      "Django REST",
+      "Semantic Retrieval",
+      "Explainable AI"
+    ],
+    "safeTalkingPoints": [
+      "RegTech middleware that scores financial communications before release using rules, retrieval, and a Gemini judge.",
+      "Outputs a Pass / Adjust / Check / Terminate decision with an evidence-bound explanation - decision support, not advice.",
+      "FCA-aligned framing, not FCA-certified; built for compliance review workflows."
+    ],
     "sensitivity": "safe"
   }
 }

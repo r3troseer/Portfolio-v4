@@ -1,16 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation } from "react-router";
-import { Navigation } from "../components/Navigation";
 import { Hero } from "../components/Hero";
 import { About } from "../components/About";
 import { Projects } from "../components/Projects";
 import { Experience } from "../components/Experience";
 import { Contact } from "../components/Contact";
-// import { Footer } from "../components/Footer";
-import { ParticleEffect } from "../components/ParticleEffect";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { useRouteDestination } from "../components/RouteCompletion";
 
 export function Home() {
   const { state } = useLocation();
+  const headingRef = useRef(null);
+  useDocumentTitle("Pius Agboola - Software Engineer");
+  useRouteDestination(headingRef, "Home");
 
   useEffect(() => {
     if (state?.scrollTo) {
@@ -45,13 +47,11 @@ export function Home() {
 
   return (
     <>
-      <Navigation />
-      <Hero />
+      <Hero headingRef={headingRef} />
       <About />
       <Projects />
       <Experience />
       <Contact />
-      <ParticleEffect />
     </>
   );
 }

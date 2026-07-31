@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "programme": "branch-a",
+  "description": "Frozen Branch A performance budgets from PA5 evidence. Hard limits fail CI; advisory limits warn only.",
+  "hard": {
+    "homepageCriticalPathGzipBytes": {
+      "max": 101640
+    },
+    "cls": {
+      "max": 0.01,
+      "everyRun": true
+    },
+    "accessibilityScore": {
+      "min": 100,
+      "everyRun": true
+    },
+    "structuralAudits": {
+      "everyRun": true,
+      "required": [
+        "viewport",
+        "document-title",
+        "meta-description",
+        "http-status-code",
+        "errors-in-console"
+      ]
+    }
+  },
+  "advisory": {
+    "performanceScoreMedian": {
+      "min": 87
+    },
+    "lcpMsMedian": {
+      "max": 2200
+    },
+    "tbtMsMedian": {
+      "max": 460
+    },
+    "speedIndexMsMedian": {
+      "max": 2275
+    },
+    "totalJavaScriptGzipBytes": {
+      "max": 175000
+    },
+    "projectDetailGzipBytes": {
+      "max": 4500
+    }
+  },
+  "linkCoverage": {
+    "hard": "Homepage Lighthouse http-status-code plus bounded status checks for Home, Playground, and every generated public project route against the owned preview (status < 400).",
+    "nonGating": "External portfolio link availability is advisory only; third-party uptime is outside repository control.",
+    "residualBoundary": "Client-side SPA destinations are checked as same-origin HTML shell responses, not rendered route DOM. Rendered-DOM link traversal is out of scope without adding a second browser-driving stack."
+  }
+}

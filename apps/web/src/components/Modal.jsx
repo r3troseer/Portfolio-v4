@@ -1,34 +1,40 @@
+import { useRef } from "react";
 import { X } from "lucide-react";
-export const Modal = ({ data, children, onClose }) => {
-  if (!data && !children) return null;
+import { useDialogA11y } from "../hooks/useDialogA11y";
+
+// Media lightbox, aligned with the assistant modal surfaces.
+export const Modal = ({ data, onClose }) => {
+  const panelRef = useRef(null);
+  // Focus into the lightbox on open, trap Tab, Escape to close, restore focus to
+  // the invoking thumbnail on close. Hooks run unconditionally (before the guard).
+  useDialogA11y(!!data, onClose, panelRef);
+
+  if (!data) return null;
   return (
     <div
-      className="modal-overlay"
+      className="pf-pd-lightbox"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={data.title || "Image modal"}
     >
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>
-          <X />
+      <div
+        ref={panelRef}
+        className="pf-pd-lightbox-inner"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          className="pf-pd-lightbox-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <X size={18} />
         </button>
-        {data ? (
-          <div className="modal-inner">
-            <img
-              src={data.src}
-              alt={data.alt}
-              onClick={(e) => e.stopPropagation()}
-              className="modal-image"
-            />
-            <div className="modal-info">
-              <h3 className="modal-title">{data.title}</h3>
-              <p className="modal-descriptions">{data.description}</p>
-            </div>
-          </div>
-        ) : (
-          children
-        )}
+        <img src={data.src} alt={data.title} onError={onClose} />
+        <div className="pf-pd-lightbox-info">
+          <h3>{data.title}</h3>
+          {data.description && <p>{data.description}</p>}
+        </div>
       </div>
     </div>
   );

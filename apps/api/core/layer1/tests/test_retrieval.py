@@ -1,0 +1,351 @@
+"""Layer 1 retrieval tests: scoring, validation, fail-closed loading, endpoint.
+
+Same conventions as test_index_gating.py: stdlib unittest / SimpleTestCase (no
+DB), runnable via ``uv run python manage.py test core``.
+"""
+
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+from django.test import SimpleTestCase
+
+from core.layer1.builder import DEFAULT_CONTENT_ROOT, build_index, records_as_dicts
+from core.layer1.records import INDEXABLE, EvidenceRecord
+from core.layer1.presentation import match_dict
+from core.layer1.reranking import RERANK_MODE, retrieve_and_rerank
+from core.layer1.retrieval import (
+    TOP_K_MAX,
+    Corpus,
+    IndexUnavailableError,
+    RetrievalQuery,
+    RetrievalValidationError,
+    _load_corpus,
+    _make_entry,
+    _tokenize,
+    get_corpus,
+    parse_retrieval_request,
+    retrieve_candidates,
+)
+
+FIXTURE_ROOT = Path(__file__).resolve().parent / "fixtures" / "content"
+MISSING_ROOT = Path(__file__).resolve().parent / "does-not-exist"
+
+
+def _fixture_corpus() -> Corpus:
+    """Searchable corpus over the fixture tree's *emitted* (gated) records."""
+    result = build_index(FIXTURE_ROOT)
+    return Corpus(entries=tuple(_make_entry(r) for r in result.records), source="built")
+
+
+class RetrieveScoringTests(unittest.TestCase):
+    """Lexical candidate-stage scoring (first stage of the pipeline)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.corpus = _fixture_corpus()
+
+    def test_matching_query_returns_public_evidence(self) -> None:
+        candidates = retrieve_candidates(
+            self.corpus, RetrievalQuery(query="curated public summary")
+        )
+        self.assertGreater(len(candidates), 0)
+        self.assertEqual(candidates[0].record.id, "project:pub-project")
+        self.assertEqual(candidates[0].initial_rank, 1)
+
+    def test_results_are_deterministic(self) -> None:
+        query = RetrievalQuery(query="public summary fixture")
+        self.assertEqual(
+            retrieve_candidates(self.corpus, query),
+            retrieve_candidates(self.corpus, query),
+        )
+
+    def test_equal_scores_tie_break_on_record_id(self) -> None:
+        candidates = retrieve_candidates(
+            self.corpus, RetrievalQuery(query="paragraph verbatim")
+        )
+        # "paragraph" hits profile:profile text; "verbatim" hits markdown:good
+        # text - both score 1, so ordering must fall back to id.
+        self.assertEqual(
+            [c.record.id for c in candidates], ["markdown:good", "profile:profile"]
+        )
+        self.assertEqual({c.lexical_score for c in candidates}, {1})
+
+    def test_title_match_outranks_text_only_match(self) -> None:
+        candidates = retrieve_candidates(self.corpus, RetrievalQuery(query="markdown"))
+        by_id = {c.record.id: c.lexical_score for c in candidates}
+        # "markdown" is in markdown:good's title (+3) and only in no other
+        # record's text; title weight must dominate any text-only hit.
+        self.assertEqual(max(by_id, key=lambda k: by_id[k]), "markdown:good")
+
+    def test_role_lens_boost_adds_two_to_matching_records(self) -> None:
+        plain = retrieve_candidates(self.corpus, RetrievalQuery(query="curated"))
+        boosted = retrieve_candidates(
+            self.corpus, RetrievalQuery(query="curated", role_lens="backend")
+        )
+        self.assertEqual(plain[0].record.id, "project:pub-project")
+        self.assertEqual(boosted[0].record.id, "project:pub-project")
+        self.assertEqual(boosted[0].lexical_score, plain[0].lexical_score + 2)
+
+    def test_role_lens_does_not_exclude_lensless_records(self) -> None:
+        candidates = retrieve_candidates(
+            self.corpus, RetrievalQuery(query="public", role_lens="backend")
+        )
+        ids = [c.record.id for c in candidates]
+        self.assertIn("markdown:good", ids)  # carries no role lenses
+
+    def test_zero_score_records_never_match(self) -> None:
+        candidates = retrieve_candidates(
+            self.corpus, RetrievalQuery(query="zzqqxxyyzz")
+        )
+        self.assertEqual(candidates, ())
+
+    def test_selected_matches_respect_top_k(self) -> None:
+        # The candidate pool is deliberately larger than top_k; the final
+        # selection (what the API serves as matches) still respects it.
+        query = RetrievalQuery(query="fixture public summary", top_k=1)
+        result = retrieve_and_rerank(self.corpus, query)
+        self.assertEqual(len(result.selected), 1)
+        self.assertGreaterEqual(len(result.candidates), 1)
+
+    def test_stopwords_do_not_change_scores(self) -> None:
+        plain = retrieve_candidates(self.corpus, RetrievalQuery(query="curated summary"))
+        with_fillers = retrieve_candidates(
+            self.corpus,
+            RetrievalQuery(query="please tell me about the curated summary"),
+        )
+        self.assertEqual(with_fillers, plain)
+
+    def test_all_stopword_query_returns_no_matches(self) -> None:
+        candidates = retrieve_candidates(
+            self.corpus, RetrievalQuery(query="please tell me about the")
+        )
+        self.assertEqual(candidates, ())
+
+    def test_meaningful_technical_terms_remain_tokens(self) -> None:
+        terms = (
+            "backend api django fastapi ai evidence fintech cloud data"
+        )
+        self.assertEqual(_tokenize(terms), tuple(terms.split()))
+
+    def test_stopword_filter_remains_deterministic(self) -> None:
+        query = RetrievalQuery(query="what can you tell me about curated public")
+        self.assertEqual(
+            retrieve_candidates(self.corpus, query),
+            retrieve_candidates(self.corpus, query),
+        )
+
+
+class ParseRetrievalRequestTests(unittest.TestCase):
+    def test_valid_request_parses_with_defaults(self) -> None:
+        parsed = parse_retrieval_request({"query": "  hello  "})
+        self.assertEqual(parsed, RetrievalQuery(query="hello", role_lens=None, top_k=5))
+
+    def test_invalid_payloads_are_rejected(self) -> None:
+        bad_payloads = (
+            "not a dict",
+            {},
+            {"query": ""},
+            {"query": "   "},
+            {"query": 42},
+            {"query": "x" * 501},
+            {"query": "ok", "top_k": 0},
+            {"query": "ok", "top_k": -1},
+            {"query": "ok", "top_k": TOP_K_MAX + 1},
+            {"query": "ok", "top_k": True},
+            {"query": "ok", "top_k": "3"},
+            {"query": "ok", "role_lens": ""},
+            {"query": "ok", "role_lens": 7},
+            {"query": "ok", "role_lens": "x" * 51},
+        )
+        for payload in bad_payloads:
+            with self.assertRaises(RetrievalValidationError, msg=repr(payload)):
+                parse_retrieval_request(payload)
+
+    def test_unknown_extra_keys_are_ignored(self) -> None:
+        parsed = parse_retrieval_request({"query": "ok", "unexpected": "ignored"})
+        self.assertEqual(parsed.query, "ok")
+
+
+class LoadCorpusTests(unittest.TestCase):
+    def test_governance_errors_refuse_the_whole_corpus(self) -> None:
+        # The fixture tree deliberately contains governance errors, so a
+        # runtime load of it must fail closed even though the builder can
+        # still enumerate its valid records for offline inspection.
+        with self.assertRaises(IndexUnavailableError):
+            _load_corpus(content_root=FIXTURE_ROOT, artifact_path=MISSING_ROOT)
+
+    def test_real_content_builds_a_served_corpus(self) -> None:
+        corpus = _load_corpus(
+            content_root=DEFAULT_CONTENT_ROOT, artifact_path=MISSING_ROOT
+        )
+        self.assertEqual(corpus.source, "built")
+        self.assertGreater(len(corpus.entries), 0)
+
+    def test_artifact_fallback_when_content_root_is_missing(self) -> None:
+        result = build_index(DEFAULT_CONTENT_ROOT)
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact = Path(tmp) / "evidence_index.json"
+            artifact.write_text(
+                json.dumps(records_as_dicts(result)), encoding="utf-8"
+            )
+            corpus = _load_corpus(content_root=MISSING_ROOT, artifact_path=artifact)
+        self.assertEqual(corpus.source, "artifact")
+        self.assertEqual(len(corpus.entries), len(result.records))
+        self.assertEqual(
+            [e.record for e in corpus.entries], list(result.records)
+        )
+
+    def test_tampered_artifact_is_refused_wholesale(self) -> None:
+        payload = records_as_dicts(build_index(DEFAULT_CONTENT_ROOT))
+        payload["records"][0]["visibility"] = "private"
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact = Path(tmp) / "evidence_index.json"
+            artifact.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaises(IndexUnavailableError):
+                _load_corpus(content_root=MISSING_ROOT, artifact_path=artifact)
+
+    def test_tampered_artifact_with_unknown_sensitivity_is_refused(self) -> None:
+        payload = records_as_dicts(build_index(DEFAULT_CONTENT_ROOT))
+        payload["records"][0]["sensitivity"] = "spicy"
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact = Path(tmp) / "evidence_index.json"
+            artifact.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaises(IndexUnavailableError):
+                _load_corpus(content_root=MISSING_ROOT, artifact_path=artifact)
+
+    def test_unreadable_artifact_is_refused(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact = Path(tmp) / "evidence_index.json"
+            artifact.write_text("not json", encoding="utf-8")
+            with self.assertRaises(IndexUnavailableError):
+                _load_corpus(content_root=MISSING_ROOT, artifact_path=artifact)
+
+    def test_no_source_at_all_fails_closed(self) -> None:
+        with self.assertRaises(IndexUnavailableError):
+            _load_corpus(content_root=MISSING_ROOT, artifact_path=MISSING_ROOT)
+
+
+class RetrieveResponseContractTests(unittest.TestCase):
+    def test_match_dict_adds_entity_display_fields(self) -> None:
+        record = EvidenceRecord(
+            id="markdown:role-lenses/backend",
+            source_type="markdown",
+            source_id="role-lenses/backend",
+            title="Backend Lens",
+            text="# Backend Lens\n\n**Reliable** APIs [with tests](https://example.com).",
+            visibility="public",
+            sensitivity="safe",
+            source_path="markdown/role-lenses/backend.md",
+        )
+
+        match = match_dict(record, score=7)
+
+        self.assertEqual(match["entity_id"], "role-lenses/backend")
+        self.assertEqual(match["entity_type"], "role_lens")
+        self.assertEqual(match["snippet"], "Backend Lens Reliable APIs with tests.")
+        self.assertEqual(match["text"], record.text)
+
+
+class RetrieveEndpointTests(SimpleTestCase):
+    """POST /api/retrieve/ against the real content corpus."""
+
+    def setUp(self) -> None:
+        get_corpus.cache_clear()
+
+    def _post(self, payload: object):
+        return self.client.post(
+            "/api/retrieve/", data=json.dumps(payload), content_type="application/json"
+        )
+
+    def test_valid_query_returns_only_public_evidence(self) -> None:
+        response = self._post({"query": "multi-agent fintech loan reallocation"})
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertGreater(len(body["matches"]), 0)
+        self.assertEqual(body["meta"]["index_source"], "built")
+        for match in body["matches"]:
+            self.assertIn(match["visibility"], INDEXABLE)
+            self.assertIn("entity_id", match)
+            self.assertIn("entity_type", match)
+            self.assertIn("snippet", match)
+            self.assertLessEqual(len(match["snippet"]), 180)
+            self.assertNotIn("esg-greenwashing", match["id"])
+            self.assertNotIn("esg-greenwashing", match["source_path"])
+            self.assertNotIn("greenwashing", match["text"].lower())
+        # The ledger surfaces the same public corpus - sweep it too.
+        ledger = body["ledger"]
+        for section in ("initial", "reranked", "selected"):
+            for entry in ledger[section]:
+                self.assertNotIn("esg-greenwashing", entry["evidence_id"])
+                self.assertNotIn("esg-greenwashing", entry["source_path"])
+                self.assertNotIn("greenwashing", entry["snippet"].lower())
+
+    def test_response_includes_ledger_and_rerank_meta(self) -> None:
+        response = self._post({"query": "multi-agent fintech loan reallocation"})
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        ledger = body["ledger"]
+        self.assertEqual(ledger["mode"], RERANK_MODE)
+        self.assertEqual(ledger["selected_k"], 5)
+        self.assertEqual(ledger["retrieve_k"], 15)  # min(3 * top_k, cap)
+        self.assertEqual(len(ledger["initial"]), body["meta"]["initial_count"])
+        # matches are exactly the selected reranked evidence, in order.
+        self.assertEqual(
+            [m["id"] for m in body["matches"]],
+            [e["evidence_id"] for e in ledger["selected"]],
+        )
+        self.assertEqual(body["meta"]["reranker"], RERANK_MODE)
+        self.assertEqual(body["meta"]["selected_count"], len(body["matches"]))
+        for entry in ledger["reranked"]:
+            for field in (
+                "initial_rank",
+                "rerank_rank",
+                "lexical_score",
+                "rerank_score",
+                "delta",
+                "selected",
+                "components",
+                "reasons",
+            ):
+                self.assertIn(field, entry)
+            self.assertEqual(
+                entry["rerank_score"], sum(entry["components"].values())
+            )
+
+    def test_no_results_ledger_is_empty_and_deterministic(self) -> None:
+        first = self._post({"query": "zzqqxxyyzz"})
+        self.assertEqual(first.status_code, 200)
+        ledger = first.json()["ledger"]
+        self.assertEqual(ledger["initial"], [])
+        self.assertEqual(ledger["reranked"], [])
+        self.assertEqual(ledger["selected"], [])
+        self.assertEqual(first.content, self._post({"query": "zzqqxxyyzz"}).content)
+
+    def test_empty_query_is_rejected(self) -> None:
+        response = self._post({"query": "   "})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("error", response.json())
+
+    def test_oversized_query_is_rejected(self) -> None:
+        response = self._post({"query": "x" * 501})
+        self.assertEqual(response.status_code, 400)
+
+    def test_top_k_over_cap_is_rejected(self) -> None:
+        response = self._post({"query": "python", "top_k": TOP_K_MAX + 1})
+        self.assertEqual(response.status_code, 400)
+
+    def test_no_results_response_is_deterministic(self) -> None:
+        first = self._post({"query": "zzqqxxyyzz"})
+        second = self._post({"query": "zzqqxxyyzz"})
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.json()["matches"], [])
+        self.assertEqual(first.content, second.content)
+
+    def test_get_is_not_allowed(self) -> None:
+        self.assertEqual(self.client.get("/api/retrieve/").status_code, 405)
+
+
+if __name__ == "__main__":
+    unittest.main()

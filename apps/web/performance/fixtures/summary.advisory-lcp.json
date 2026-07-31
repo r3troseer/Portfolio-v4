@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 2,
+  "tool": "lighthouse@12.6.1",
+  "targetUrl": "http://127.0.0.1:5398/",
+  "runs": [
+    {
+      "run": 1,
+      "performanceScore": 87,
+      "accessibilityScore": 100,
+      "lcpMs": 2300,
+      "cls": 0,
+      "tbtMs": 400,
+      "speedIndexMs": 2100,
+      "requestCount": 20,
+      "structuralAudits": {
+        "viewport": { "id": "viewport", "score": 1, "passed": true },
+        "document-title": { "id": "document-title", "score": 1, "passed": true },
+        "meta-description": { "id": "meta-description", "score": 1, "passed": true },
+        "http-status-code": { "id": "http-status-code", "score": 1, "passed": true },
+        "errors-in-console": { "id": "errors-in-console", "score": 1, "passed": true }
+      }
+    },
+    {
+      "run": 2,
+      "performanceScore": 87,
+      "accessibilityScore": 100,
+      "lcpMs": 2300,
+      "cls": 0,
+      "tbtMs": 400,
+      "speedIndexMs": 2100,
+      "requestCount": 20,
+      "structuralAudits": {
+        "viewport": { "id": "viewport", "score": 1, "passed": true },
+        "document-title": { "id": "document-title", "score": 1, "passed": true },
+        "meta-description": { "id": "meta-description", "score": 1, "passed": true },
+        "http-status-code": { "id": "http-status-code", "score": 1, "passed": true },
+        "errors-in-console": { "id": "errors-in-console", "score": 1, "passed": true }
+      }
+    },
+    {
+      "run": 3,
+      "performanceScore": 87,
+      "accessibilityScore": 100,
+      "lcpMs": 2400,
+      "cls": 0,
+      "tbtMs": 400,
+      "speedIndexMs": 2100,
+      "requestCount": 20,
+      "structuralAudits": {
+        "viewport": { "id": "viewport", "score": 1, "passed": true },
+        "document-title": { "id": "document-title", "score": 1, "passed": true },
+        "meta-description": { "id": "meta-description", "score": 1, "passed": true },
+        "http-status-code": { "id": "http-status-code", "score": 1, "passed": true },
+        "errors-in-console": { "id": "errors-in-console", "score": 1, "passed": true }
+      }
+    },
+    {
+      "run": 4,
+      "performanceScore": 87,
+      "accessibilityScore": 100,
+      "lcpMs": 2300,
+      "cls": 0,
+      "tbtMs": 400,
+      "speedIndexMs": 2100,
+      "requestCount": 20,
+      "structuralAudits": {
+        "viewport": { "id": "viewport", "score": 1, "passed": true },
+        "document-title": { "id": "document-title", "score": 1, "passed": true },
+        "meta-description": { "id": "meta-description", "score": 1, "passed": true },
+        "http-status-code": { "id": "http-status-code", "score": 1, "passed": true },
+        "errors-in-console": { "id": "errors-in-console", "score": 1, "passed": true }
+      }
+    },
+    {
+      "run": 5,
+      "performanceScore": 87,
+      "accessibilityScore": 100,
+      "lcpMs": 2300,
+      "cls": 0,
+      "tbtMs": 400,
+      "speedIndexMs": 2100,
+      "requestCount": 20,
+      "structuralAudits": {
+        "viewport": { "id": "viewport", "score": 1, "passed": true },
+        "document-title": { "id": "document-title", "score": 1, "passed": true },
+        "meta-description": { "id": "meta-description", "score": 1, "passed": true },
+        "http-status-code": { "id": "http-status-code", "score": 1, "passed": true },
+        "errors-in-console": { "id": "errors-in-console", "score": 1, "passed": true }
+      }
+    }
+  ],
+  "aggregates": {
+    "performanceScore": { "median": 87, "worst": 87 },
+    "accessibilityScore": { "median": 100, "worst": 100 },
+    "lcpMs": { "median": 2300, "worst": 2400 },
+    "cls": { "median": 0, "worst": 0 },
+    "tbtMs": { "median": 400, "worst": 400 },
+    "speedIndexMs": { "median": 2100, "worst": 2100 },
+    "requestCount": { "median": 20, "worst": 20 }
+  }
+}

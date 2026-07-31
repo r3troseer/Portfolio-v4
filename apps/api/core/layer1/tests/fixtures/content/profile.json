@@ -1,0 +1,7 @@
+{
+  "visibility": "public",
+  "sensitivity": "safe",
+  "name": "Fixture Person",
+  "headline": "Fixture headline.",
+  "bio": ["Fixture bio paragraph."]
+}

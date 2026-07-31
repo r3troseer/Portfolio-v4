@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
+import { scheduleAfterFirstPaint } from "../lib/nonCriticalScheduler";
 
 const config = {
   maxParticles: 50,
@@ -15,6 +16,9 @@ export const ParticleEffect = () => {
   const particlesRef = useRef([]);
   const lastTimeRef = useRef(0);
   const particleIdRef = useRef(0);
+  // Armed only after post-paint start so visibility resume cannot open a loop
+  // before the deferred first frame, and StrictMode cleanup can disarm it.
+  const loopArmedRef = useRef(false);
 
   // Particle class for better organization
   class Particle {
@@ -51,23 +55,26 @@ export const ParticleEffect = () => {
     }
   }
 
-  // Resize canvas to match display size
+  // Resize backing store to the current CSS box + DPR. Do not write pixel
+  // width/height into style - that locks the box to the old viewport and breaks
+  // later resize/orientation updates (CSS stays width/height 100%).
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
+    const width = Math.max(1, Math.round(rect.width * dpr));
+    const height = Math.max(1, Math.round(rect.height * dpr));
 
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+    }
 
     const ctx = canvas.getContext("2d");
-    ctx.scale(dpr, dpr);
-
-    // Set canvas display size
-    canvas.style.width = `${rect.width}px`;
-    canvas.style.height = `${rect.height}px`;
+    // width/height assignment resets the context; map CSS pixels via DPR.
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }, []);
 
   // Animation loop
@@ -106,15 +113,39 @@ export const ParticleEffect = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Setup effect
+  // Setup effect: keep the canvas mounted; arm setup + first rAF only after
+  // the initial React commit and a meaningful browser paint.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Initial setup
-    resizeCanvas();
-    lastTimeRef.current = performance.now();
-    animationFrameRef.current = requestAnimationFrame(animate);
+    // Respect reduced-motion: the global CSS rule can't stop this canvas rAF, so
+    // skip the animation entirely (no drifting particles) and leave the canvas blank.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      resizeCanvas();
+      return;
+    }
+
+    let cancelled = false;
+
+    const stopLoop = () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+
+    const startLoop = () => {
+      if (cancelled || loopArmedRef.current) return;
+      loopArmedRef.current = true;
+      resizeCanvas();
+      // Arm after paint even if the tab is hidden; visibility handler resumes.
+      if (document.hidden) return;
+      lastTimeRef.current = performance.now();
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+
+    const cancelPaint = scheduleAfterFirstPaint(startLoop);
 
     // Handle resize
     const handleResize = () => {
@@ -124,22 +155,30 @@ export const ParticleEffect = () => {
 
     // Cleanup
     return () => {
+      cancelled = true;
+      loopArmedRef.current = false;
+      cancelPaint();
       window.removeEventListener("resize", handleResize);
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      stopLoop();
       particlesRef.current = [];
     };
   }, [animate, resizeCanvas]);
 
-  // Pause animation when tab is not visible (performance optimization)
+  // Pause animation when tab is not visible (performance optimization).
   useEffect(() => {
+    // Reduced motion: the setup effect never starts the loop, so don't register a
+    // handler that could restart it when the tab regains focus.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        if (animationFrameRef.current) {
+        if (animationFrameRef.current !== null) {
           cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
         }
-      } else {
+      } else if (loopArmedRef.current && animationFrameRef.current === null) {
+        // Only restart when armed and nothing is scheduled, so we never stack
+        // rAF loops or start before the post-paint deferral completes.
         lastTimeRef.current = performance.now();
         animationFrameRef.current = requestAnimationFrame(animate);
       }

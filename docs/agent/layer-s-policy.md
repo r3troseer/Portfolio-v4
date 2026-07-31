@@ -1,9 +1,10 @@
 # Layer S: Safety, Policy & Visibility (Seed)
 
 > **Status: living document.** This is a Layer S *seed* created alongside Layer 0
-> (canonical content foundation). Most rules below are documented intent. Full enforcement
-> arrives with Layers 1-2 (the RAG chatbot and the tool-using agent). Nothing here is
-> executable policy yet.
+> (canonical content foundation). Most rules below are documented intent. **Partial
+> enforcement** is live: content validation (`validate:content`) and the API evidence-index
+> gate (`build_evidence_index --check`) run in CI. Full runtime enforcement (grounded-answer
+> egress, refusal, abuse controls beyond retrieval input caps) arrives with later Layer 1-2 slices.
 
 ## 1. Visibility rules (active now)
 
@@ -28,8 +29,11 @@ Visibility levels:
 Examples:
 - A project with a private source repo stays a normal **public** card but sets
   `repo.visibility: "private"` and shows no repo link.
-- The ESG/greenwashing research is `visibility: "public_summary_only"` +
-  `sensitivity: "sensitive"`: described at a high level only.
+- The ESG/greenwashing research is `visibility: "private"` + `sensitivity: "sensitive"`:
+  kept out of the UI (present-but-unregistered in the projects registry) and excluded from
+  the future agent index; only sanitized, high-level prose lives in the repo.
+- No project currently uses `public_summary_only`; it is reserved for IP-sensitive work that
+  may later be described at summary level only (summary in, deep detail withheld).
 
 **Agent-index rule:** only `public` and `public_summary_only` content may ever enter the
 future agent/RAG index.
@@ -49,7 +53,7 @@ serves both concerns.
 
 **UI vs AI prose:** structured JSON (e.g. `profile.json` bio) is the UI source of truth.
 The Markdown under `apps/web/src/content/public/markdown/` (`about.md`, `role-lenses/*.md`) is the
-expanded AI-facing prose for the future AI/RAG layer and is not imported by the CRA UI. The
+expanded AI-facing prose for the future AI/RAG layer and is not imported by the SPA UI. The
 two must be kept consistent (single-author discipline now; a derive-or-check step later).
 
 **Markdown front matter:** each `.md` file carries YAML front matter so it has the same

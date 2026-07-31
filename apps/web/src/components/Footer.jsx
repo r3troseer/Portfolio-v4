@@ -5,7 +5,7 @@ export const Footer = () => {
   return (
     <footer>
       <div className="container">
-        <p>&copy; 2025 {name}. Crafted with passion and code.</p>
+        <p>&copy; {new Date().getFullYear()} {name}. Crafted with passion and code.</p>
       </div>
     </footer>
   );

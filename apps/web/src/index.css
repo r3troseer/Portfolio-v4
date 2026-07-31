@@ -43,7 +43,6 @@
     var(--slate-750)
   );
   --bg-nav: color-mix(in oklch, var(--slate-900) 95%, transparent);
-  --bg-nav-scrolled: color-mix(in oklch, var(--slate-900) 98%, transparent);
   --bg-card: rgba(255, 255, 255, 0.03);
   --bg-card-hover: rgba(255, 255, 255, 0.06);
   --bg-footer: color-mix(in oklch, var(--slate-900) 80%, transparent);
@@ -104,6 +103,34 @@
   /* Container */
   --container-max-width: 1200px;
   --container-padding: 0 20px;
+
+  /* Profile refresh (bento / capabilities / assistant shell) - additive layer.
+     Consumed by src/styles/profile/*.css; does not affect existing selectors. */
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --pf-bento-gap: var(--spacing-md);
+  --pf-surface: rgba(255, 255, 255, 0.035);
+  --pf-surface-hover: rgba(255, 255, 255, 0.06);
+  --pf-border: rgba(148, 163, 184, 0.16);
+  --pf-border-strong: color-mix(in oklch, var(--primary-accent) 40%, transparent);
+  --pf-elev-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  --pf-eyebrow: color-mix(in srgb, var(--primary-accent) 78%, white);
+  --pf-chip-bg: rgba(100, 255, 218, 0.05);
+  --pf-chip-border: rgba(100, 255, 218, 0.22);
+
+  /* Shared faint-white surfaces (used across pf- components) */
+  --pf-wash: rgba(255, 255, 255, 0.04);
+  --pf-hairline: rgba(255, 255, 255, 0.08);
+  --pf-card-faint: rgba(255, 255, 255, 0.03);
+  --pf-card-line: rgba(255, 255, 255, 0.1);
+  --pf-kbd-bg: rgba(255, 255, 255, 0.06);
+
+  /* Ask/assistant (launcher pill + modal), values from the prototype */
+  --pf-ask-surface: rgba(17, 22, 34, 0.82);
+  --pf-ask-surface-hover: rgba(20, 26, 40, 0.9);
+  --pf-ask-border: rgba(255, 255, 255, 0.14);
+  --pf-ask-border-hover: rgba(100, 255, 218, 0.4);
+  --pf-ask-shadow: 0 8px 28px rgba(0, 0, 0, 0.38);
+  --pf-ask-panel: rgba(15, 19, 29, 0.97);
 }
 
 * {
@@ -114,10 +141,24 @@
 
 body {
   font-family: var(--font-family);
-  background: var(--bg-primary);
+  /* Fixed attachment keeps the gradient viewport-anchored (steadier, less banding). */
+  background: var(--bg-primary) fixed;
   color: var(--text-primary);
   line-height: var(--line-height-base);
   overflow-x: hidden;
+}
+
+/* Anti-banding: a faint fixed fractal-noise layer dithers the dark gradient so it
+   doesn't show colour bands on large flat areas. Pointer-events none; overlay blend. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 #root {
@@ -138,68 +179,62 @@ main {
   padding: var(--container-padding);
 }
 
-/* Navigation */
-nav {
+/* Navigation styles live in styles/navigation.css (its single owner, loaded by
+   the always-mounted Navigation component - including the mobile menu and the
+   <=768px `.nav-links { display: none }` rule). Kept out of index.css to avoid the
+   duplicate-block drift where edits had to be made in two places. */
+
+/* Visible keyboard focus everywhere. `:focus-visible` keeps the ring for keyboard
+   / AT users without showing it on mouse clicks. Accent ring + offset reads on the
+   dark surfaces; the UA default was low-contrast and inconsistent. */
+:focus-visible {
+  outline: 2px solid var(--primary-accent);
+  outline-offset: 2px;
+}
+
+/* Skip link: hidden off-screen until keyboard-focused, then drops into view so
+   keyboard users can jump past the nav to <main>. :focus-visible keeps ordinary
+   desktop/mobile pointer navigation from exposing the control. */
+.pf-skip-link {
   position: fixed;
   top: 0;
-  width: 100%;
-  background: var(--bg-nav);
-  backdrop-filter: blur(10px);
-  z-index: var(--z-nav);
-  padding: var(--spacing-sm) 0;
-  transition: all var(--transition-fast);
-}
-
-.nav-scrolled {
-  background: var(--bg-nav-scrolled);
-  transition: all var(--transition-fast);
-}
-
-.nav-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: var(--container-max-width);
-  margin: 0 auto;
-  padding: var(--container-padding);
-}
-
-.logo {
-  font-size: var(--font-size-3xl);
-  font-weight: bold;
-  color: var(--primary-accent);
-}
-
-.nav-links {
-  display: flex;
-  list-style: none;
-  gap: var(--spacing-lg);
-}
-
-.nav-links a {
-  color: var(--text-primary);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-  position: relative;
-}
-
-.nav-links a:hover {
-  color: var(--primary-accent);
-}
-
-.nav-links a::after {
-  content: "";
-  position: absolute;
-  bottom: -5px;
   left: 0;
-  width: 0;
-  height: 2px;
+  z-index: 2000;
+  transform: translateY(-120%);
   background: var(--primary-accent);
-  transition: width var(--transition-fast);
+  color: var(--slate-900);
+  padding: 10px 16px;
+  border-radius: 0 0 var(--radius-sm) 0;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform var(--transition-fast);
 }
 
-.nav-links a:hover::after {
-  width: 100%;
+.pf-skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* Don't ring the whole <main> region when the skip link hands it focus. */
+main:focus {
+  outline: none;
+}
+
+/* Route-completion live region: announce without affecting layout. */
+.pf-route-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Programmatic route focus is announced without imitating keyboard focus. */
+[data-route-focus][data-route-programmatic-focus]:focus {
+  outline: none;
 }
 
 /* Hero Section */
@@ -247,45 +282,8 @@ nav {
   }
 }
 
-.hero-content {
-  position: relative;
-  z-index: var(--z-hero);
-}
-
-.hero h1 {
-  font-size: var(--font-size-hero);
-  margin-bottom: var(--spacing-sm);
-  background: linear-gradient(
-    135deg,
-    var(--primary-accent),
-    var(--secondary-accent),
-    var(--tertiary-accent)
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: fadeInUp 1s ease;
-}
-
-.hero .tagline {
-  font-size: var(--font-size-xl);
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-sm);
-  max-width: 600px;
-  animation: fadeInUp 1s ease 0.2s backwards;
-}
-
-.hero-location {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  color: var(--text-muted);
-  margin-bottom: var(--spacing-lg);
-  animation: fadeInUp 1s ease 0.3s backwards;
-}
-
-/* add glow anitimation on page first visit */
+/* Hero container (min-height + ambient gradient); layout lives in profile/hero.css.
+   .cta-button is retained for the NotFound page. */
 .cta-button {
   display: inline-block;
   padding: 14px 32px;
@@ -348,7 +346,7 @@ section {
   font-weight: 600;
 }
 
-/* About Section */
+/* About Section (bio block; capabilities live in profile/capabilities.css) */
 .about-content {
   max-width: 800px;
   margin: 0 auto;
@@ -362,119 +360,7 @@ section {
   text-align: left;
 }
 
-.skills-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--spacing-md);
-}
-
-.skill-item {
-  background: var(--bg-card);
-  padding: var(--spacing-md);
-  border-radius: var(--radius-lg);
-  text-align: center;
-  border: 1px solid var(--border-subtle);
-}
-
-.skill-item h4 {
-  color: var(--gray-100);
-  margin-bottom: var(--spacing-xs);
-  font-weight: 500;
-}
-
-.skill-item p {
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
-}
-
-/* Projects Section */
-.project-card-revealed {
-  animation: fadeInUp 0.4s ease forwards;
-}
-
-.projects-toggle-wrap {
-  display: flex;
-  justify-content: center;
-  margin-top: var(--spacing-xl);
-}
-
-.projects-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  background: transparent;
-  color: var(--primary-accent);
-  border: 1px solid var(--primary-accent);
-  padding: 10px 28px;
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.projects-toggle:hover {
-  background: color-mix(in oklch, var(--primary-accent) 10%, transparent);
-}
-
-.projects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-  gap: var(--spacing-xl);
-  margin-top: var(--spacing-2xl);
-  max-width: 1000px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.project-card {
-  background: var(--bg-card);
-  padding: var(--spacing-xl);
-  border-radius: var(--radius-xl);
-  transition: all var(--transition-fast);
-  border: 1px solid var(--border-subtle);
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  text-decoration: none;
-  color: inherit;
-}
-
-.project-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(
-    45deg,
-    var(--primary-accent) 60%,
-    var(--secondary-accent)
-  );
-}
-
-.project-card:hover {
-  transform: translateY(-8px);
-  background: var(--bg-card-hover);
-  border: 1px solid var(--primary-accent);
-  border-top-color: transparent;
-  box-shadow: 0 10px 20px rgba(100, 255, 218, 0.08);
-}
-
-.project-card h3 {
-  color: var(--gray-50);
-  margin-bottom: var(--spacing-md);
-  font-size: var(--font-size-2xl);
-  font-weight: 600;
-}
-
-.project-card p {
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-md);
-}
-
+/* Tech tag pills - still used by TechTags.jsx (project detail). */
 .tech-tags {
   display: flex;
   flex-wrap: wrap;
@@ -491,168 +377,6 @@ section {
   border: 1px solid rgba(100, 255, 218, 0.2);
 }
 
-.card-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: auto;
-  padding-top: var(--spacing-sm);
-  color: var(--primary-accent);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  opacity: 0;
-  transition: opacity var(--transition-fast);
-}
-
-.project-card:hover .card-cta {
-  opacity: 1;
-}
-
-.project-card:focus {
-  outline: 2px solid var(--primary-accent);
-  outline-offset: 2px;
-}
-
-/* Experience Section */
-.experience-timeline {
-  position: relative;
-  padding-left: var(--spacing-lg);
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.experience-timeline::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: linear-gradient(
-    to bottom,
-    var(--primary-accent),
-    var(--slate-500)
-  ); /* Start with accent color fading to slate */
-}
-
-.experience-item {
-  position: relative;
-  margin-bottom: 3.5rem;
-  background: var(--bg-card);
-  padding: var(--spacing-xl);
-  border-radius: var(--radius-xl);
-  margin-left: var(--spacing-xl);
-  border: 1px solid var(--border-subtle);
-}
-
-.experience-item::before {
-  content: "";
-  position: absolute;
-  left: -3.25rem;
-  top: var(--spacing-xl);
-  width: 12px;
-  height: 12px;
-  background: var(--primary-accent);
-  border-radius: var(--radius-full);
-  border: 3px solid var(--slate-900);
-  box-shadow: 0 0 8px rgba(100, 255, 218, 0.3);
-}
-
-.experience-item h3 {
-  color: var(--slate-50);
-  margin-bottom: var(--spacing-xs);
-  font-weight: 600;
-}
-
-.experience-item .company {
-  color: var(--slate-200);
-  font-weight: 500;
-  margin-bottom: var(--spacing-xs);
-}
-
-.experience-item .date {
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
-  margin-bottom: var(--spacing-md);
-}
-
-.experience-item ul {
-  list-style: none;
-  color: var(--text-tertiary);
-}
-
-.experience-item li {
-  position: relative;
-  padding-left: var(--spacing-md);
-  margin-bottom: var(--spacing-xs);
-}
-
-.experience-item li::before {
-  content: "▸";
-  position: absolute;
-  left: 0;
-  color: var(--text-muted);
-}
-
-/* Contact Section */
-.contact-content {
-  max-width: 700px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.contact-content p {
-  font-size: var(--font-size-lg);
-  margin-bottom: var(--spacing-2xl);
-  color: var(--text-tertiary);
-}
-
-.contact-info {
-  display: flex;
-  justify-content: center;
-  gap: var(--spacing-xl);
-  margin-top: var(--spacing-2xl);
-  flex-wrap: wrap;
-}
-
-.contact-item {
-  position: relative;
-  background: var(--bg-card);
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-xl);
-  transition: all var(--transition-fast);
-  border: 1px solid var(--border-subtle);
-  text-decoration: none;
-  color: var(--text-primary);
-  min-width: 180px;
-}
-
-.contact-item-external {
-  position: absolute;
-  top: var(--spacing-sm);
-  right: var(--spacing-sm);
-  color: var(--text-muted);
-  opacity: 0.5;
-}
-
-.contact-item:hover {
-  transform: translateY(-5px);
-  background: var(--bg-card-hover);
-  border-color: var(--primary-accent); /* Use accent color for hover border */
-  box-shadow: 0 8px 20px rgba(100, 255, 218, 0.12); /* Add subtle accent glow on hover */
-}
-
-.contact-item h4 {
-  color: var(--gray-50);
-  margin-bottom: var(--spacing-xs);
-  font-weight: 500;
-}
-
-.contact-item p {
-  color: var(--text-muted);
-  margin: 0;
-}
-
 /* Footer */
 footer {
   background: var(--bg-footer);
@@ -665,48 +389,8 @@ footer p {
   color: var(--text-muted);
 }
 
-/* Responsive Design */
+/* Responsive Design (section-specific responsive rules live in profile/*.css) */
 @media (max-width: 768px) {
-  .nav-links {
-    display: none;
-  }
-
-  .experience-item::before {
-    display: none;
-  }
-
-  .experience-timeline::before {
-    display: none;
-  }
-
-  .projects-grid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
-  }
-
-  .contact-info {
-    flex-direction: column;
-    align-items: center;
-    gap: var(--spacing-md);
-  }
-
-  .contact-item {
-    width: 100%;
-    max-width: 300px;
-  }
-
-  .experience-timeline {
-    padding-left: 0;
-  }
-
-  .experience-item {
-    margin-left: 0;
-  }
-
-  .experience-item::before {
-    left: -2.25rem;
-  }
-
   section {
     padding: var(--spacing-3xl) 0;
   }
@@ -715,23 +399,22 @@ footer p {
     font-size: var(--font-size-4xl);
     margin-bottom: var(--spacing-2xl);
   }
-
-  .hero h1 {
-    font-size: var(--font-size-5xl);
-  }
-
-  .skills-grid {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: var(--spacing-sm);
-  }
 }
 
-@media (max-width: 425px) {
-  .project-card {
-    padding: var(--spacing-md);
+/* Respect reduced-motion: collapse entrance/scroll animations and transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
-  .experience-item {
-    padding: var(--spacing-md);
+
+  .fade-in {
+    opacity: 1;
+    transform: none;
   }
 }
 

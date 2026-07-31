@@ -1,0 +1,23 @@
+{
+  "valid": [
+    "valid/answered-with-headline.json",
+    "valid/answered-without-headline.json",
+    "valid/insufficient-evidence.json",
+    "valid/insufficient-evidence-with-evidence.json",
+    "valid/refused.json"
+  ],
+  "invalid": [
+    "invalid/missing-status.json",
+    "invalid/unsupported-status.json",
+    "invalid/empty-object.json",
+    "invalid/missing-arrays.json",
+    "invalid/wrong-types.json",
+    "invalid/non-answer-wrong-message.json",
+    "invalid/non-answer-with-citations.json",
+    "invalid/refused-with-headline.json",
+    "invalid/refused-with-ledger.json",
+    "invalid/answered-empty-answer.json",
+    "invalid/citation-evidence-mismatch.json",
+    "invalid/unexpected-property.json"
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Fixture build report shaped like PA5 production report for budget tests.",
+  "distDir": "dist",
+  "assetCount": 4,
+  "totals": { "rawBytes": 500000, "gzipBytes": 200000 },
+  "homepageCriticalPath": {
+    "document": "index.html",
+    "stylesheets": [],
+    "scripts": [],
+    "modulepreloads": [],
+    "totals": { "rawBytes": 300000, "gzipBytes": 101640 }
+  },
+  "assets": [
+    {
+      "file": "assets/index-fixture.js",
+      "type": "js",
+      "rawBytes": 200000,
+      "gzipBytes": 90000
+    },
+    {
+      "file": "assets/ProjectDetail-fixture.js",
+      "type": "js",
+      "rawBytes": 12000,
+      "gzipBytes": 4200
+    },
+    {
+      "file": "assets/other-fixture.js",
+      "type": "js",
+      "rawBytes": 80000,
+      "gzipBytes": 40000
+    },
+    {
+      "file": "assets/index-fixture.css",
+      "type": "css",
+      "rawBytes": 20000,
+      "gzipBytes": 7000
+    }
+  ],
+  "jsChunks": [
+    {
+      "file": "assets/index-fixture.js",
+      "rawBytes": 200000,
+      "gzipBytes": 90000,
+      "role": "homepage-critical",
+      "referencedModules": []
+    },
+    {
+      "file": "assets/ProjectDetail-fixture.js",
+      "rawBytes": 12000,
+      "gzipBytes": 4200,
+      "role": "deferred-or-async",
+      "referencedModules": []
+    },
+    {
+      "file": "assets/other-fixture.js",
+      "rawBytes": 80000,
+      "gzipBytes": 40000,
+      "role": "deferred-or-async",
+      "referencedModules": []
+    }
+  ]
+}

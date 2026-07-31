@@ -1,4 +1,6 @@
 {
+  "visibility": "public",
+  "sensitivity": "safe",
   "email": "peecody1@gmail.com",
   "profiles": [
     {
@@ -12,6 +14,14 @@
       "value": "r3troseer",
       "href": "https://github.com/r3troseer",
       "external": true
+    },
+    {
+      "label": "Portfolio",
+      "value": "piusagboola.com",
+      "href": "https://piusagboola.com",
+      "external": true,
+      "showInUi": false,
+      "showInContact": false
     }
   ]
 }

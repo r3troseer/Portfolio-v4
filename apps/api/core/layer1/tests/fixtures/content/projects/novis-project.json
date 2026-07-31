@@ -1,0 +1,14 @@
+{
+  "id": "novis-project",
+  "status": "live",
+  "sensitivity": "safe",
+  "card": { "title": "No Visibility", "summary": "NOVIS_MARKER", "technologies": [] },
+  "detail": {},
+  "ai": {
+    "publicSummary": "NOVIS_MARKER missing visibility must fail closed.",
+    "roleLenses": [],
+    "evidenceSkills": [],
+    "safeTalkingPoints": [],
+    "sensitivity": "safe"
+  }
+}

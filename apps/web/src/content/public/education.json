@@ -1,13 +1,17 @@
 {
+  "visibility": "public",
+  "sensitivity": "safe",
   "entries": [
     {
       "institution": "University of East London",
       "qualification": "MSc Computer Science",
+      "date": "Jan 2025 - Present",
       "detail": "Distinction-level results so far across Level 7 modules"
     },
     {
       "institution": "University of Ilorin",
       "qualification": "BSc Computer Science",
+      "date": "Nov 2018 - Oct 2023",
       "detail": ""
     }
   ]

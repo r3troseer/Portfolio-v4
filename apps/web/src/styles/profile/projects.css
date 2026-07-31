@@ -1,0 +1,247 @@
+/*
+ * Profile - Projects.
+ * A single featured showcase card (body + gradient metrics side-panel) followed
+ * by a numbered "selected work" list. Imported by components/Projects.jsx.
+ */
+
+/* --- Featured showcase card -------------------------------------------- */
+.pf-featured {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  max-width: 1000px;
+  margin: 0 auto var(--spacing-2xl);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--transition-fast), background var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.pf-featured:hover {
+  border-color: var(--primary-accent);
+  background: var(--bg-card-hover);
+  box-shadow: 0 12px 30px rgba(100, 255, 218, 0.1);
+}
+
+.pf-featured-body {
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+}
+
+.pf-featured-tag {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-sm);
+}
+
+.pf-featured-body h3 {
+  font-size: var(--font-size-3xl);
+  color: var(--slate-50);
+  font-weight: 600;
+  margin-bottom: var(--spacing-xs);
+}
+
+.pf-featured-sub {
+  color: var(--primary-accent);
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-md);
+}
+
+.pf-featured-body p {
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-md);
+  line-height: var(--line-height-base);
+}
+
+.pf-featured-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs); /* 8px - matches handoff */
+  margin-bottom: var(--spacing-sm); /* 16px - matches handoff */
+}
+
+/* Featured-card tech chips - exact handoff `.tech-tag` values (source
+   portfolio.css:122): 1px teal @20% border, ~2% teal fill, radius-sm, 0.4/0.9rem
+   padding, text = accent mixed 70/30 with white (a lighter teal, not pure accent).
+   Scoped to the featured card so the global .pf-chip pill and niche chips stay put. */
+.pf-featured-tags .pf-chip {
+  padding: 0.4rem 0.9rem;
+  background: color-mix(in oklch, var(--primary-accent) 2%, transparent);
+  border-color: color-mix(in oklch, var(--primary-accent) 20%, transparent);
+  color: color-mix(in srgb, var(--primary-accent) 70%, white);
+  border-radius: var(--radius-sm);
+}
+
+.pf-featured-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  /* 24px below the chips (handoff), not pushed to the card bottom via auto -
+     the body sits top-aligned with slack below when the metrics side is taller. */
+  margin-top: var(--spacing-md);
+  color: var(--primary-accent);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.pf-featured:hover .pf-featured-cta {
+  gap: 10px;
+}
+
+.pf-featured-side {
+  background: linear-gradient(135deg, rgba(100, 255, 218, 0.06), rgba(138, 43, 226, 0.06));
+  border-left: 1px solid var(--border-subtle);
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  /* Two equal rows fill the panel height, each stat centred within its half -
+     the handoff's even 2-top / 2-bottom distribution (measured off the handoff:
+     grid-template-rows 1fr 1fr, row-gap 0, stat content vertically centred). */
+  grid-template-rows: 1fr 1fr;
+  align-items: center;
+  gap: 0 var(--spacing-lg);
+}
+
+.pf-featured-metric .n {
+  font-size: var(--font-size-4xl);
+  font-weight: 700;
+  color: var(--primary-accent);
+  line-height: 1;
+}
+
+.pf-featured-metric .l {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  margin-top: 6px;
+}
+
+/* --- Selected work list ------------------------------------------------ */
+.pf-list {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.pf-list-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: var(--spacing-lg);
+  align-items: center;
+  padding: var(--spacing-lg) var(--spacing-md);
+  border-top: 1px solid var(--border-subtle);
+  text-decoration: none;
+  color: inherit;
+  transition: background var(--transition-fast), padding-left var(--transition-fast);
+}
+
+.pf-list-row:last-child {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.pf-list-row:hover {
+  background: var(--bg-card);
+  padding-left: var(--spacing-lg);
+}
+
+.pf-list-idx {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  transition: color var(--transition-fast);
+}
+
+.pf-list-row:hover .pf-list-idx {
+  color: var(--primary-accent);
+}
+
+.pf-list-title {
+  color: var(--slate-50);
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.pf-list-main p {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.pf-list-tech {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  text-align: right;
+  max-width: 220px;
+}
+
+.pf-list-arrow {
+  display: flex;
+  color: var(--text-muted);
+  transition: transform var(--transition-fast), color var(--transition-fast);
+}
+
+.pf-list-row:hover .pf-list-arrow {
+  color: var(--primary-accent);
+  transform: translateX(4px);
+}
+
+/* --- View more --------------------------------------------------------- */
+.pf-list-morewrap {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-xl);
+}
+
+.pf-list-morebtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: transparent;
+  color: var(--primary-accent);
+  border: 1px solid var(--primary-accent);
+  padding: 10px 26px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.pf-list-morebtn:hover {
+  background: color-mix(in oklch, var(--primary-accent) 10%, transparent);
+}
+
+/* --- Responsive -------------------------------------------------------- */
+@media (max-width: 760px) {
+  .pf-featured {
+    grid-template-columns: 1fr;
+  }
+
+  .pf-featured-side {
+    border-left: none;
+    border-top: 1px solid var(--border-subtle);
+    padding: var(--spacing-xl);
+    /* Stacked below the body: size rows to content with a normal gap rather
+       than forcing the tight full-height 1fr split used on desktop. */
+    grid-template-rows: auto auto;
+    row-gap: var(--spacing-xl);
+  }
+
+  .pf-list-row {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .pf-list-tech {
+    display: none;
+  }
+}

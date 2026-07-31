@@ -7,12 +7,6 @@ nav {
   backdrop-filter: blur(10px);
   z-index: var(--z-nav);
   padding: var(--spacing-sm) 0;
-  transition: all var(--transition-fast);
-}
-
-.nav-scrolled {
-  background: var(--bg-nav-scrolled);
-  transition: all var(--transition-fast);
 }
 
 .nav-container {
@@ -117,7 +111,8 @@ nav {
   top: 100%;
   left: 0;
   right: 0;
-  background: var(--bg-nav-scrolled);
+  width: calc(100% + var(--mobile-menu-scrollbar-gutter, 0px));
+  background: var(--bg-nav);
   backdrop-filter: blur(10px);
   padding: var(--spacing-lg) 0;
   transform: translateY(-100%);
@@ -165,16 +160,42 @@ nav {
   background: color-mix(in oklch, var(--primary-accent) 10%, transparent);
 }
 
-/* Mobile Menu Overlay */
+/* Mobile Menu Overlay - portaled to document.body; z-index stays under nav chrome */
 .mobile-menu-overlay {
   display: none;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
+  width: calc(100% + var(--mobile-menu-scrollbar-gutter, 0px));
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 999;
+  /* Block pointer/wheel reach-through to page content while open */
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+/* Forced-colors: closed / focused / open hamburger remain distinguishable */
+@media (forced-colors: active) {
+  .mobile-menu-toggle span {
+    background: ButtonText;
+    forced-color-adjust: none;
+  }
+
+  .mobile-menu-toggle:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .mobile-menu-toggle.active span {
+    background: Highlight;
+  }
+
+  .mobile-menu-overlay {
+    background: Canvas;
+    opacity: 0.5;
+  }
 }
 
 /* Responsive Styles */

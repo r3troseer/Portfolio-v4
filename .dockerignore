@@ -1,0 +1,13 @@
+# Docker build context = repo root (see apps/api/Dockerfile). Keep it lean
+# and keep local-only artifacts out of the image.
+.git
+.github
+.notes
+tools
+terminals
+**/node_modules
+apps/web/dist
+apps/api/.venv
+apps/api/var
+**/.env
+**/__pycache__

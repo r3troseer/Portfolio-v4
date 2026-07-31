@@ -3,30 +3,142 @@
   "visibility": "public",
   "status": "live",
   "sensitivity": "safe",
-  "repo": { "visibility": "private" },
+  "repo": {
+    "visibility": "private"
+  },
   "card": {
     "title": "MealSync",
     "subtitle": "AI-Assisted Household Meal Planning Platform",
     "summary": "AI-assisted household meal planning platform. Collaborative meal scheduling, recipe management, and automated grocery lists powered by Google Gemini. 77 automated tests, 93% AI service coverage. Built with FastAPI, React, and PostgreSQL.",
-    "technologies": ["FastAPI", "React", "TypeScript", "Google Gemini AI", "PostgreSQL", "Pytest"]
+    "technologies": [
+      "FastAPI",
+      "React",
+      "TypeScript",
+      "Google Gemini AI",
+      "PostgreSQL",
+      "Pytest"
+    ],
+    "listTech": [
+      "FastAPI",
+      "Google Gemini",
+      "PostgreSQL"
+    ]
   },
   "detail": {
+    "focus": "AI Integration · Full-Stack",
     "overview": "MealSync is a collaborative web app for household meal planning and grocery shopping. It uses Google Gemini for recipe generation, with shared meal scheduling and automated grocery lists. A team project for CN7021 Advanced Software Engineering, built with FastAPI and React, with a layered backend and 93% AI service test coverage.",
     "links": [
-      { "icon": "github", "text": "Backend Repository", "href": "" },
-      { "icon": "github", "text": "Frontend Repository", "href": "" }
+      {
+        "icon": "github",
+        "text": "Backend Repository",
+        "href": ""
+      },
+      {
+        "icon": "github",
+        "text": "Frontend Repository",
+        "href": ""
+      }
     ],
-    "badge": { "text": "Live", "type": "live", "size": "small" },
+    "badge": {
+      "text": "Live",
+      "type": "live",
+      "size": "small"
+    },
     "metrics": [
-      { "number": "13,492", "label": "Lines of Code" },
-      { "number": "93%", "label": "AI Service Test Coverage" },
-      { "number": "77", "label": "Automated Tests" },
-      { "number": "~24", "label": "Person-Months (COCOMO)" }
+      {
+        "number": "13,492",
+        "label": "Lines of Code"
+      },
+      {
+        "number": "93%",
+        "label": "AI Service Test Coverage"
+      },
+      {
+        "number": "77",
+        "label": "Automated Tests"
+      },
+      {
+        "number": "~24",
+        "label": "Person-Months (COCOMO)"
+      }
     ],
     "contentCards": [
       {
-        "markdown": "### Architecture\n\n- **4-layer backend**: API (FastAPI + Pydantic), Service, Repository (7 domain repos), Model (8 entities with UUIDs)\n- **SQLAlchemy + Alembic** for schema management and migrations\n- **JWT + bcrypt** for authentication\n- **Google Gemini AI** with structured prompting and response validation\n- **Pytest**: 77 tests, 93% AI service coverage, all external calls mocked\n- **GitHub Actions** CI/CD with Codecov integration",
         "type": "Architecture",
+        "title": "Architecture",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "text": "4-layer backend",
+                    "bold": true
+                  },
+                  {
+                    "text": ": API (FastAPI + Pydantic), Service, Repository (7 domain repos), Model (8 entities with UUIDs)"
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "SQLAlchemy + Alembic",
+                    "bold": true
+                  },
+                  {
+                    "text": " for schema management and migrations"
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "JWT + bcrypt",
+                    "bold": true
+                  },
+                  {
+                    "text": " for authentication"
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Google Gemini AI",
+                    "bold": true
+                  },
+                  {
+                    "text": " with structured prompting and response validation"
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Pytest",
+                    "bold": true
+                  },
+                  {
+                    "text": ": 77 tests, 93% AI service coverage, all external calls mocked"
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "GitHub Actions",
+                    "bold": true
+                  },
+                  {
+                    "text": " CI/CD with Codecov integration"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
         "tags": [
           "FastAPI",
           "React",
@@ -42,8 +154,70 @@
         ]
       },
       {
-        "markdown": "### Features\n\n**Households**: invite-code based multi-user workspaces with role-based access (admin/member).\n\n**Recipes & Pantry**: full recipe management with ingredient categorisation, search, and pantry tracking across 15 categories.\n\n**Meal Planning**: calendar-based scheduling with recipe linking, serving adjustments, and per-member assignments. Bulk creation via atomic transactions for AI-generated plans.\n\n**AI (Google Gemini)**: generates recipes and weekly meal plans from household preferences. Degrades gracefully when the service is unavailable.\n\n**Grocery Lists**: auto-generated from planned meals with item categorisation and purchase tracking.",
         "type": "Features",
+        "title": "Features",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "text": "Households",
+                "bold": true
+              },
+              {
+                "text": ": invite-code based multi-user workspaces with role-based access (admin/member)."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "text": "Recipes & Pantry",
+                "bold": true
+              },
+              {
+                "text": ": full recipe management with ingredient categorisation, search, and pantry tracking across 15 categories."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "text": "Meal Planning",
+                "bold": true
+              },
+              {
+                "text": ": calendar-based scheduling with recipe linking, serving adjustments, and per-member assignments. Bulk creation via atomic transactions for AI-generated plans."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "text": "AI (Google Gemini)",
+                "bold": true
+              },
+              {
+                "text": ": generates recipes and weekly meal plans from household preferences. Degrades gracefully when the service is unavailable."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "text": "Grocery Lists",
+                "bold": true
+              },
+              {
+                "text": ": auto-generated from planned meals with item categorisation and purchase tracking."
+              }
+            ]
+          }
+        ],
         "tags": [
           "AI Meal Planning",
           "Recipe Management",
@@ -105,8 +279,16 @@
   },
   "ai": {
     "publicSummary": "AI-assisted household meal planning platform with collaborative scheduling, recipe management, and automated grocery lists powered by Google Gemini. 77 automated tests and 93% AI service coverage; built with FastAPI, React, and PostgreSQL.",
-    "roleLenses": ["backend", "ai-nlp", "fullstack"],
-    "evidenceSkills": ["FastAPI", "Testing", "AI Integration"],
+    "roleLenses": [
+      "backend",
+      "ai-nlp",
+      "fullstack"
+    ],
+    "evidenceSkills": [
+      "FastAPI",
+      "Testing",
+      "AI Integration"
+    ],
     "safeTalkingPoints": [],
     "sensitivity": "safe"
   }

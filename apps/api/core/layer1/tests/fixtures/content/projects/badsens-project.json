@@ -1,0 +1,15 @@
+{
+  "id": "badsens-project",
+  "visibility": "public",
+  "status": "live",
+  "sensitivity": "spicy",
+  "card": { "title": "Bad Sensitivity", "summary": "BADSENS_MARKER", "technologies": [] },
+  "detail": {},
+  "ai": {
+    "publicSummary": "BADSENS_MARKER unknown sensitivity must fail closed.",
+    "roleLenses": [],
+    "evidenceSkills": [],
+    "safeTalkingPoints": [],
+    "sensitivity": "safe"
+  }
+}

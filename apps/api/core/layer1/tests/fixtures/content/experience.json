@@ -1,0 +1,13 @@
+{
+  "visibility": "public",
+  "sensitivity": "safe",
+  "roles": [
+    {
+      "title": "Fixture Engineer",
+      "company": "Fixture Co",
+      "date": "2020 - 2021",
+      "location": "Nowhere",
+      "responsibilities": [{ "t": "Did fixture things", "m": "x2" }]
+    }
+  ]
+}

@@ -3,28 +3,130 @@
   "visibility": "public",
   "status": "live",
   "sensitivity": "safe",
-  "repo": { "visibility": "public" },
+  "repo": {
+    "visibility": "public"
+  },
   "card": {
     "title": "TicketSage",
     "subtitle": "Movie Ticket Booking Platform",
-    "summary": "Django-based movie booking system with TMDB API integration, user authentication, and automated showtime scheduling for cinema management.",
-    "technologies": ["Django", "TMDB API", "Authentication", "PythonAnywhere"]
+    "summary": "Django movie booking platform (TMDB, auth, showtimes) - group software engineering course competition winner at University of Ilorin; backend-led.",
+    "technologies": [
+      "Django",
+      "TMDB API",
+      "Authentication",
+      "PythonAnywhere"
+    ],
+    "listTech": [
+      "Django",
+      "TMDB API",
+      "Auth"
+    ]
   },
   "detail": {
+    "focus": "Django · Booking Platform",
     "overview": "TicketSage is a full-stack movie booking system built with Django REST Framework (backend) and Next.js (frontend). It integrates with the TMDB API to fetch movie data, allows users to browse listings, select seats, and book tickets, while providing an admin dashboard for cinema and booking management. My main role focused on building the backend architecture, APIs, and booking logic.",
     "links": [
-      { "icon": "github", "text": "View Code", "href": "https://github.com/r3troseer/TicketSage" }
+      {
+        "icon": "github",
+        "text": "View Code",
+        "href": "https://github.com/r3troseer/TicketSage"
+      }
     ],
     "metrics": [
-      { "number": "100%", "label": "Automated showtime scheduling" },
-      { "number": "200ms", "label": "Avg API response time" },
-      { "number": "500+", "label": "Test bookings processed" },
-      { "number": "5+", "label": "Integrated APIs (TMDB, auth, booking)" }
+      {
+        "number": "100%",
+        "label": "Automated showtime scheduling"
+      },
+      {
+        "number": "200ms",
+        "label": "Avg API response time"
+      },
+      {
+        "number": "500+",
+        "label": "Test bookings processed"
+      },
+      {
+        "number": "5+",
+        "label": "Integrated APIs (TMDB, auth, booking)"
+      }
     ],
     "contentCards": [
       {
-        "markdown": "### System Architecture & Backend Design\n- **Django + Django REST Framework** powering RESTful APIs for movies, users, bookings, and payments.\n- **TMDB API integration** for real-time movie data.\n- **Auto Scheduling:** Custom Django management commands to refresh movie lists and generate showtimes automatically.\n- **Authentication:** Secure sign-up/login with dj-rest-auth, token-based authentication, and CSRF protection.\n- **Database:** SQLite for development, with models for movies, cinemas, showtimes, and bookings.\n- **Deployment:** Backend hosted on PythonAnywhere, frontend deployed on Vercel.",
         "type": "Architecture",
+        "title": "System Architecture & Backend Design",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "text": "Django + Django REST Framework",
+                    "bold": true
+                  },
+                  {
+                    "text": " powering RESTful APIs for movies, users, bookings, and payments."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "TMDB API integration",
+                    "bold": true
+                  },
+                  {
+                    "text": " for real-time movie data."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Auto Scheduling:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Custom Django management commands to refresh movie lists and generate showtimes automatically."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Authentication:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Secure sign-up/login with dj-rest-auth, token-based authentication, and CSRF protection."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Database:",
+                    "bold": true
+                  },
+                  {
+                    "text": " SQLite for development, with models for movies, cinemas, showtimes, and bookings."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Deployment:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Backend hosted on PythonAnywhere, frontend deployed on Vercel."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
         "tags": [
           "Django",
           "DRF",
@@ -35,8 +137,81 @@
         ]
       },
       {
-        "markdown": "### Key Features & Results\n- **End-User Flow:** Browse movies, view details, select seats, book tickets, and manage profile.\n- **Admin Tools:** Manage cinemas, movies, showtimes, users, and bookings from a secure dashboard.\n- **Frontend:** Built with Next.js and Zustand for state management; communicates with Django APIs.\n- **Security:** Enforced HTTPS, password hashing, and token-based authentication.\n- **Testing:** Unit, integration, and UAT all passed successfully.\n- **Results:** Smooth booking process; user feedback praised ease of use but highlighted improvements needed in seat availability visibility and faster load times.",
         "type": "Features",
+        "title": "Key Features & Results",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "text": "End-User Flow:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Browse movies, view details, select seats, book tickets, and manage profile."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Admin Tools:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Manage cinemas, movies, showtimes, users, and bookings from a secure dashboard."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Frontend:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Built with Next.js and Zustand for state management; communicates with Django APIs."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Security:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Enforced HTTPS, password hashing, and token-based authentication."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Testing:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Unit, integration, and UAT all passed successfully."
+                  }
+                ]
+              },
+              {
+                "spans": [
+                  {
+                    "text": "Results:",
+                    "bold": true
+                  },
+                  {
+                    "text": " Smooth booking process; user feedback praised ease of use but highlighted improvements needed in seat availability visibility and faster load times."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
         "tags": [
           "Next.js",
           "Zustand",
@@ -107,9 +282,17 @@
     ]
   },
   "ai": {
-    "publicSummary": "Full-stack movie ticket booking platform with a Django REST Framework backend and Next.js frontend, integrating the TMDB API, automated showtime scheduling, and transaction-safe seat booking.",
-    "roleLenses": ["backend", "python-django", "fullstack"],
-    "evidenceSkills": ["Django", "REST APIs", "TMDB Integration"],
+    "publicSummary": "Full-stack movie ticket booking platform (Django REST + Next.js, TMDB, transaction-safe seats). Won University of Ilorin software engineering course competition; led backend APIs and booking logic.",
+    "roleLenses": [
+      "backend",
+      "python-django",
+      "fullstack"
+    ],
+    "evidenceSkills": [
+      "Django",
+      "REST APIs",
+      "TMDB Integration"
+    ],
     "safeTalkingPoints": [],
     "sensitivity": "safe"
   }

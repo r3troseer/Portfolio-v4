@@ -1,0 +1,6 @@
+{
+  "citationEvidenceIdsSubset": {
+    "description": "After JSON Schema validation succeeds, every citations[].evidence_id must equal some evidence[].id. Vacuous when citations is empty. Enforced identically by apps/web and apps/api validators; not expressible portably as pure JSON Schema.",
+    "appliesTo": "all served answer responses"
+  }
+}

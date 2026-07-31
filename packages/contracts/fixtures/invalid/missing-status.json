@@ -1,0 +1,12 @@
+{
+  "answer": "Missing status field.",
+  "citations": [],
+  "evidence": [],
+  "meta": {
+    "retrieval_count": 0,
+    "initial_count": 0,
+    "selected_count": 0,
+    "reranker": "deterministic_rerank_v1",
+    "index_source": "built"
+  }
+}

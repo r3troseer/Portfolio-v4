@@ -1,7 +1,37 @@
 {
+  "visibility": "public",
+  "sensitivity": "safe",
   "name": "Pius Agboola",
+  "role": "Backend & Data Engineer · Applied AI / NLP",
+  "headline": "I build evidence-based AI: systems that turn messy inputs into verifiable workflows.",
+  "headlineHighlight": "evidence-based AI",
   "tagline": "Backend engineer with a track record in fintech and AI systems. I care about correctness and performance, not just shipping.",
+  "intro": "Applied AI with the architecture, evidence, and testing built around it, not just a prompt behind a chat box.",
   "location": "London, United Kingdom",
+  "availability": "Available for roles · London",
+  "facts": [
+    {
+      "icon": "map-pin",
+      "label": "Based in",
+      "value": "London, United Kingdom"
+    },
+    {
+      "icon": "graduation-cap",
+      "label": "Education",
+      "value": "MSc Computer Science, University of East London (Distinction-level)"
+    },
+    {
+      "icon": "layers",
+      "label": "Focus",
+      "value": "Evidence-based AI · NLP · Data Pipelines"
+    },
+    {
+      "icon": "code",
+      "label": "Core stack",
+      "value": "Python · C# · Django · FastAPI · .NET 8"
+    }
+  ],
+  "bioShort": "I'm a London-based backend engineer finishing an MSc in Computer Science (distinction-level) at the University of East London. I've built fintech infrastructure at Touch and Pay (YC W22), multi-agent AI (UKFinnovator, Honourable Mention), and NLP pipelines with rule-based explainability.",
   "bio": [
     "I'm a backend engineer based in London, currently completing an MSc in Computer Science at the University of East London, with distinction-level results so far across Level 7 modules. I build systems in Python (Django, FastAPI) and C# (ASP.NET, .NET 8), with a focus on clean architecture, performance, and correctness.",
     "Professionally, I've worked at Touch and Pay Technologies (YC W22) building fintech infrastructure in ASP.NET; improving application performance by 20% and refactoring core logic for 50% efficiency gains. Before that at Reymage, I designed REST APIs handling 100k concurrent requests and maintained 95% test coverage across production Django services.",

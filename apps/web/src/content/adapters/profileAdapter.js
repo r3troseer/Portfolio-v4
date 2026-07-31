@@ -13,10 +13,18 @@ import links from "../public/links.json";
 
 export const getProfile = () => profile;
 
-export const getSkills = () => skills;
+// Capabilities model for the Profile bento: a "niche" focus tile plus categorized
+// capability tiles (languages / frameworks / data / practices).
+export const getCapabilities = () => ({
+  niche: skills.niche,
+  categories: skills.categories,
+});
 
 export const getExperience = () => experience;
 
 export const getEducation = () => education;
 
-export const getLinks = () => links;
+export const getLinks = () => ({
+  ...links,
+  profiles: links.profiles.filter((profile) => profile.showInUi !== false),
+});
