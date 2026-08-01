@@ -720,6 +720,7 @@ export const useDockFlight = (
       mOrigin = { left: from.restLeft, top: from.restTop };
       fly.style.visibility = "visible";
       fly.style.position = "fixed";
+      fly.style.bottom = "";
       fly.style.left = from.restLeft + "px";
       fly.style.top = from.restTop + "px";
       fly.style.willChange = "transform";
@@ -735,6 +736,15 @@ export const useDockFlight = (
         ico.style.height = "17px";
       }
       mSlotTo(committed === 1);
+    };
+
+    // Chrome's mobile controls change the visual viewport while scrolling.
+    // Use its live bottom edge during flight instead of the cached layout height.
+    const mDockTop = () => {
+      const viewport = window.visualViewport;
+      const viewportTop = viewport ? viewport.offsetTop : 0;
+      const viewportHeight = viewport ? viewport.height : window.innerHeight;
+      return viewportTop + viewportHeight - MOBILE_EDGE - FAB;
     };
 
     const mFlightFrame = (p) => {
@@ -761,7 +771,7 @@ export const useDockFlight = (
       const eOut = 1 - Math.pow(1 - p, 3);
       const eInOut = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
       const dockLeft = MOBILE_EDGE;
-      const dockTop = vh - MOBILE_EDGE - FAB;
+      const dockTop = mDockTop();
       // Target position in viewport space (tracks the live anchor), expressed
       // as a translation from the fixed origin the pill was parked at.
       const dx = from.restLeft + (dockLeft - from.restLeft) * eOut - origin.left;
@@ -798,6 +808,7 @@ export const useDockFlight = (
       fly.style.borderRadius = "14px";
       fly.style.paddingLeft = "20px";
       fly.style.paddingRight = "20px";
+      fly.style.bottom = "";
       mSlotTo(false);
       mMeasure();
       const at = mMeas || { restDocLeft: MOBILE_EDGE, restDocTop: 0 };
@@ -858,7 +869,8 @@ export const useDockFlight = (
       fly.style.willChange = "";
       fly.style.position = "fixed";
       fly.style.left = MOBILE_EDGE + "px";
-      fly.style.top = vh - MOBILE_EDGE - FAB + "px";
+      fly.style.top = "auto";
+      fly.style.bottom = MOBILE_EDGE + "px";
       fly.style.width = FAB + "px";
       fly.style.height = FAB + "px";
       fly.style.borderRadius = "999px";
