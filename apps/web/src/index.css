@@ -139,6 +139,11 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Keep the browser canvas dark if a mobile viewport exposes an unpainted edge. */
+  background-color: var(--slate-900);
+}
+
 body {
   font-family: var(--font-family);
   /* Fixed attachment keeps the gradient viewport-anchored (steadier, less banding). */
@@ -146,6 +151,14 @@ body {
   color: var(--text-primary);
   line-height: var(--line-height-base);
   overflow-x: hidden;
+}
+
+/* Mobile browser controls resize the visible viewport while scrolling. Avoid
+   background-attachment: fixed there so newly exposed canvas is painted. */
+@media (hover: none) and (pointer: coarse) {
+  body {
+    background-attachment: scroll;
+  }
 }
 
 /* Anti-banding: a faint fixed fractal-noise layer dithers the dark gradient so it
