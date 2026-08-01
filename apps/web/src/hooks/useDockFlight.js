@@ -114,6 +114,13 @@ export const useDockFlight = (
     let vw = window.innerWidth;
     let vh = window.innerHeight;
     let mobile = vw <= 600;
+    const visualViewport = window.visualViewport;
+    let visualViewportTop = visualViewport ? visualViewport.offsetTop : 0;
+    let visualViewportHeight = visualViewport ? visualViewport.height : vh;
+    const syncVisualViewport = () => {
+      visualViewportTop = visualViewport ? visualViewport.offsetTop : 0;
+      visualViewportHeight = visualViewport ? visualViewport.height : vh;
+    };
 
     // Cached rest anchor + measurements (desktop path; re-measured at rest).
     let rest = { left: 48, top: 560, h: 48 };
@@ -251,6 +258,7 @@ export const useDockFlight = (
     const onResize = () => {
       vw = window.innerWidth;
       vh = window.innerHeight;
+      syncVisualViewport();
       const wasMobile = mobile;
       mobile = vw <= 600;
       // Invalidate cached geometry; the next frame re-measures and repaints.
@@ -284,6 +292,12 @@ export const useDockFlight = (
     };
     window.addEventListener("resize", onResize);
     window.addEventListener("orientationchange", onResize);
+    visualViewport?.addEventListener("resize", syncVisualViewport, {
+      passive: true,
+    });
+    visualViewport?.addEventListener("scroll", syncVisualViewport, {
+      passive: true,
+    });
 
     // Late layout movers re-arm the sampling so the rest glue corrects, then
     // idles again: images finishing (load), web fonts swapping in, and - the
@@ -739,12 +753,10 @@ export const useDockFlight = (
     };
 
     // Chrome's mobile controls change the visual viewport while scrolling.
-    // Use its live bottom edge during flight instead of the cached layout height.
+    // Viewport events keep this cache current without adding reads to each
+    // Magnetic animation frame.
     const mDockTop = () => {
-      const viewport = window.visualViewport;
-      const viewportTop = viewport ? viewport.offsetTop : 0;
-      const viewportHeight = viewport ? viewport.height : window.innerHeight;
-      return viewportTop + viewportHeight - MOBILE_EDGE - FAB;
+      return visualViewportTop + visualViewportHeight - MOBILE_EDGE - FAB;
     };
 
     const mFlightFrame = (p) => {
@@ -1009,6 +1021,8 @@ export const useDockFlight = (
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("orientationchange", onResize);
+      visualViewport?.removeEventListener("resize", syncVisualViewport);
+      visualViewport?.removeEventListener("scroll", syncVisualViewport);
       window.removeEventListener("load", rearmRestGlue);
       document.removeEventListener("animationstart", rearmRestGlue, true);
       document.removeEventListener("animationend", rearmRestGlue, true);
